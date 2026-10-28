@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 2,
+  "class": {
+    "id": "0b6f0e7a-6f0e-4f6f-9a4a-000000000001",
+    "name": "Grupo A",
+    "teacherName": "Docente de ejemplo"
+  },
+  "lessons": [
+    {
+      "lessonId": "l1.2",
+      "code": "1.2",
+      "extras": [
+        {
+          "id": "0b6f0e7a-6f0e-4f6f-9a4a-000000000101",
+          "type": "lesson",
+          "content": {
+            "title": "Contexto de la clase",
+            "blocks": [
+              {
+                "type": "p",
+                "text": "Este bloque solo lo ven los alumnos de la clase."
+              }
+            ]
+          }
+        },
+        {
+          "id": "0b6f0e7a-6f0e-4f6f-9a4a-000000000102",
+          "type": "exercise",
+          "content": {
+            "type": "order",
+            "prompt": "Ordena los pasos del proceso",
+            "instructions": "",
+            "correctOrder": [
+              "Requisitos",
+              "Dise?o",
+              "Pruebas"
+            ],
+            "config": {},
+            "explanation": "",
+            "example": null
+          }
+        }
+      ]
+    },
+    {
+      "lessonId": "l1.3",
+      "code": "1.3",
+      "extras": [
+        {
+          "id": "0b6f0e7a-6f0e-4f6f-9a4a-000000000103",
+          "type": "example",
+          "content": {
+            "type": "match",
+            "title": "Conceptos y necesidades",
+            "prompt": "Relaciona cada concepto",
+            "config": {
+              "pairs": [
+                {
+                  "left": "Requisito",
+                  "right": "Necesidad del cliente"
+                },
+                {
+                  "left": "Dise?o",
+                  "right": "Soluci?n propuesta"
+                }
+              ]
+            },
+            "steps": [
+              {
+                "text": "Leer el requisito",
+                "why": "Para identificar al cliente"
+              }
+            ],
+            "hints": [],
+            "explanation": ""
+          }
+        }
+      ]
+    }
+  ],
+  "version": 1,
+  "hash": "360937fcaa43ffad24d19a87c886aba248cac0719cbaf9d89a1415d2491038f9",
+  "publishedAt": "2026-10-27T00:00:00.000Z"
+}

@@ -5,8 +5,10 @@ const nextConfig: NextConfig = {
   experimental: {
     agentFeedback: true,
   },
-  cacheComponents: true,
-  partialPrefetching: true,
+  // Panel autenticado y 100% dinámico: PPR no aporta y obligaría a Suspense en
+  // cada lectura de cookies. Se usa el modelo de render clásico.
+  cacheComponents: false,
+  serverExternalPackages: ["postgres"],
   turbopack: {
     rules: {
       "*.css": {

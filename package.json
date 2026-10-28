@@ -6,10 +6,16 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "node --import tsx --test lib/content.test.ts lib/content/publish.test.ts lib/content/validate.test.ts lib/content/releases.test.ts lib/content/classes.test.ts",
+    "db:apply": "node --env-file=.env.local --import tsx scripts/apply-schema.ts",
+    "seed:admin": "node --env-file=.env.local --import tsx scripts/seed-admin.ts",
+    "import:base": "node --env-file=.env.local --import tsx scripts/import-base.ts",
+    "export:release": "node --env-file=.env.local --import tsx scripts/export-release.ts"
   },
   "dependencies": {
     "next": "16.4.3",
+    "postgres": "^3.4.9",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },
@@ -21,6 +27,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.4.3",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   }
 }

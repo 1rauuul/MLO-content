@@ -1,0 +1,4088 @@
+{
+  "schemaVersion": 2,
+  "title": "Ingeniería de Software",
+  "units": [
+    {
+      "content_id": "u1",
+      "number": 1,
+      "title": "Introducción",
+      "description": "Software de calidad más allá de programar.",
+      "difficulty": "Fundamental",
+      "color": "blue",
+      "position": 0
+    },
+    {
+      "content_id": "u2",
+      "number": 2,
+      "title": "Procesos de software",
+      "description": "Modelos y actividades del proceso de desarrollo.",
+      "difficulty": "Intermedio",
+      "color": "violet",
+      "position": 1
+    },
+    {
+      "content_id": "u3",
+      "number": 3,
+      "title": "Desarrollo ágil de software",
+      "description": "Métodos ágiles, XP y gestión de proyectos.",
+      "difficulty": "Intermedio",
+      "color": "green",
+      "position": 2
+    },
+    {
+      "content_id": "u4",
+      "number": 4,
+      "title": "Ingeniería de requerimientos",
+      "description": "Cómo descubrir, especificar y validar requerimientos.",
+      "difficulty": "Avanzado",
+      "color": "blue",
+      "position": 3
+    },
+    {
+      "content_id": "u5",
+      "number": 5,
+      "title": "Modelado del sistema",
+      "description": "Modelos de contexto, interacción, estructura y comportamiento.",
+      "difficulty": "Avanzado",
+      "color": "violet",
+      "position": 4
+    }
+  ],
+  "lessons": [
+    {
+      "content_id": "l1.1",
+      "unit_content_id": "u1",
+      "code": "1.1",
+      "title": "Introducción a la ingeniería de software",
+      "eyebrow": "Módulo 01 · Lección 01",
+      "body": "La ingeniería de software es la disciplina de ingeniería que se ocupa de todos los aspectos del desarrollo de sistemas de software, desde la especificación inicial hasta el mantenimiento posterior a la entrega.",
+      "code_sample": "",
+      "context_title": "De programar a ingenierizar",
+      "context_body": "Un programa pequeño puede escribirse sin proceso; un sistema usado por miles de personas exige requisitos, diseño, pruebas y mantenimiento.",
+      "synthesis": [
+        "La ingeniería de software cubre todo el ciclo de vida, no solo programar.",
+        "Un software de calidad es mantenible, confiable y cumple los requisitos acordados.",
+        "La disciplina aplica procesos, estándares y trabajo en equipo."
+      ],
+      "content": [
+        {
+          "type": "p",
+          "text": "En la actualidad, el software ocupa un lugar central en la vida cotidiana. Los sistemas informáticos gestionan la infraestructura nacional, los servicios públicos y la mayoría de los dispositivos eléctricos mediante computadoras y software de control. Sectores como la producción, la distribución industrial y el sistema financiero están completamente informatizados. Asimismo, el sector del entretenimiento, que incluye la música, los videojuegos, el cine y la televisión, depende en gran medida del software."
+        },
+        {
+          "type": "p",
+          "text": "Por lo tanto, la ingeniería de software resulta fundamental para el funcionamiento de las sociedades tanto a nivel nacional como internacional. Los sistemas de software son abstractos e intangibles, y no dependen de materiales, leyes físicas ni procesos de fabricación. Esta característica proporciona mayor flexibilidad a la ingeniería de software, ya que no existen límites naturales para su desarrollo. No obstante, la ausencia de restricciones físicas puede incrementar la complejidad de los sistemas, dificultar su comprensión y aumentar los costos de modificación."
+        },
+        {
+          "type": "p",
+          "text": "Los sistemas de software abarcan desde simples sistemas embebidos hasta complejos sistemas de información a escala global. La búsqueda de notaciones, métodos o técnicas universales para la ingeniería de software es inapropiada, ya que cada tipo de software requiere enfoques específicos. Por ejemplo, el desarrollo de un sistema organizacional de información difiere considerablemente del desarrollo de un controlador para un instrumento científico. Además, ninguno de estos sistemas comparte muchas características con un videojuego de alto rendimiento gráfico. Aunque todas estas aplicaciones requieren ingeniería de software, no emplean las mismas técnicas."
+        },
+        {
+          "type": "p",
+          "text": "Numerosos casos de proyectos de software fallidos y de \"fallas de software\" continúan reportándose. En consecuencia, la ingeniería de software suele considerarse insuficiente para satisfacer las demandas del desarrollo contemporáneo. No obstante, muchas de estas fallas pueden atribuirse principalmente a dos factores:"
+        },
+        {
+          "type": "numbers",
+          "items": [
+            "Demandas crecientes: El progreso en la ingeniería de software ha permitido construir sistemas más grandes y complejos, lo que genera demandas en constante evolución. Los sistemas requieren desarrollarse y desplegarse con mayor rapidez, ser más robustos e incorporar capacidades antes inalcanzables. Los métodos actuales resultan insuficientes para estos desafíos, por lo que es fundamental desarrollar nuevas técnicas que respondan a las demandas emergentes.",
+            "Expectativas bajas: El desarrollo de software sin aplicar métodos formales de ingeniería de software resulta relativamente sencillo. Muchas empresas adoptan la ingeniería de software de manera gradual, pero no la integran en sus procesos cotidianos. Como consecuencia, el software producido suele ser más costoso y menos confiable de lo previsto. Para abordar este problema, es necesaria una mejora sustancial en la educación y capacitación en ingeniería de software."
+          ]
+        },
+        {
+          "type": "p",
+          "text": "Los logros alcanzados por la ingeniería de software son significativos. Aunque persisten desafíos en el desarrollo de software complejo, sin esta disciplina no habrían sido posibles la exploración espacial, el desarrollo de Internet ni las telecomunicaciones modernas. Asimismo, los medios de transporte resultarían considerablemente más peligrosos y costosos. La ingeniería de software ha realizado contribuciones sustanciales y se prevé que su impacto en el siglo XXI será aún mayor."
+        }
+      ],
+      "position": 0
+    },
+    {
+      "content_id": "l1.2",
+      "unit_content_id": "u1",
+      "code": "1.2",
+      "title": "Desarrollo de software profesional",
+      "eyebrow": "Módulo 01 · Lección 02",
+      "body": "El desarrollo profesional se organiza en actividades: especificación, diseño, implementación, validación y mantenimiento. Documentar, usar control de versiones y registrar incidencias hace el trabajo trazable.",
+      "code_sample": "",
+      "context_title": "Trabajo coordinado y trazable",
+      "context_body": "Requisitos, versiones y pruebas dejan evidencia de qué se decidió y cómo se validó.",
+      "synthesis": [
+        "Especificar define qué debe hacer el sistema.",
+        "La validación confirma que se cumplen los requisitos.",
+        "El mantenimiento continúa después de la entrega."
+      ],
+      "content": [
+        {
+          "type": "p",
+          "text": "El desarrollo de software profesional generalmente se realiza en equipo y requiere mantenimiento y modificaciones a lo largo de su ciclo de vida. La ingeniería de software tiene como objetivo respaldar este proceso mediante técnicas que facilitan la especificación, el diseño y la evolución de los sistemas. A continuación, se plantean preguntas destinadas a ofrecer una visión integral de la ingeniería de software:"
+        },
+        {
+          "type": "table",
+          "header": [
+            "Pregunta",
+            "Respuesta"
+          ],
+          "rows": [
+            [
+              "¿Qué es software?",
+              "Programas de cómputo y documentación asociada. Los productos de software se desarrollan para un cliente en particular o para un mercado en general."
+            ],
+            [
+              "¿Cuáles son los atributos del buen software?",
+              "El buen software debe entregar al usuario la funcionalidad y el desempeño requerido, y debe ser sustentable, confiable y utilizable."
+            ],
+            [
+              "¿Qué es ingeniería de software?",
+              "La ingeniería de software es una disciplina de la ingeniería que se interesa por todos los aspectos de la producción de software."
+            ],
+            [
+              "¿Cuáles son las actividades fundamentales de la ingeniería de software?",
+              "Especificación, desarrollo, validación y evolución del software."
+            ],
+            [
+              "¿Cuál es la diferencia entre ingeniería de software y ciencias de la computación?",
+              "Las ciencias de la computación se enfocan en teoría y fundamentos; mientras la ingeniería de software se enfoca en el sentido práctico del desarrollo y en la distribución de software."
+            ],
+            [
+              "¿Cuál es la diferencia entre ingeniería de software e ingeniería de sistemas?",
+              "La ingeniería de sistemas se interesa por todos los aspectos del desarrollo de sistemas basados en computadoras, incluidos hardware, software e ingeniería de procesos. La ingeniería de software es parte de este proceso más general."
+            ],
+            [
+              "¿Cuáles son los principales retos que enfrenta la ingeniería de software?",
+              "Se enfrentan con una diversidad creciente, demandas por tiempos de distribución limitados y desarrollo de software confiable."
+            ],
+            [
+              "¿Cuáles son los costos de la ingeniería de software?",
+              "Aproximadamente 60% de los costos del software son de desarrollo, y 40% de prueba. Para el software elaborado específicamente, los costos de evolución superan con frecuencia los costos de desarrollo."
+            ],
+            [
+              "¿Cuáles son los mejores métodos y técnicas de la ingeniería de software?",
+              "Aun cuando todos los proyectos de software deben gestionarse y desarrollarse de manera profesional, existen diferentes técnicas que son adecuadas para distintos tipos de sistema. Por ejemplo, los juegos siempre deben diseñarse usando una serie de prototipos, mientras que los sistemas críticos de control de seguridad requieren de una especificación completa y analizable para su desarrollo. Por lo tanto, no puede decirse que un método sea mejor que otro."
+            ],
+            [
+              "¿Qué diferencias ha marcado la Web a la ingeniería de software?",
+              "La Web ha llevado a la disponibilidad de servicios de software y a la posibilidad de desarrollar sistemas basados en servicios distribuidos ampliamente. El desarrollo de sistemas basados en Web ha conducido a importantes avances en lenguajes de programación y reutilización de software."
+            ]
+          ]
+        },
+        {
+          "type": "p",
+          "text": "La ingeniería de software abarca no solo los programas, sino también la documentación asociada y los datos de configuración necesarios para su funcionamiento. Un sistema de software profesional generalmente está compuesto por varios programas independientes, archivos de configuración para su instalación, documentación del sistema, manuales de usuario y sitios web que facilitan el acceso a la información del producto. Esta complejidad distingue el desarrollo profesional del aficionado. En los programas personales, por lo general, no se requieren guías ni documentación adicional, ya que solo el autor los utiliza. Por el contrario, si crea software que otros usarán y que otros ingenieros modificarán, debe incluir documentación complementaria junto con el código fuente."
+        },
+        {
+          "type": "p",
+          "text": "El desarrollo de productos de software profesional se clasifica en dos tipos principales:"
+        },
+        {
+          "type": "bullets",
+          "items": [
+            "Los productos genéricos consisten en sistemas independientes desarrollados por una organización y comercializados en el mercado abierto para cualquier cliente interesado, como software para PC, bases de datos, procesadores de texto, paquetes de dibujo, herramientas de gestión de proyectos y aplicaciones verticales diseñadas para un propósito específico, como sistemas de información de librería, sistemas de contabilidad o sistemas de registro dental.",
+            "Los productos personalizados, o a medida, son sistemas diseñados para un cliente específico. Un contratista de software desarrolla el sistema conforme a los requisitos específicos del cliente. Ejemplos de este tipo de software incluyen sistemas de control de dispositivos electrónicos, sistemas diseñados para apoyar procesos empresariales y sistemas de control de tráfico aéreo."
+          ]
+        },
+        {
+          "type": "p",
+          "text": "Una diferencia clave entre estos tipos de software es que, en los productos genéricos, la organización desarrolladora controla la especificación, mientras que, en los productos personalizados, la organización adquirente suele definirla y gestionarla. Sin embargo, esta distinción es cada vez menos clara, ya que muchos sistemas se basan en productos genéricos adaptados a las necesidades del cliente. Los sistemas de Enterprise Resource Planning (ERP), como SAP, ejemplifican este enfoque."
+        },
+        {
+          "type": "p",
+          "text": "La calidad del software profesional debe evaluarse considerando que tanto los usuarios finales como los desarrolladores interactúan y modifican el software. Por lo tanto, la calidad del software abarca sus funcionalidades, su comportamiento en ejecución, la estructura y organización de los programas del sistema, así como la documentación asociada. Estos aspectos se reflejan en los denominados atributos de calidad, o aspectos no funcionales, del software. Ejemplos de estos atributos incluyen el tiempo de respuesta y la comprensibilidad del código del programa. El conjunto específico de atributos requerido para un sistema de software depende de su aplicación. Algunos atributos esenciales del buen software son:"
+        },
+        {
+          "type": "table",
+          "header": [
+            "Características del producto",
+            "Descripción"
+          ],
+          "rows": [
+            [
+              "Mantenimiento",
+              "El software debe escribirse de tal forma que pueda evolucionar para satisfacer las necesidades cambiantes de los clientes. Éste es un atributo crítico porque el cambio del software es un requerimiento inevitable de un entorno empresarial variable."
+            ],
+            [
+              "Confiabilidad y seguridad",
+              "La confiabilidad del software incluye un rango de características que abarcan fiabilidad, seguridad y protección. El software confiable no tiene que causar daño físico ni económico, en caso de falla del sistema. Los usuarios malintencionados no deben tener posibilidad de acceder al sistema o dañarlo."
+            ],
+            [
+              "Eficiencia",
+              "El software no tiene que desperdiciar los recursos del sistema, como la memoria y los ciclos del procesador. Por lo tanto, la eficiencia incluye capacidad de respuesta, tiempo de procesamiento, utilización de memoria, etcétera."
+            ],
+            [
+              "Aceptabilidad",
+              "El software debe ser aceptable al tipo de usuarios para quienes se diseña. Esto significa que necesita ser comprensible, utilizable y compatible con otros sistemas que ellos usan."
+            ]
+          ]
+        }
+      ],
+      "position": 1
+    },
+    {
+      "content_id": "l1.3",
+      "unit_content_id": "u1",
+      "code": "1.3",
+      "title": "Ética en la ingeniería de software",
+      "eyebrow": "Módulo 01 · Lección 03",
+      "body": "El código de ética y práctica profesional ACM/IEEE establece principios: interés público, calidad del producto, integridad del juicio profesional, competencia y confidencialidad.",
+      "code_sample": "",
+      "context_title": "Decisiones bajo presión",
+      "context_body": "Ante un fallo que expone datos personales, el interés público y la protección de datos prevalecen sobre evitar retrasos comerciales.",
+      "synthesis": [
+        "El interés público y la protección de datos son prioritarios.",
+        "La competencia profesional implica no aceptar tareas para las que no se está capacitado.",
+        "La confidencialidad se equilibra con la obligación de informar riesgos graves."
+      ],
+      "content": [],
+      "position": 2
+    },
+    {
+      "content_id": "l1.4",
+      "unit_content_id": "u1",
+      "code": "1.4",
+      "title": "Estudios de caso",
+      "eyebrow": "Módulo 01 · Lección 04",
+      "body": "Los estudios de caso conectan decisiones técnicas con implicaciones éticas y sociales: un sistema embebido (bomba de insulina), un sistema de información (MHC-PMS) y un sistema de adquisición de datos (estación meteorológica).",
+      "code_sample": "",
+      "context_title": "Del código a las consecuencias",
+      "context_body": "Cada dominio enfatiza atributos de calidad distintos: seguridad, privacidad o fiabilidad en ambientes hostiles.",
+      "synthesis": [
+        "Cada dominio enfatiza atributos de calidad distintos.",
+        "Las decisiones técnicas tienen consecuencias éticas y sociales.",
+        "El diseño responsable implica transparencia y minimización de datos."
+      ],
+      "content": [],
+      "position": 3
+    },
+    {
+      "content_id": "l2.1",
+      "unit_content_id": "u2",
+      "code": "2.1",
+      "title": "Modelos de proceso de software",
+      "eyebrow": "Módulo 02 · Lección 01",
+      "body": "Un modelo de proceso es una representación simplificada de las actividades de desarrollo: cascada, incremental, iterativo y espiral organizan el trabajo de formas distintas.",
+      "code_sample": "",
+      "context_title": "En contexto",
+      "context_body": "Este tema se profundiza en las siguientes unidades del curso.",
+      "synthesis": [
+        "Revisa la relación del tema con el proceso de desarrollo.",
+        "Identifica qué decisiones profesionales implica."
+      ],
+      "content": [],
+      "position": 0
+    },
+    {
+      "content_id": "l2.2",
+      "unit_content_id": "u2",
+      "code": "2.2",
+      "title": "Actividades del proceso",
+      "eyebrow": "Módulo 02 · Lección 02",
+      "body": "Las actividades fundamentales del proceso son la especificación, el diseño e implementación, la validación y la evolución del software.",
+      "code_sample": "",
+      "context_title": "En contexto",
+      "context_body": "Este tema se profundiza en las siguientes unidades del curso.",
+      "synthesis": [
+        "Revisa la relación del tema con el proceso de desarrollo.",
+        "Identifica qué decisiones profesionales implica."
+      ],
+      "content": [],
+      "position": 1
+    },
+    {
+      "content_id": "l2.3",
+      "unit_content_id": "u2",
+      "code": "2.3",
+      "title": "Cómo enfrentar el cambio",
+      "eyebrow": "Módulo 02 · Lección 03",
+      "body": "El cambio es inevitable; los procesos iterativos e incrementales permiten incorporarlo sin rehacer todo el sistema.",
+      "code_sample": "",
+      "context_title": "En contexto",
+      "context_body": "Este tema se profundiza en las siguientes unidades del curso.",
+      "synthesis": [
+        "Revisa la relación del tema con el proceso de desarrollo.",
+        "Identifica qué decisiones profesionales implica."
+      ],
+      "content": [],
+      "position": 2
+    },
+    {
+      "content_id": "l2.4",
+      "unit_content_id": "u2",
+      "code": "2.4",
+      "title": "El Proceso Unificado Racional",
+      "eyebrow": "Módulo 02 · Lección 04",
+      "body": "El RUP organiza el desarrollo en fases (inicio, elaboración, construcción y transición) y en flujos de trabajo con iteraciones.",
+      "code_sample": "",
+      "context_title": "En contexto",
+      "context_body": "Este tema se profundiza en las siguientes unidades del curso.",
+      "synthesis": [
+        "Revisa la relación del tema con el proceso de desarrollo.",
+        "Identifica qué decisiones profesionales implica."
+      ],
+      "content": [],
+      "position": 3
+    },
+    {
+      "content_id": "l3.1",
+      "unit_content_id": "u3",
+      "code": "3.1",
+      "title": "Métodos ágiles",
+      "eyebrow": "Módulo 03 · Lección 01",
+      "body": "Los métodos ágiles priorizan entregas frecuentes, colaboración con el cliente y respuesta al cambio sobre la planificación exhaustiva.",
+      "code_sample": "",
+      "context_title": "En contexto",
+      "context_body": "Este tema se profundiza en las siguientes unidades del curso.",
+      "synthesis": [
+        "Revisa la relación del tema con el proceso de desarrollo.",
+        "Identifica qué decisiones profesionales implica."
+      ],
+      "content": [],
+      "position": 0
+    },
+    {
+      "content_id": "l3.2",
+      "unit_content_id": "u3",
+      "code": "3.2",
+      "title": "Desarrollo dirigido por un plan y desarrollo ágil",
+      "eyebrow": "Módulo 03 · Lección 02",
+      "body": "El desarrollo dirigido por un plan anticipa requisitos y diseño; el ágil los descubre iterativamente. Ambos pueden combinarse según el contexto.",
+      "code_sample": "",
+      "context_title": "En contexto",
+      "context_body": "Este tema se profundiza en las siguientes unidades del curso.",
+      "synthesis": [
+        "Revisa la relación del tema con el proceso de desarrollo.",
+        "Identifica qué decisiones profesionales implica."
+      ],
+      "content": [],
+      "position": 1
+    },
+    {
+      "content_id": "l3.3",
+      "unit_content_id": "u3",
+      "code": "3.3",
+      "title": "Programación extrema",
+      "eyebrow": "Módulo 03 · Lección 03",
+      "body": "XP es una metodología ágil con prácticas como desarrollo guiado por pruebas, programación en parejas e integración continua.",
+      "code_sample": "",
+      "context_title": "En contexto",
+      "context_body": "Este tema se profundiza en las siguientes unidades del curso.",
+      "synthesis": [
+        "Revisa la relación del tema con el proceso de desarrollo.",
+        "Identifica qué decisiones profesionales implica."
+      ],
+      "content": [],
+      "position": 2
+    },
+    {
+      "content_id": "l3.4",
+      "unit_content_id": "u3",
+      "code": "3.4",
+      "title": "Administración de un proyecto ágil",
+      "eyebrow": "Módulo 03 · Lección 04",
+      "body": "La gestión ágil planifica por iteraciones cortas, mide avance con entregas reales y ajusta prioridades de forma continua.",
+      "code_sample": "",
+      "context_title": "En contexto",
+      "context_body": "Este tema se profundiza en las siguientes unidades del curso.",
+      "synthesis": [
+        "Revisa la relación del tema con el proceso de desarrollo.",
+        "Identifica qué decisiones profesionales implica."
+      ],
+      "content": [],
+      "position": 3
+    },
+    {
+      "content_id": "l3.5",
+      "unit_content_id": "u3",
+      "code": "3.5",
+      "title": "Escalamiento de métodos ágiles",
+      "eyebrow": "Módulo 03 · Lección 05",
+      "body": "Escalar ágil implica coordinar varios equipos manteniendo la autonomía y la sincronización de entregas.",
+      "code_sample": "",
+      "context_title": "En contexto",
+      "context_body": "Este tema se profundiza en las siguientes unidades del curso.",
+      "synthesis": [
+        "Revisa la relación del tema con el proceso de desarrollo.",
+        "Identifica qué decisiones profesionales implica."
+      ],
+      "content": [],
+      "position": 4
+    },
+    {
+      "content_id": "l4.1",
+      "unit_content_id": "u4",
+      "code": "4.1",
+      "title": "Requerimientos funcionales y no funcionales",
+      "eyebrow": "Módulo 04 · Lección 01",
+      "body": "Los requerimientos funcionales describen qué debe hacer el sistema; los no funcionales imponen restricciones de calidad como rendimiento, seguridad o usabilidad.",
+      "code_sample": "",
+      "context_title": "En contexto",
+      "context_body": "Este tema se profundiza en las siguientes unidades del curso.",
+      "synthesis": [
+        "Revisa la relación del tema con el proceso de desarrollo.",
+        "Identifica qué decisiones profesionales implica."
+      ],
+      "content": [],
+      "position": 0
+    },
+    {
+      "content_id": "l4.2",
+      "unit_content_id": "u4",
+      "code": "4.2",
+      "title": "El documento de requerimientos de software",
+      "eyebrow": "Módulo 04 · Lección 02",
+      "body": "El documento de requerimientos es el acuerdo formal entre cliente y equipo sobre lo que el sistema debe hacer.",
+      "code_sample": "",
+      "context_title": "En contexto",
+      "context_body": "Este tema se profundiza en las siguientes unidades del curso.",
+      "synthesis": [
+        "Revisa la relación del tema con el proceso de desarrollo.",
+        "Identifica qué decisiones profesionales implica."
+      ],
+      "content": [],
+      "position": 1
+    },
+    {
+      "content_id": "l4.3",
+      "unit_content_id": "u4",
+      "code": "4.3",
+      "title": "Especificación de requerimientos",
+      "eyebrow": "Módulo 04 · Lección 03",
+      "body": "Especificar es traducir necesidades ambiguas en enunciados precisos, verificables y sin contradicciones.",
+      "code_sample": "",
+      "context_title": "En contexto",
+      "context_body": "Este tema se profundiza en las siguientes unidades del curso.",
+      "synthesis": [
+        "Revisa la relación del tema con el proceso de desarrollo.",
+        "Identifica qué decisiones profesionales implica."
+      ],
+      "content": [],
+      "position": 2
+    },
+    {
+      "content_id": "l4.4",
+      "unit_content_id": "u4",
+      "code": "4.4",
+      "title": "Procesos de ingeniería de requerimientos",
+      "eyebrow": "Módulo 04 · Lección 04",
+      "body": "La ingeniería de requerimientos incluye obtención, análisis, especificación y validación de los requerimientos.",
+      "code_sample": "",
+      "context_title": "En contexto",
+      "context_body": "Este tema se profundiza en las siguientes unidades del curso.",
+      "synthesis": [
+        "Revisa la relación del tema con el proceso de desarrollo.",
+        "Identifica qué decisiones profesionales implica."
+      ],
+      "content": [],
+      "position": 3
+    },
+    {
+      "content_id": "l4.5",
+      "unit_content_id": "u4",
+      "code": "4.5",
+      "title": "Adquisición y análisis de requerimientos",
+      "eyebrow": "Módulo 04 · Lección 05",
+      "body": "La adquisición combina entrevistas, observación y prototipos; el análisis resuelve conflictos y prioriza.",
+      "code_sample": "",
+      "context_title": "En contexto",
+      "context_body": "Este tema se profundiza en las siguientes unidades del curso.",
+      "synthesis": [
+        "Revisa la relación del tema con el proceso de desarrollo.",
+        "Identifica qué decisiones profesionales implica."
+      ],
+      "content": [],
+      "position": 4
+    },
+    {
+      "content_id": "l4.6",
+      "unit_content_id": "u4",
+      "code": "4.6",
+      "title": "Validación de requerimientos",
+      "eyebrow": "Módulo 04 · Lección 06",
+      "body": "Validar requerimientos es comprobar con las partes interesadas que definen realmente el sistema correcto.",
+      "code_sample": "",
+      "context_title": "En contexto",
+      "context_body": "Este tema se profundiza en las siguientes unidades del curso.",
+      "synthesis": [
+        "Revisa la relación del tema con el proceso de desarrollo.",
+        "Identifica qué decisiones profesionales implica."
+      ],
+      "content": [],
+      "position": 5
+    },
+    {
+      "content_id": "l4.7",
+      "unit_content_id": "u4",
+      "code": "4.7",
+      "title": "Administración de requerimientos",
+      "eyebrow": "Módulo 04 · Lección 07",
+      "body": "Administrar requerimientos es gestionar cambios, trazabilidad y versiones a lo largo del proyecto.",
+      "code_sample": "",
+      "context_title": "En contexto",
+      "context_body": "Este tema se profundiza en las siguientes unidades del curso.",
+      "synthesis": [
+        "Revisa la relación del tema con el proceso de desarrollo.",
+        "Identifica qué decisiones profesionales implica."
+      ],
+      "content": [],
+      "position": 6
+    },
+    {
+      "content_id": "l5.1",
+      "unit_content_id": "u5",
+      "code": "5.1",
+      "title": "Modelos de contexto",
+      "eyebrow": "Módulo 05 · Lección 01",
+      "body": "Los modelos de contexto delimitan el sistema y su entorno, mostrando qué queda dentro y qué interactúa con él.",
+      "code_sample": "",
+      "context_title": "En contexto",
+      "context_body": "Este tema se profundiza en las siguientes unidades del curso.",
+      "synthesis": [
+        "Revisa la relación del tema con el proceso de desarrollo.",
+        "Identifica qué decisiones profesionales implica."
+      ],
+      "content": [],
+      "position": 0
+    },
+    {
+      "content_id": "l5.2",
+      "unit_content_id": "u5",
+      "code": "5.2",
+      "title": "Modelos de interacción",
+      "eyebrow": "Módulo 05 · Lección 02",
+      "body": "Los modelos de interacción describen cómo los usuarios y otros sistemas se comunican con el software.",
+      "code_sample": "",
+      "context_title": "En contexto",
+      "context_body": "Este tema se profundiza en las siguientes unidades del curso.",
+      "synthesis": [
+        "Revisa la relación del tema con el proceso de desarrollo.",
+        "Identifica qué decisiones profesionales implica."
+      ],
+      "content": [],
+      "position": 1
+    },
+    {
+      "content_id": "l5.3",
+      "unit_content_id": "u5",
+      "code": "5.3",
+      "title": "Modelos estructurales",
+      "eyebrow": "Módulo 05 · Lección 03",
+      "body": "Los modelos estructurales representan la organización estática del sistema: clases, componentes y sus relaciones.",
+      "code_sample": "",
+      "context_title": "En contexto",
+      "context_body": "Este tema se profundiza en las siguientes unidades del curso.",
+      "synthesis": [
+        "Revisa la relación del tema con el proceso de desarrollo.",
+        "Identifica qué decisiones profesionales implica."
+      ],
+      "content": [],
+      "position": 2
+    },
+    {
+      "content_id": "l5.4",
+      "unit_content_id": "u5",
+      "code": "5.4",
+      "title": "Modelos de comportamiento",
+      "eyebrow": "Módulo 05 · Lección 04",
+      "body": "Los modelos de comportamiento describen la dinámica del sistema: estados, eventos y secuencias de interacción.",
+      "code_sample": "",
+      "context_title": "En contexto",
+      "context_body": "Este tema se profundiza en las siguientes unidades del curso.",
+      "synthesis": [
+        "Revisa la relación del tema con el proceso de desarrollo.",
+        "Identifica qué decisiones profesionales implica."
+      ],
+      "content": [],
+      "position": 3
+    },
+    {
+      "content_id": "l5.5",
+      "unit_content_id": "u5",
+      "code": "5.5",
+      "title": "Ingeniería dirigida por modelo",
+      "eyebrow": "Módulo 05 · Lección 05",
+      "body": "La ingeniería dirigida por modelo genera artefactos a partir de modelos, elevando el nivel de abstracción del desarrollo.",
+      "code_sample": "",
+      "context_title": "En contexto",
+      "context_body": "Este tema se profundiza en las siguientes unidades del curso.",
+      "synthesis": [
+        "Revisa la relación del tema con el proceso de desarrollo.",
+        "Identifica qué decisiones profesionales implica."
+      ],
+      "content": [],
+      "position": 4
+    }
+  ],
+  "evaluations": [
+    {
+      "content_id": "ev1.2",
+      "lesson_content_id": "l1.2",
+      "title": "Evaluación: Desarrollo de software profesional",
+      "description": "Proceso, productos, atributos de calidad y el papel de la Web.",
+      "question_count": 10,
+      "exercise_count": 5
+    },
+    {
+      "content_id": "ev1.3",
+      "lesson_content_id": "l1.3",
+      "title": "Evaluación: Ética en la ingeniería de software",
+      "description": "Código ACM/IEEE, responsabilidades profesionales y dilemas.",
+      "question_count": 10,
+      "exercise_count": 5
+    },
+    {
+      "content_id": "ev1.4",
+      "lesson_content_id": "l1.4",
+      "title": "Evaluación: Estudios de caso",
+      "description": "Bomba de insulina, MHC-PMS y estación meteorológica.",
+      "question_count": 10,
+      "exercise_count": 5
+    }
+  ],
+  "exercises": [
+    {
+      "content_id": "ord1.2",
+      "lesson_content_id": "l1.2",
+      "type": "order",
+      "prompt": "Actividades fundamentales del proceso",
+      "instructions": "Usa las flechas para ordenar la secuencia correcta.",
+      "correct_order": [
+        "Especificación del software",
+        "Desarrollo del software",
+        "Validación del software",
+        "Evolución del software"
+      ],
+      "config": {},
+      "explanation": "Las actividades del proceso son especificación, desarrollo, validación y evolución; en la práctica se solapan e iteran.",
+      "example": {
+        "title": "Las cuatro actividades del proceso",
+        "steps": [
+          {
+            "text": "Especificar qué debe hacer el sistema",
+            "why": "La especificación fija el problema y sus restricciones antes de construir."
+          },
+          {
+            "text": "Diseñar e implementar el software",
+            "why": "El desarrollo convierte los requisitos en un sistema ejecutable."
+          },
+          {
+            "text": "Validar contra lo acordado",
+            "why": "La validación confirma que el sistema es lo que el cliente pidió."
+          },
+          {
+            "text": "Evolucionar el sistema entregado",
+            "why": "El mantenimiento continúa mientras cambien las necesidades."
+          }
+        ],
+        "hints": [
+          "Piensa qué ocurre antes de escribir código.",
+          "La validación siempre va después de construir.",
+          "Lo que se hace tras la entrega se llama evolución."
+        ]
+      },
+      "position": 0
+    },
+    {
+      "content_id": "fill1.2",
+      "lesson_content_id": "l1.2",
+      "type": "fill",
+      "prompt": "Completa los conceptos del desarrollo profesional",
+      "instructions": "Toca un espacio y después una palabra del banco.",
+      "correct_order": [],
+      "config": {
+        "sentences": [
+          "El buen software debe entregar la {{funcionalidad}} y el desempeño requeridos.",
+          "Los productos {{genéricos}} se venden en el mercado abierto a cualquier cliente.",
+          "Los productos {{personalizados}} se desarrollan para un cliente en particular.",
+          "Aproximadamente el {{60}}% de los costos del software son de desarrollo."
+        ],
+        "bank": [
+          "mantenimiento",
+          "confiabilidad",
+          "eficiencia",
+          "hardware",
+          "40"
+        ]
+      },
+      "explanation": "El buen software debe ser funcional, genérico o personalizado según su mercado; cerca del 60% de los costos son de desarrollo.",
+      "example": {
+        "title": "Funcionalidad, productos y costos",
+        "steps": [
+          {
+            "text": "El software entrega la funcionalidad y el desempeño requeridos",
+            "why": "Cumplir lo acordado es el primer criterio de calidad."
+          },
+          {
+            "text": "Genérico se vende en el mercado; personalizado se hace para un cliente",
+            "why": "La diferencia está en quién controla la especificación."
+          },
+          {
+            "text": "Cerca del 60% de los costos son de desarrollo y 40% de prueba",
+            "why": "La prueba consume una parte importante, aunque menor que el desarrollo."
+          }
+        ],
+        "hints": [
+          "Distingue quién compra el producto.",
+          "Compara cuál de las dos actividades ocupa más presupuesto."
+        ]
+      },
+      "position": 1
+    },
+    {
+      "content_id": "match1.2",
+      "lesson_content_id": "l1.2",
+      "type": "match",
+      "prompt": "Enlaza cada atributo con su descripción",
+      "instructions": "Toca un atributo y después su descripción.",
+      "correct_order": [],
+      "config": {
+        "pairs": [
+          {
+            "left": "Mantenimiento",
+            "right": "Puede evolucionar ante necesidades cambiantes"
+          },
+          {
+            "left": "Confiabilidad y seguridad",
+            "right": "No causa daño y resiste ataques"
+          },
+          {
+            "left": "Eficiencia",
+            "right": "No desperdicia memoria ni ciclos del procesador"
+          },
+          {
+            "left": "Aceptabilidad",
+            "right": "Comprensible, utilizable y compatible"
+          }
+        ]
+      },
+      "explanation": "Cada atributo describe una propiedad distinta: evolución, seguridad, uso de recursos y aceptación por el usuario.",
+      "example": {
+        "title": "Atributos de calidad del software",
+        "steps": [
+          {
+            "text": "Mantenimiento: puede evolucionar ante necesidades cambiantes",
+            "why": "El cambio del software es inevitable en un entorno empresarial variable."
+          },
+          {
+            "text": "Confiabilidad y seguridad: no causa daño y resiste ataques",
+            "why": "Un fallo no debe provocar pérdidas físicas ni económicas."
+          },
+          {
+            "text": "Eficiencia: no desperdicia memoria ni ciclos del procesador",
+            "why": "El buen uso de los recursos mantiene la capacidad de respuesta."
+          },
+          {
+            "text": "Aceptabilidad: comprensible, utilizable y compatible",
+            "why": "El software se juzga desde el usuario que debe usarlo."
+          }
+        ],
+        "hints": [
+          "Concéntrate en la consecuencia de cada atributo, no en su nombre.",
+          "Confiabilidad habla de daño y ataques; eficiencia, de recursos.",
+          "Aceptabilidad se juzga desde el usuario del sistema."
+        ]
+      },
+      "position": 2
+    },
+    {
+      "content_id": "match1.2b",
+      "lesson_content_id": "l1.2",
+      "type": "match",
+      "prompt": "Enlaza cada tipo de producto con su ejemplo",
+      "instructions": "Toca un tipo y después su ejemplo.",
+      "correct_order": [],
+      "config": {
+        "pairs": [
+          {
+            "left": "Producto genérico",
+            "right": "Sistema de contabilidad que se vende a cualquier cliente"
+          },
+          {
+            "left": "Producto personalizado",
+            "right": "Sistema de control de tráfico aéreo para un cliente"
+          },
+          {
+            "left": "Producto genérico adaptado",
+            "right": "ERP configurado con las reglas de una empresa"
+          }
+        ]
+      },
+      "explanation": "El sistema de contabilidad es genérico; el control de tráfico aéreo es personalizado; el ERP es un genérico adaptado.",
+      "example": {
+        "title": "Genérico, personalizado y adaptado",
+        "steps": [
+          {
+            "text": "Producto genérico: contabilidad que se vende a cualquier cliente",
+            "why": "Se comercializa en el mercado abierto."
+          },
+          {
+            "text": "Producto personalizado: control de tráfico aéreo para un cliente",
+            "why": "La especificación la controla quien compra el software."
+          },
+          {
+            "text": "Producto genérico adaptado: ERP configurado con reglas de la empresa",
+            "why": "La frontera entre ambos tipos es cada vez más difusa."
+          }
+        ],
+        "hints": [
+          "Piensa quién decide qué debe hacer el sistema.",
+          "Un ERP parte de un producto y se configura para el cliente."
+        ]
+      },
+      "position": 3
+    },
+    {
+      "content_id": "cross1.2",
+      "lesson_content_id": "l1.2",
+      "type": "crossword",
+      "prompt": "Crucigrama de atributos del software",
+      "instructions": "Toca una celda y escribe la palabra que corresponde a la pista.",
+      "correct_order": [],
+      "config": {
+        "crossword": {
+          "rows": 16,
+          "cols": 13,
+          "entries": [
+            {
+              "word": "ACEPTABILIDAD",
+              "clue": "Cualidad que hace al software comprensible, fácil de usar y compatible con otros sistemas; si falla, los usuarios lo rechazan.",
+              "row": 3,
+              "col": 0,
+              "direction": "across"
+            },
+            {
+              "word": "CONFIABILIDAD",
+              "clue": "Cualidad por la que el sistema responde sin fallas y resiste ataques maliciosos: puedes contar con él.",
+              "row": 3,
+              "col": 1,
+              "direction": "down"
+            },
+            {
+              "word": "EFICIENCIA",
+              "clue": "Atributo de un sistema que aprovecha bien la memoria y el procesador, sin malgastar ciclos.",
+              "row": 3,
+              "col": 2,
+              "direction": "down"
+            },
+            {
+              "word": "INGENIERIA",
+              "clue": "___ de software: disciplina que abarca todo el proceso de producción, desde la especificación hasta el mantenimiento.",
+              "row": 3,
+              "col": 7,
+              "direction": "down"
+            }
+          ]
+        },
+        "bank": [
+          "MANTENIMIENTO",
+          "SOFTWARE",
+          "REUTILIZACION",
+          "CONFIGURACION"
+        ]
+      },
+      "explanation": "Aceptabilidad, confiabilidad y eficiencia son atributos de calidad que van más allá de lo que el sistema hace. La ingeniería de software es la disciplina que busca lograrlos a lo largo de todo el proceso.",
+      "example": {
+        "title": "Crucigrama: atributos y disciplina",
+        "steps": [
+          {
+            "text": "Empezar por ACEPTABILIDAD",
+            "why": "Es la palabra horizontal más larga y da letras a tres verticales."
+          },
+          {
+            "text": "Completar CONFIABILIDAD y EFICIENCIA",
+            "why": "Ambas cuelgan de letras de ACEPTABILIDAD y describen cualidades distintas."
+          },
+          {
+            "text": "Cerrar con INGENIERIA",
+            "why": "Es la disciplina que persigue esos atributos a lo largo del proceso."
+          }
+        ],
+        "hints": [
+          "ACEPTABILIDAD es la entrada horizontal.",
+          "Las tres verticales empiezan en letras de ACEPTABILIDAD."
+        ]
+      },
+      "position": 4
+    },
+    {
+      "content_id": "fill1.2b",
+      "lesson_content_id": "l1.2",
+      "type": "fill",
+      "prompt": "Completa los tipos de producto y la calidad",
+      "instructions": "Toca un espacio y después una palabra del banco.",
+      "correct_order": [],
+      "config": {
+        "sentences": [
+          "Un sistema profesional incluye programas separados y archivos de {{configuración}}.",
+          "Los ERP como SAP son productos {{genéricos}} adaptados al cliente.",
+          "En los productos {{personalizados}}, el cliente controla la especificación.",
+          "La calidad considera también los atributos {{no funcionales}} del software."
+        ],
+        "bank": [
+          "seguridad",
+          "funcionales",
+          "manuales",
+          "monolíticos",
+          "medibles"
+        ]
+      },
+      "explanation": "El ERP es un producto genérico adaptado; la calidad incluye atributos no funcionales.",
+      "example": {
+        "title": "Producto profesional y atributos de calidad",
+        "steps": [
+          {
+            "text": "Un sistema profesional incluye archivos de configuración",
+            "why": "Además de programas, necesita documentación y configuración."
+          },
+          {
+            "text": "Los ERP son productos genéricos adaptados al cliente",
+            "why": "Parte de un producto y se ajusta a las reglas de la empresa."
+          },
+          {
+            "text": "En los productos personalizados el cliente controla la especificación",
+            "why": "Quien encarga decide qué debe hacer el sistema."
+          },
+          {
+            "text": "La calidad incluye atributos no funcionales",
+            "why": "No basta con que funcione: importa cómo lo hace."
+          }
+        ],
+        "hints": [
+          "Configuración no es lo mismo que manual de usuario.",
+          "Lo no funcional describe propiedades, no funciones."
+        ]
+      },
+      "position": 5
+    },
+    {
+      "content_id": "cross1.2a",
+      "lesson_content_id": "l1.2",
+      "type": "crossword",
+      "prompt": "Crucigrama: atributos y tipos de software",
+      "instructions": "Toca una celda y escribe la palabra que corresponde a la pista.",
+      "correct_order": [],
+      "config": {
+        "crossword": {
+          "rows": 12,
+          "cols": 13,
+          "entries": [
+            {
+              "word": "MANTENIMIENTO",
+              "clue": "Atributo: facilidad para modificar el software cuando el cliente cambia sus necesidades.",
+              "row": 0,
+              "col": 0,
+              "direction": "across"
+            },
+            {
+              "word": "EFICIENCIA",
+              "clue": "Atributo de un sistema que hace buen uso de la memoria y del procesador: no malgasta recursos.",
+              "row": 0,
+              "col": 4,
+              "direction": "down"
+            },
+            {
+              "word": "GENERICO",
+              "clue": "Un procesador de textos es un producto ___: se desarrolla para venderlo a cualquier cliente del mercado.",
+              "row": 5,
+              "col": 3,
+              "direction": "across"
+            },
+            {
+              "word": "EVOLUCION",
+              "clue": "Actividad de seguir cambiando un sistema ya entregado para que continúe siendo útil al negocio.",
+              "row": 3,
+              "col": 10,
+              "direction": "down"
+            },
+            {
+              "word": "MEDIDA",
+              "clue": "Software personalizado: se desarrolla \"a la ___\" del cliente.",
+              "row": 9,
+              "col": 7,
+              "direction": "across"
+            }
+          ]
+        },
+        "bank": [
+          "ACEPTABILIDAD",
+          "SOFTWARE",
+          "CONFIGURACION"
+        ]
+      },
+      "explanation": "Mantenimiento y eficiencia son atributos; genérico y \"a la medida\" son los dos tipos de producto; la evolución es la actividad que mantiene vivo al sistema después de entregarlo. Ojo con la diferencia: el mantenimiento es una cualidad del software y la evolución es algo que se hace con él.",
+      "example": {
+        "title": "Crucigrama: mantenimiento, eficiencia y productos",
+        "steps": [
+          {
+            "text": "Resolver MANTENIMIENTO",
+            "why": "Es la entrada horizontal que abre el crucigrama."
+          },
+          {
+            "text": "Completar EFICIENCIA desde su primera E",
+            "why": "Cruza MANTENIMIENTO y describe el uso de recursos."
+          },
+          {
+            "text": "Ubicar GENERICO y MEDIDA",
+            "why": "Son los dos tipos de producto: de mercado y \"a la medida\"."
+          }
+        ],
+        "hints": [
+          "MANTENIMIENTO empieza en la casilla (0,0).",
+          "EFICIENCIA cuelga de la E de MANTENIMIENTO en (0,4)."
+        ]
+      },
+      "position": 6
+    },
+    {
+      "content_id": "fill1.2c",
+      "lesson_content_id": "l1.2",
+      "type": "fill",
+      "prompt": "Completa los atributos esenciales del buen software",
+      "instructions": "Toca un espacio y después selecciona la palabra correcta del banco.",
+      "correct_order": [],
+      "config": {
+        "sentences": [
+          "El atributo que permite evolucionar ante necesidades cambiantes es el {{mantenimiento}}.",
+          "No causar daño ante un fallo se relaciona con la {{confiabilidad}} y seguridad.",
+          "No desperdiciar memoria ni ciclos del procesador es tener {{eficiencia}}.",
+          "Ser comprensible, utilizable y compatible define la {{aceptabilidad}}."
+        ],
+        "bank": [
+          "seguridad",
+          "usabilidad",
+          "portabilidad",
+          "escalabilidad"
+        ]
+      },
+      "explanation": "Los atributos esenciales son mantenimiento, confiabilidad y seguridad, eficiencia y aceptabilidad.",
+      "example": {
+        "title": "Los cuatro atributos esenciales",
+        "steps": [
+          {
+            "text": "Mantenimiento: facilidad para evolucionar",
+            "why": "El software debe poder cambiar cuando cambian las necesidades."
+          },
+          {
+            "text": "Confiabilidad y seguridad: no causar daño ante fallos",
+            "why": "Un fallo no debe provocar pérdidas ni exponer datos."
+          },
+          {
+            "text": "Eficiencia: no desperdiciar memoria ni ciclos",
+            "why": "El buen uso de recursos sostiene el desempeño."
+          },
+          {
+            "text": "Aceptabilidad: comprensible, utilizable y compatible",
+            "why": "El sistema se juzga desde quien lo usa."
+          }
+        ],
+        "hints": [
+          "Cada atributo responde a una consecuencia distinta.",
+          "Aceptabilidad se refiere al usuario, no al programador."
+        ]
+      },
+      "position": 7
+    },
+    {
+      "content_id": "ord1.2a",
+      "lesson_content_id": "l1.2",
+      "type": "order",
+      "prompt": "Ordena las actividades del proceso en un sistema de facturación",
+      "instructions": "Usa las flechas para ordenar la secuencia correcta.",
+      "correct_order": [
+        "Definir con el cliente qué debe hacer el sistema y sus restricciones",
+        "Diseñar e implementar los módulos de facturación y reportes",
+        "Verificar que las facturas cumplen los requisitos definidos",
+        "Modificar el sistema cuando cambian las regulaciones fiscales"
+      ],
+      "config": {},
+      "explanation": "La secuencia representa especificación, desarrollo, validación y evolución. En proyectos reales estas actividades pueden solaparse e iterarse.",
+      "example": {
+        "title": "De los requisitos al cambio fiscal",
+        "steps": [
+          {
+            "text": "Definir con el cliente qué debe hacer el sistema",
+            "why": "La especificación fija funciones y restricciones del negocio."
+          },
+          {
+            "text": "Diseñar e implementar facturación y reportes",
+            "why": "El desarrollo materializa lo especificado."
+          },
+          {
+            "text": "Verificar que las facturas cumplen los requisitos",
+            "why": "La validación comprueba que el sistema es el correcto."
+          },
+          {
+            "text": "Modificar el sistema cuando cambian las reglas fiscales",
+            "why": "La evolución mantiene útil al software entregado."
+          }
+        ],
+        "hints": [
+          "Primero se acuerda qué debe hacer el sistema.",
+          "El cambio de regulaciones fiscales ocurre después de la entrega."
+        ]
+      },
+      "position": 8
+    },
+    {
+      "content_id": "ordn",
+      "lesson_content_id": "l1.2",
+      "type": "order",
+      "prompt": "Ordena la evolución de la Web y el software",
+      "instructions": "Usa las flechas para ordenar las etapas de la más antigua a la más reciente.",
+      "correct_order": [
+        "La Web como almacén de información universal accesible",
+        "Los navegadores agregan cada vez más funcionalidades",
+        "Surgen los servicios Web",
+        "Se desarrolla la noción de software como servicio"
+      ],
+      "config": {},
+      "explanation": "Primero la Web fue un almacén de información; alrededor del año 2000 los navegadores ganaron funcionalidad, luego surgieron los servicios Web y después el software como servicio en la nube.",
+      "example": {
+        "title": "La evolución de la Web paso a paso",
+        "steps": [
+          {
+            "text": "Ubicar el inicio: la Web como almacén de información",
+            "why": "Al principio tuvo escaso efecto sobre los sistemas de software."
+          },
+          {
+            "text": "Seguir con navegadores más funcionales",
+            "why": "Alrededor del año 2000 permitieron sistemas basados en la Web."
+          },
+          {
+            "text": "Colocar servicios Web y luego software como servicio",
+            "why": "La nube es la etapa más reciente descrita en el texto."
+          }
+        ],
+        "hints": [
+          "Piensa de lo más simple (información) a lo más complejo (nube)."
+        ]
+      },
+      "position": 9
+    },
+    {
+      "content_id": "ordq",
+      "lesson_content_id": "l1.2",
+      "type": "order",
+      "prompt": "Ordena el trabajo de los ingenieros de sistemas",
+      "instructions": "Usa las flechas para ordenar las acciones.",
+      "correct_order": [
+        "Intervienen en la especificación del sistema",
+        "Definen su arquitectura global",
+        "Integran las diferentes partes",
+        "Obtienen el sistema terminado"
+      ],
+      "config": {},
+      "explanation": "Los ingenieros de sistemas especifican el sistema, definen su arquitectura global y luego integran las partes para crear el sistema terminado.",
+      "example": {
+        "title": "El trabajo del ingeniero de sistemas",
+        "steps": [
+          {
+            "text": "Comenzar por la especificación del sistema",
+            "why": "Es donde intervienen primero."
+          },
+          {
+            "text": "Definir la arquitectura global",
+            "why": "Se decide la estructura antes de unir piezas."
+          },
+          {
+            "text": "Integrar las partes y obtener el sistema terminado",
+            "why": "La integración produce el resultado final."
+          }
+        ],
+        "hints": [
+          "Primero se define el todo, después se unen las partes."
+        ]
+      },
+      "position": 10
+    },
+    {
+      "content_id": "filln",
+      "lesson_content_id": "l1.2",
+      "type": "fill",
+      "prompt": "Completa: naturaleza del software y sus fallas",
+      "instructions": "Toca un espacio y después una palabra del banco.",
+      "correct_order": [],
+      "config": {
+        "sentences": [
+          "Los sistemas de software son abstractos e {{intangibles}}.",
+          "Muchas fallas del software se deben a demandas {{crecientes}} y expectativas {{bajas}}."
+        ],
+        "bank": [
+          "tangibles",
+          "altas",
+          "físicos"
+        ]
+      },
+      "explanation": "Al no tener restricciones físicas, el software puede volverse complejo; las fallas se explican por demandas crecientes y expectativas bajas.",
+      "example": {
+        "title": "Naturaleza del software y sus fallas",
+        "steps": [
+          {
+            "text": "Pensar en lo que no tiene el software",
+            "why": "No está restringido por materiales ni leyes físicas."
+          },
+          {
+            "text": "Recordar los dos factores de las fallas",
+            "why": "El autor menciona demandas y expectativas."
+          }
+        ],
+        "hints": [
+          "Lo opuesto a \"tangible\" describe al software."
+        ]
+      },
+      "position": 11
+    },
+    {
+      "content_id": "fillo",
+      "lesson_content_id": "l1.2",
+      "type": "fill",
+      "prompt": "Completa: origen de la ingeniería de software",
+      "instructions": "Toca un espacio y después una palabra del banco.",
+      "correct_order": [],
+      "config": {
+        "sentences": [
+          "El concepto se propuso en {{1968}} en una conferencia.",
+          "Esa conferencia discutió la llamada {{crisis}} del software."
+        ],
+        "bank": [
+          "1980",
+          "2000",
+          "revolución"
+        ]
+      },
+      "explanation": "La ingeniería de software surge en 1968, cuando los enfoques individuales no escalaban a sistemas grandes y complejos.",
+      "example": {
+        "title": "El origen de la disciplina",
+        "steps": [
+          {
+            "text": "Buscar el año de la conferencia",
+            "why": "El concepto se propuso en esa reunión."
+          },
+          {
+            "text": "Identificar el problema que se discutía",
+            "why": "Los sistemas no eran confiables y costaban más de lo esperado."
+          }
+        ],
+        "hints": [
+          "Es un año de la década de 1960."
+        ]
+      },
+      "position": 12
+    },
+    {
+      "content_id": "fillp",
+      "lesson_content_id": "l1.2",
+      "type": "fill",
+      "prompt": "Completa: costos del software",
+      "instructions": "Toca un espacio y después una palabra del banco.",
+      "correct_order": [],
+      "config": {
+        "sentences": [
+          "Aproximadamente 60% de los costos del software son de {{desarrollo}}.",
+          "El 40% restante corresponde a {{prueba}}.",
+          "En software elaborado específicamente, los costos de {{evolución}} suelen superar a los de desarrollo."
+        ],
+        "bank": [
+          "diseño",
+          "publicidad",
+          "hardware"
+        ]
+      },
+      "explanation": "La mayor parte del costo está en desarrollo y prueba; en software a la medida la evolución suele costar más que el desarrollo.",
+      "example": {
+        "title": "Cómo se reparten los costos",
+        "steps": [
+          {
+            "text": "Asignar el 60% y el 40%",
+            "why": "Son las dos actividades con más costo según la figura 1.1."
+          },
+          {
+            "text": "Completar el caso del software a la medida",
+            "why": "Su costo después de la entrega puede ser mayor que el de desarrollo."
+          }
+        ],
+        "hints": [
+          "Lo que ocurre tras la entrega se llama evolución."
+        ]
+      },
+      "position": 13
+    },
+    {
+      "content_id": "fillq",
+      "lesson_content_id": "l1.2",
+      "type": "fill",
+      "prompt": "Completa: la ingeniería en la práctica",
+      "instructions": "Toca un espacio y después una palabra del banco.",
+      "correct_order": [],
+      "config": {
+        "sentences": [
+          "La ingeniería busca resultados de calidad dentro de la fecha y del {{presupuesto}}.",
+          "Los ingenieros no deben ser {{perfeccionistas}}.",
+          "Los ingenieros de software adoptan un enfoque {{sistemático}} y organizado."
+        ],
+        "bank": [
+          "improvisado",
+          "individualistas",
+          "inventario"
+        ]
+      },
+      "explanation": "La ingeniería implica compromisos: lograr la calidad requerida con tiempo y dinero limitados, usando un enfoque sistemático.",
+      "example": {
+        "title": "La ingeniería con limitaciones reales",
+        "steps": [
+          {
+            "text": "Identificar las restricciones del proyecto",
+            "why": "Se trabaja con fecha y dinero limitados."
+          },
+          {
+            "text": "Elegir la actitud adecuada del ingeniero",
+            "why": "Debe aceptar compromisos y trabajar de forma organizada."
+          }
+        ],
+        "hints": [
+          "Si hay compromisos, no se puede buscar la perfección."
+        ]
+      },
+      "position": 14
+    },
+    {
+      "content_id": "fillr",
+      "lesson_content_id": "l1.2",
+      "type": "fill",
+      "prompt": "Completa: proceso de software",
+      "instructions": "Toca un espacio y después una palabra del banco.",
+      "correct_order": [],
+      "config": {
+        "sentences": [
+          "Un proceso de software es una {{secuencia}} de actividades que conducen a un producto de software.",
+          "El software en tiempo real de una {{aeronave}} debe especificarse por completo antes del desarrollo.",
+          "En el comercio {{electrónico}}, la especificación y el programa se desarrollan en conjunto."
+        ],
+        "bank": [
+          "colección",
+          "impresora",
+          "tradicional"
+        ]
+      },
+      "explanation": "Distintos tipos de sistemas necesitan distintos procesos: algunos exigen especificación completa previa y otros la desarrollan junto con el programa.",
+      "example": {
+        "title": "Procesos según el tipo de sistema",
+        "steps": [
+          {
+            "text": "Definir proceso de software",
+            "why": "Es un conjunto ordenado de actividades."
+          },
+          {
+            "text": "Asociar cada ejemplo con su tipo de proceso",
+            "why": "El software crítico se especifica antes; el comercio electrónico evoluciona junto con el programa."
+          }
+        ],
+        "hints": [
+          "Piensa en un sistema donde un error en vuelo es grave."
+        ]
+      },
+      "position": 15
+    },
+    {
+      "content_id": "fills",
+      "lesson_content_id": "l1.2",
+      "type": "fill",
+      "prompt": "Completa: tipos de aplicación",
+      "instructions": "Toca un espacio y después una palabra del banco.",
+      "correct_order": [],
+      "config": {
+        "sentences": [
+          "Numéricamente, quizás existen más sistemas {{embebidos}} que cualquier otro tipo.",
+          "En los sistemas de {{entretenimiento}}, la calidad de interacción es la característica más importante.",
+          "Los sistemas de adquisición de datos recopilan datos usando {{sensores}}."
+        ],
+        "bank": [
+          "monolíticos",
+          "navegadores",
+          "servidores"
+        ]
+      },
+      "explanation": "Cada tipo de aplicación tiene rasgos propios que determinan qué técnicas de ingeniería son más adecuadas.",
+      "example": {
+        "title": "Rasgos de cada tipo de aplicación",
+        "steps": [
+          {
+            "text": "Identificar el tipo de sistema más numeroso",
+            "why": "Están en teléfonos, automóviles y microondas."
+          },
+          {
+            "text": "Relacionar cada característica con su tipo",
+            "why": "Juegos e interacción; datos del entorno y sensores."
+          }
+        ],
+        "hints": [
+          "Los juegos pertenecen a los sistemas de entretenimiento."
+        ]
+      },
+      "position": 16
+    },
+    {
+      "content_id": "fillt",
+      "lesson_content_id": "l1.2",
+      "type": "fill",
+      "prompt": "Completa: sistemas embebidos en automóviles",
+      "instructions": "Toca un espacio y después una palabra del banco.",
+      "correct_order": [],
+      "config": {
+        "sentences": [
+          "El sistema de control embebido de un automóvil se quema en la {{ROM}}.",
+          "Por eso es muy {{costoso}} cambiarlo.",
+          "Necesita verificación y {{validación}} muy exhaustivas."
+        ],
+        "bank": [
+          "RAM",
+          "barato",
+          "publicidad"
+        ]
+      },
+      "explanation": "Como cambiarlo es caro y es crítico para la seguridad, este software requiere verificación y validación exhaustivas.",
+      "example": {
+        "title": "Software crítico en un automóvil",
+        "steps": [
+          {
+            "text": "Ubicar dónde se instala el software",
+            "why": "Se graba en una memoria que no se cambia fácilmente."
+          },
+          {
+            "text": "Deducir la consecuencia",
+            "why": "Si cambiarlo es difícil, hay que verificarlo a fondo."
+          }
+        ],
+        "hints": [
+          "La memoria de solo lectura no es la RAM."
+        ]
+      },
+      "position": 17
+    },
+    {
+      "content_id": "fillu",
+      "lesson_content_id": "l1.2",
+      "type": "fill",
+      "prompt": "Completa: software y la nube",
+      "instructions": "Toca un espacio y después una palabra del banco.",
+      "correct_order": [],
+      "config": {
+        "sentences": [
+          "Los servicios Web son {{componentes}} de software que entregan funcionalidad específica.",
+          "Una nube de computación es un enorme número de sistemas de cómputo {{vinculados}}.",
+          "Antes de la Web, las aplicaciones empresariales eran básicamente {{monolíticas}}."
+        ],
+        "bank": [
+          "aislados",
+          "manuales",
+          "distribuidas"
+        ]
+      },
+      "explanation": "La Web llevó de aplicaciones monolíticas a software distribuido basado en servicios y en la nube.",
+      "example": {
+        "title": "De lo monolítico a la nube",
+        "steps": [
+          {
+            "text": "Definir servicio Web",
+            "why": "Es una pieza de software accesible desde la Web."
+          },
+          {
+            "text": "Describir la nube y la situación anterior",
+            "why": "Antes todo corría en computadoras individuales."
+          }
+        ],
+        "hints": [
+          "Una nube son muchos sistemas unidos que comparten usuarios."
+        ]
+      },
+      "position": 18
+    },
+    {
+      "content_id": "fillv",
+      "lesson_content_id": "l1.2",
+      "type": "fill",
+      "prompt": "Completa: interfaces en sistemas Web",
+      "instructions": "Toca un espacio y después una palabra del banco.",
+      "correct_order": [],
+      "config": {
+        "sentences": [
+          "Las interfaces de usuario están restringidas por las capacidades de los {{navegadores}} Web.",
+          "Tecnologías como {{AJAX}} permiten crear valiosas interfaces dentro de un navegador.",
+          "Los sistemas basados en la Web deben entregarse de manera {{progresiva}}."
+        ],
+        "bank": [
+          "servidores",
+          "UML",
+          "única"
+        ]
+      },
+      "explanation": "No es práctico especificar todo por adelantado en sistemas Web, y sus interfaces dependen de lo que permiten los navegadores.",
+      "example": {
+        "title": "Límites y forma de entrega en la Web",
+        "steps": [
+          {
+            "text": "Identificar qué limita la interfaz",
+            "why": "La interfaz corre dentro de un programa del usuario."
+          },
+          {
+            "text": "Recordar cómo se entregan los sistemas Web",
+            "why": "No se especifica todo por adelantado."
+          }
+        ],
+        "hints": [
+          "AJAX es la tecnología citada en el texto."
+        ]
+      },
+      "position": 19
+    },
+    {
+      "content_id": "matchp",
+      "lesson_content_id": "l1.2",
+      "type": "match",
+      "prompt": "Enlaza cada tipo de aplicación con su ejemplo",
+      "instructions": "Toca un elemento y después su ejemplo.",
+      "correct_order": [],
+      "config": {
+        "pairs": [
+          {
+            "left": "Aplicación independiente",
+            "right": "Programa CAD en una PC"
+          },
+          {
+            "left": "Aplicación interactiva basada en transacción",
+            "right": "Comercio electrónico en la Web"
+          },
+          {
+            "left": "Sistema de control embebido",
+            "right": "Frenos antibloqueo de un automóvil"
+          },
+          {
+            "left": "Sistema de procesamiento en lotes",
+            "right": "Sistema de pago de salario"
+          }
+        ]
+      },
+      "explanation": "Cada tipo de aplicación se reconoce por dónde se ejecuta y qué tarea realiza.",
+      "example": {
+        "title": "Aplicaciones y sus ejemplos",
+        "steps": [
+          {
+            "text": "Identificar dónde se ejecuta cada aplicación",
+            "why": "PC local, computadora remota o dispositivo."
+          },
+          {
+            "text": "Asociar el ejemplo que encaja",
+            "why": "Los ejemplos vienen de la sección 1.1.2."
+          }
+        ],
+        "hints": [
+          "La facturación y el pago de salarios se procesan en lotes."
+        ]
+      },
+      "position": 20
+    },
+    {
+      "content_id": "matchq",
+      "lesson_content_id": "l1.2",
+      "type": "match",
+      "prompt": "Enlaza cada tipo de sistema con su descripción",
+      "instructions": "Toca un elemento y después su descripción.",
+      "correct_order": [],
+      "config": {
+        "pairs": [
+          {
+            "left": "Sistema de entretenimiento",
+            "right": "Uso personal, sobre todo juegos"
+          },
+          {
+            "left": "Sistema de modelado y simulación",
+            "right": "Modela procesos físicos con muchos objetos interactuantes"
+          },
+          {
+            "left": "Sistema de adquisición de datos",
+            "right": "Recopila datos del entorno mediante sensores"
+          },
+          {
+            "left": "Sistema de sistemas",
+            "right": "Compuesto por varios sistemas de software"
+          }
+        ]
+      },
+      "explanation": "Estos tipos completan la lista de aplicaciones descrita en la sección 1.1.2.",
+      "example": {
+        "title": "Más tipos de sistemas",
+        "steps": [
+          {
+            "text": "Leer el propósito de cada sistema",
+            "why": "Entretener, simular, recopilar o combinar."
+          },
+          {
+            "text": "Elegir la descripción coherente",
+            "why": "Cada tipo tiene un rasgo distintivo."
+          }
+        ],
+        "hints": [
+          "Los sensores pertenecen a la adquisición de datos."
+        ]
+      },
+      "position": 21
+    },
+    {
+      "content_id": "matchr",
+      "lesson_content_id": "l1.2",
+      "type": "match",
+      "prompt": "Enlaza cada reto general con su descripción",
+      "instructions": "Toca un elemento y después su descripción.",
+      "correct_order": [],
+      "config": {
+        "pairs": [
+          {
+            "left": "Heterogeneidad",
+            "right": "Operar en redes con distintas computadoras y dispositivos móviles"
+          },
+          {
+            "left": "Cambio empresarial y social",
+            "right": "Reducir el tiempo para que el software dé valor"
+          },
+          {
+            "left": "Seguridad y confianza",
+            "right": "Evitar que usuarios malintencionados ataquen el software"
+          }
+        ]
+      },
+      "explanation": "Estos tres problemas generales afectan a muy diversos tipos de software y no son independientes.",
+      "example": {
+        "title": "Los tres retos generales",
+        "steps": [
+          {
+            "text": "Leer el nombre del reto",
+            "why": "Cada nombre resume un problema."
+          },
+          {
+            "text": "Buscar el problema concreto",
+            "why": "La descripción explica qué hay que resolver."
+          }
+        ],
+        "hints": [
+          "Heterogeneidad significa diversidad de equipos y dispositivos."
+        ]
+      },
+      "position": 22
+    },
+    {
+      "content_id": "matchs",
+      "lesson_content_id": "l1.2",
+      "type": "match",
+      "prompt": "Enlaza cada pregunta con su respuesta",
+      "instructions": "Toca una pregunta y después su respuesta.",
+      "correct_order": [],
+      "config": {
+        "pairs": [
+          {
+            "left": "¿Qué es software?",
+            "right": "Programas de cómputo y documentación asociada"
+          },
+          {
+            "left": "¿Qué es ingeniería de software?",
+            "right": "Disciplina interesada en todos los aspectos de la producción de software"
+          },
+          {
+            "left": "¿Principales retos?",
+            "right": "Diversidad creciente, tiempos limitados y software confiable"
+          },
+          {
+            "left": "¿Mejor método?",
+            "right": "No puede decirse que un método sea mejor que otro"
+          }
+        ]
+      },
+      "explanation": "La figura 1.1 reúne las preguntas planteadas con frecuencia sobre el software.",
+      "example": {
+        "title": "Preguntas frecuentes sobre el software",
+        "steps": [
+          {
+            "text": "Leer la pregunta",
+            "why": "Identifica qué concepto se pide."
+          },
+          {
+            "text": "Elegir la respuesta de la figura 1.1",
+            "why": "Cada respuesta corresponde a una sola pregunta."
+          }
+        ],
+        "hints": [
+          "Sobre el mejor método, el texto dice que no hay uno universal."
+        ]
+      },
+      "position": 23
+    },
+    {
+      "content_id": "matcht",
+      "lesson_content_id": "l1.2",
+      "type": "match",
+      "prompt": "Enlaza cada disciplina con su interés",
+      "instructions": "Toca un elemento y después su descripción.",
+      "correct_order": [],
+      "config": {
+        "pairs": [
+          {
+            "left": "Ciencias de la computación",
+            "right": "Teorías y métodos que subyacen en computadoras y software"
+          },
+          {
+            "left": "Ingeniería de software",
+            "right": "Asuntos prácticos de la producción del software"
+          },
+          {
+            "left": "Ingeniería de sistemas",
+            "right": "Hardware, políticas, procesos e implementación del sistema"
+          }
+        ]
+      },
+      "explanation": "La ingeniería de software es práctica, se apoya en las ciencias de la computación y forma parte de la ingeniería de sistemas.",
+      "example": {
+        "title": "Disciplinas relacionadas",
+        "steps": [
+          {
+            "text": "Distinguir teoría de práctica",
+            "why": "Ciencias de la computación es teoría; ingeniería de software, práctica."
+          },
+          {
+            "text": "Ubicar la visión más amplia",
+            "why": "La ingeniería de sistemas incluye hardware y procesos."
+          }
+        ],
+        "hints": [
+          "La ingeniería de software forma parte de la ingeniería de sistemas."
+        ]
+      },
+      "position": 24
+    },
+    {
+      "content_id": "matchu",
+      "lesson_content_id": "l1.2",
+      "type": "match",
+      "prompt": "Enlaza cada factor de las fallas del software con su explicación",
+      "instructions": "Toca un elemento y después su explicación.",
+      "correct_order": [],
+      "config": {
+        "pairs": [
+          {
+            "left": "Demandas crecientes",
+            "right": "Se piden sistemas más grandes, complejos y rápidos de entregar"
+          },
+          {
+            "left": "Expectativas bajas",
+            "right": "Empresas que no usan métodos de ingeniería en su trabajo diario"
+          },
+          {
+            "left": "Solución a expectativas bajas",
+            "right": "Mejor educación y capacitación en ingeniería de software"
+          }
+        ]
+      },
+      "explanation": "Según el autor, muchas fallas se deben a demandas que superan los métodos existentes y a no aplicar ingeniería de software.",
+      "example": {
+        "title": "Por qué falla el software",
+        "steps": [
+          {
+            "text": "Separar los dos factores",
+            "why": "Uno viene de lo que se exige y otro de cómo se trabaja."
+          },
+          {
+            "text": "Identificar la solución propuesta",
+            "why": "El autor propone mejorar la formación."
+          }
+        ],
+        "hints": [
+          "Las expectativas bajas aparecen cuando no se usan métodos de ingeniería."
+        ]
+      },
+      "position": 25
+    },
+    {
+      "content_id": "matchv",
+      "lesson_content_id": "l1.2",
+      "type": "match",
+      "prompt": "Enlaza cada cambio de la Web con su consecuencia",
+      "instructions": "Toca un elemento y después su consecuencia.",
+      "correct_order": [],
+      "config": {
+        "pairs": [
+          {
+            "left": "Reutilización de software",
+            "right": "Ensamblar sistemas con componentes preexistentes"
+          },
+          {
+            "left": "Requerimientos",
+            "right": "No es práctico especificarlos todos por adelantado"
+          },
+          {
+            "left": "Interfaces de usuario",
+            "right": "Restringidas por las capacidades de los navegadores"
+          },
+          {
+            "left": "Software en servidor Web",
+            "right": "Más barato cambiar y actualizar el software"
+          }
+        ]
+      },
+      "explanation": "La Web cambió la forma de construir software: más reutilización, entrega progresiva y software en servidores.",
+      "example": {
+        "title": "Efectos de la Web en la ingeniería",
+        "steps": [
+          {
+            "text": "Leer el aspecto afectado",
+            "why": "Reutilización, requerimientos, interfaces o despliegue."
+          },
+          {
+            "text": "Elegir el cambio que produjo la Web",
+            "why": "Cada aspecto cambió de una forma concreta."
+          }
+        ],
+        "hints": [
+          "Instalar en un servidor evita instalar en cada PC."
+        ]
+      },
+      "position": 26
+    },
+    {
+      "content_id": "matchw",
+      "lesson_content_id": "l1.2",
+      "type": "match",
+      "prompt": "Enlaza cada fundamento con lo que implica",
+      "instructions": "Toca un elemento y después su descripción.",
+      "correct_order": [],
+      "config": {
+        "pairs": [
+          {
+            "left": "Proceso",
+            "right": "Desarrollo administrado y comprendido"
+          },
+          {
+            "left": "Confiabilidad y desempeño",
+            "right": "Comportarse como se espera, sin fallas"
+          },
+          {
+            "left": "Requerimientos",
+            "right": "Comprender y gestionar lo que el software debe hacer"
+          },
+          {
+            "left": "Reutilización",
+            "right": "Usar el software ya desarrollado en vez de diseñar uno nuevo"
+          }
+        ]
+      },
+      "explanation": "Estos fundamentos se aplican a todos los tipos de sistemas de software.",
+      "example": {
+        "title": "Fundamentos para todo tipo de sistema",
+        "steps": [
+          {
+            "text": "Leer el fundamento",
+            "why": "Son proceso, confiabilidad, requerimientos y reutilización."
+          },
+          {
+            "text": "Buscar su significado práctico",
+            "why": "Cada fundamento describe qué hacer."
+          }
+        ],
+        "hints": [
+          "Reutilizar es usar lo existente en lugar de crear algo nuevo."
+        ]
+      },
+      "position": 27
+    },
+    {
+      "content_id": "crossn",
+      "lesson_content_id": "l1.2",
+      "type": "crossword",
+      "prompt": "Crucigrama de actividades y atributos",
+      "instructions": "Toca una celda y escribe la palabra que corresponde a la pista.",
+      "correct_order": [],
+      "config": {
+        "crossword": {
+          "rows": 11,
+          "cols": 16,
+          "entries": [
+            {
+              "word": "DESARROLLO",
+              "clue": "Actividad donde se diseña y programa el software",
+              "row": 0,
+              "col": 0,
+              "direction": "down"
+            },
+            {
+              "word": "ESPECIFICACION",
+              "clue": "Actividad donde se definen el software y sus restricciones",
+              "row": 1,
+              "col": 0,
+              "direction": "across"
+            },
+            {
+              "word": "EFICIENCIA",
+              "clue": "Atributo de no desperdiciar recursos del sistema",
+              "row": 1,
+              "col": 3,
+              "direction": "down"
+            },
+            {
+              "word": "VALIDACION",
+              "clue": "Actividad que verifica que el software sea lo que el cliente requiere",
+              "row": 0,
+              "col": 9,
+              "direction": "down"
+            },
+            {
+              "word": "EVOLUCION",
+              "clue": "Actividad que modifica el software ante requerimientos cambiantes",
+              "row": 8,
+              "col": 7,
+              "direction": "across"
+            }
+          ]
+        },
+        "bank": [
+          "MANTENIMIENTO",
+          "ACEPTABILIDAD",
+          "PRUEBA"
+        ]
+      },
+      "explanation": "Las cuatro actividades fundamentales son especificación, desarrollo, validación y evolución; la eficiencia es un atributo del buen software.",
+      "example": {
+        "title": "Crucigrama: actividades y atributos",
+        "steps": [
+          {
+            "text": "Resolver primero ESPECIFICACION",
+            "why": "Es la palabra más larga y cruza con tres palabras."
+          },
+          {
+            "text": "Confirmar cada letra con el cruce",
+            "why": "En una intersección ambas palabras deben coincidir."
+          }
+        ],
+        "hints": [
+          "DESARROLLO cruza ESPECIFICACION en la E (1,0); EVOLUCION cruza VALIDACION en la O (8,9)."
+        ]
+      },
+      "position": 28
+    },
+    {
+      "content_id": "crosso",
+      "lesson_content_id": "l1.2",
+      "type": "crossword",
+      "prompt": "Crucigrama de productos y aplicaciones",
+      "instructions": "Toca una celda y escribe la palabra que corresponde a la pista.",
+      "correct_order": [],
+      "config": {
+        "crossword": {
+          "rows": 14,
+          "cols": 14,
+          "entries": [
+            {
+              "word": "PERSONALIZADOS",
+              "clue": "Productos destinados a un cliente en particular",
+              "row": 6,
+              "col": 0,
+              "direction": "across"
+            },
+            {
+              "word": "GENERICOS",
+              "clue": "Productos que se venden en el mercado abierto",
+              "row": 5,
+              "col": 1,
+              "direction": "down"
+            },
+            {
+              "word": "EMBEBIDOS",
+              "clue": "Sistemas de control que regulan dispositivos de hardware",
+              "row": 1,
+              "col": 8,
+              "direction": "down"
+            },
+            {
+              "word": "LOTES",
+              "clue": "Los sistemas batch procesan datos en grandes...",
+              "row": 8,
+              "col": 7,
+              "direction": "across"
+            },
+            {
+              "word": "SIMULACION",
+              "clue": "Sistemas de modelado y ... que usan científicos e ingenieros",
+              "row": 10,
+              "col": 0,
+              "direction": "across"
+            }
+          ]
+        },
+        "bank": [
+          "INDEPENDIENTES",
+          "TRANSACCION",
+          "ADQUISICION"
+        ]
+      },
+      "explanation": "Los productos pueden ser genéricos o personalizados, y las aplicaciones incluyen sistemas embebidos, por lotes y de simulación.",
+      "example": {
+        "title": "Crucigrama: productos y aplicaciones",
+        "steps": [
+          {
+            "text": "Resolver primero PERSONALIZADOS",
+            "why": "Su E y su I sirven de cruce para dos palabras."
+          },
+          {
+            "text": "Completar las palabras que cuelgan de ella",
+            "why": "Cada cruce confirma una letra."
+          }
+        ],
+        "hints": [
+          "EMBEBIDOS cruza PERSONALIZADOS en la I (6,8)."
+        ]
+      },
+      "position": 29
+    },
+    {
+      "content_id": "crossp",
+      "lesson_content_id": "l1.2",
+      "type": "crossword",
+      "prompt": "Crucigrama de retos y la Web",
+      "instructions": "Toca una celda y escribe la palabra que corresponde a la pista.",
+      "correct_order": [],
+      "config": {
+        "crossword": {
+          "rows": 16,
+          "cols": 14,
+          "entries": [
+            {
+              "word": "HETEROGENEIDAD",
+              "clue": "Reto de operar en redes con distintos tipos de computadoras",
+              "row": 3,
+              "col": 0,
+              "direction": "across"
+            },
+            {
+              "word": "SEGURIDAD",
+              "clue": "Junto con la confianza, reto ante usuarios malintencionados",
+              "row": 2,
+              "col": 1,
+              "direction": "down"
+            },
+            {
+              "word": "REUTILIZACION",
+              "clue": "Enfoque dominante para construir sistemas basados en la Web",
+              "row": 3,
+              "col": 4,
+              "direction": "down"
+            },
+            {
+              "word": "CONFIANZA",
+              "clue": "Es esencial tenerla en el software porque está en todos los aspectos de la vida",
+              "row": 1,
+              "col": 8,
+              "direction": "down"
+            },
+            {
+              "word": "SERVICIOS",
+              "clue": "Componentes Web que entregan funcionalidad específica y útil",
+              "row": 13,
+              "col": 0,
+              "direction": "across"
+            }
+          ]
+        },
+        "bank": [
+          "LEGADOS",
+          "AJAX",
+          "MONOLITICAS"
+        ]
+      },
+      "explanation": "Heterogeneidad, cambio, seguridad y confianza son retos generales; la Web impulsó la reutilización y los servicios Web.",
+      "example": {
+        "title": "Crucigrama: retos y la Web",
+        "steps": [
+          {
+            "text": "Resolver primero HETEROGENEIDAD",
+            "why": "Cruza con SEGURIDAD, REUTILIZACION y CONFIANZA."
+          },
+          {
+            "text": "Usar REUTILIZACION para encontrar SERVICIOS",
+            "why": "Comparten la I en (13,4)."
+          }
+        ],
+        "hints": [
+          "REUTILIZACION empieza en la R de HETEROGENEIDAD (3,4)."
+        ]
+      },
+      "position": 30
+    },
+    {
+      "content_id": "crossq",
+      "lesson_content_id": "l1.2",
+      "type": "crossword",
+      "prompt": "Crucigrama de conceptos básicos",
+      "instructions": "Toca una celda y escribe la palabra que corresponde a la pista.",
+      "correct_order": [],
+      "config": {
+        "crossword": {
+          "rows": 9,
+          "cols": 13,
+          "entries": [
+            {
+              "word": "DOCUMENTACION",
+              "clue": "Además de los programas, forma parte del software",
+              "row": 2,
+              "col": 0,
+              "direction": "across"
+            },
+            {
+              "word": "SOFTWARE",
+              "clue": "Programas de cómputo y documentación asociada",
+              "row": 1,
+              "col": 1,
+              "direction": "down"
+            },
+            {
+              "word": "CRISIS",
+              "clue": "Situación del software discutida en la conferencia de 1968",
+              "row": 2,
+              "col": 9,
+              "direction": "down"
+            },
+            {
+              "word": "PROCESO",
+              "clue": "Secuencia de actividades que conducen a un producto de software",
+              "row": 0,
+              "col": 11,
+              "direction": "down"
+            },
+            {
+              "word": "PRUEBA",
+              "clue": "Actividad que representa cerca del 40% de los costos",
+              "row": 7,
+              "col": 0,
+              "direction": "across"
+            }
+          ]
+        },
+        "bank": [
+          "HARDWARE",
+          "PROGRAMA",
+          "DESARROLLO"
+        ]
+      },
+      "explanation": "El software incluye documentación; la disciplina nació por la crisis del software y se organiza en procesos con costos de desarrollo y prueba.",
+      "example": {
+        "title": "Crucigrama: conceptos básicos",
+        "steps": [
+          {
+            "text": "Resolver primero DOCUMENTACION",
+            "why": "Cruza con SOFTWARE, CRISIS y PROCESO."
+          },
+          {
+            "text": "Encontrar PRUEBA desde SOFTWARE",
+            "why": "Comparten la R en (7,1)."
+          }
+        ],
+        "hints": [
+          "CRISIS empieza en la C de DOCUMENTACION (2,9)."
+        ]
+      },
+      "position": 31
+    },
+    {
+      "content_id": "ord1.3",
+      "lesson_content_id": "l1.3",
+      "type": "order",
+      "prompt": "Ordena el razonamiento ético",
+      "instructions": "Usa las flechas para ordenar la secuencia correcta.",
+      "correct_order": [
+        "Identificar a los afectados",
+        "Reconocer el principio en juego",
+        "Evaluar riesgos y alternativas",
+        "Actuar y documentar la decisión"
+      ],
+      "config": {},
+      "explanation": "El razonamiento ético parte de los afectados, reconoce el principio, evalúa riesgos y documenta la decisión.",
+      "example": null,
+      "position": 32
+    },
+    {
+      "content_id": "fill1.3",
+      "lesson_content_id": "l1.3",
+      "type": "fill",
+      "prompt": "Completa el código de ética",
+      "instructions": "Toca un espacio y después una palabra del banco.",
+      "correct_order": [],
+      "config": {
+        "sentences": [
+          "El código ACM/IEEE establece {{ocho}} principios de conducta profesional.",
+          "El principio {{PÚBLICO}} antepone el interés del público.",
+          "La {{confidencialidad}} se respeta aun sin un acuerdo formal firmado.",
+          "No aceptar trabajo fuera de la propia {{competencia}} es un deber profesional."
+        ],
+        "bank": [
+          "siete",
+          "integridad",
+          "honestidad",
+          "COLEGAS",
+          "gestión"
+        ]
+      },
+      "explanation": "El código ACM/IEEE tiene ocho principios y prioriza el interés público, la confidencialidad y la competencia.",
+      "example": null,
+      "position": 33
+    },
+    {
+      "content_id": "match1.3",
+      "lesson_content_id": "l1.3",
+      "type": "match",
+      "prompt": "Enlaza cada principio con su obligación",
+      "instructions": "Toca un principio y después su obligación.",
+      "correct_order": [],
+      "config": {
+        "pairs": [
+          {
+            "left": "PÚBLICO",
+            "right": "Actuar conforme al interés del público"
+          },
+          {
+            "left": "CLIENTE Y EMPLEADOR",
+            "right": "Fomentar su mejor interés en coherencia con el interés público"
+          },
+          {
+            "left": "JUICIO",
+            "right": "Mantener integridad e independencia en el juicio profesional"
+          },
+          {
+            "left": "COLEGAS",
+            "right": "Ser justos con los colegas y apoyarlos"
+          }
+        ]
+      },
+      "explanation": "Cada principio delimita un ámbito de responsabilidad: público, cliente, juicio y colegas.",
+      "example": null,
+      "position": 34
+    },
+    {
+      "content_id": "match1.3b",
+      "lesson_content_id": "l1.3",
+      "type": "match",
+      "prompt": "Enlaza cada deber profesional con su ejemplo",
+      "instructions": "Toca un deber y después su ejemplo.",
+      "correct_order": [],
+      "config": {
+        "pairs": [
+          {
+            "left": "Confidencialidad",
+            "right": "No revelar información del cliente sin autorización"
+          },
+          {
+            "left": "Competencia",
+            "right": "Rechazar una tarea para la que no se está capacitado"
+          },
+          {
+            "left": "Propiedad intelectual",
+            "right": "Respetar patentes y copyright del software"
+          }
+        ]
+      },
+      "explanation": "La confidencialidad protege datos del cliente; la competencia evita aceptar tareas fuera de capacidad; la propiedad intelectual respeta patentes y copyright.",
+      "example": null,
+      "position": 35
+    },
+    {
+      "content_id": "cross1.3",
+      "lesson_content_id": "l1.3",
+      "type": "crossword",
+      "prompt": "Crucigrama de ética profesional",
+      "instructions": "Toca una celda y escribe la palabra que corresponde a la pista.",
+      "correct_order": [],
+      "config": {
+        "crossword": {
+          "rows": 14,
+          "cols": 17,
+          "entries": [
+            {
+              "word": "CONFIDENCIALIDAD",
+              "clue": "Deber de guardar reserva sobre la información del empleador o del cliente, aunque no hayas firmado ningún acuerdo.",
+              "row": 3,
+              "col": 0,
+              "direction": "across"
+            },
+            {
+              "word": "COMPETENCIA",
+              "clue": "Deber de aceptar solo los trabajos para los que estás realmente capacitado.",
+              "row": 3,
+              "col": 0,
+              "direction": "down"
+            },
+            {
+              "word": "INTEGRIDAD",
+              "clue": "Deber de actuar con rectitud y sin conflictos de interés; aceptar un soborno para elegir un proveedor lo viola.",
+              "row": 3,
+              "col": 4,
+              "direction": "down"
+            },
+            {
+              "word": "ETICA",
+              "clue": "Conjunto de principios que orienta lo correcto en la conducta de un profesional.",
+              "row": 3,
+              "col": 6,
+              "direction": "down"
+            }
+          ]
+        },
+        "bank": [
+          "PRODUCTO",
+          "JUICIO",
+          "COLEGAS",
+          "HONESTIDAD"
+        ]
+      },
+      "explanation": "Confidencialidad, competencia e integridad son deberes centrales del código de ética profesional. La honestidad forma parte de la integridad, pero el deber completo es más amplio: incluye evitar conflictos de interés.",
+      "example": null,
+      "position": 36
+    },
+    {
+      "content_id": "fill1.3b",
+      "lesson_content_id": "l1.3",
+      "type": "fill",
+      "prompt": "Completa la responsabilidad profesional",
+      "instructions": "Toca un espacio y después una palabra del banco.",
+      "correct_order": [],
+      "config": {
+        "sentences": [
+          "Conocer patentes y copyright es respetar los derechos de {{propiedad intelectual}}.",
+          "Usar mal las computadoras de otros incluye diseminar {{malware}}.",
+          "Los principios se publican en códigos de {{conducta}}.",
+          "La ética se analiza mejor en un contexto de {{ingeniería}} de software."
+        ],
+        "bank": [
+          "programación",
+          "gestión",
+          "ética",
+          "arquitectura",
+          "pruebas"
+        ]
+      },
+      "explanation": "La responsabilidad profesional abarca propiedad intelectual, mal uso de computadoras y códigos de conducta.",
+      "example": null,
+      "position": 37
+    },
+    {
+      "content_id": "ord1.4",
+      "lesson_content_id": "l1.4",
+      "type": "order",
+      "prompt": "Ordena el funcionamiento de la bomba de insulina",
+      "instructions": "Usa las flechas para ordenar la secuencia correcta.",
+      "correct_order": [
+        "Medir el nivel de azúcar en la sangre",
+        "Calcular la dosis necesaria",
+        "Enviar pulsos a la bomba",
+        "Administrar la insulina"
+      ],
+      "config": {},
+      "explanation": "La bomba mide la glucosa, calcula la dosis, envía pulsos y administra la insulina.",
+      "example": null,
+      "position": 38
+    },
+    {
+      "content_id": "fill1.4",
+      "lesson_content_id": "l1.4",
+      "type": "fill",
+      "prompt": "Completa los estudios de caso",
+      "instructions": "Toca un espacio y después una palabra del banco.",
+      "correct_order": [],
+      "config": {
+        "sentences": [
+          "La bomba de insulina es un sistema {{embebido}} crítico de seguridad.",
+          "El MHC-PMS es un sistema de {{información}} con base de datos centralizada.",
+          "La estación meteorológica adquiere {{datos}} con sensores.",
+          "Las estaciones usan un enlace {{satelital}} de baja rapidez."
+        ],
+        "bank": [
+          "lotes",
+          "hardware",
+          "sensores",
+          "red",
+          "control"
+        ]
+      },
+      "explanation": "Los estudios de caso representan un sistema embebido, uno de información y uno de adquisición de datos.",
+      "example": null,
+      "position": 39
+    },
+    {
+      "content_id": "match1.4",
+      "lesson_content_id": "l1.4",
+      "type": "match",
+      "prompt": "Enlaza cada sistema con su tipo",
+      "instructions": "Toca un sistema y después su tipo.",
+      "correct_order": [],
+      "config": {
+        "pairs": [
+          {
+            "left": "Bomba de insulina",
+            "right": "Sistema embebido que controla un dispositivo médico"
+          },
+          {
+            "left": "MHC-PMS",
+            "right": "Sistema de información de pacientes de salud mental"
+          },
+          {
+            "left": "Estación meteorológica",
+            "right": "Sistema de adquisición de datos con sensores"
+          },
+          {
+            "left": "Mantenimiento de estación",
+            "right": "Monitoriza y actualiza remotamente las estaciones"
+          }
+        ]
+      },
+      "explanation": "La función principal de cada sistema determina su tipo.",
+      "example": null,
+      "position": 40
+    },
+    {
+      "content_id": "fill1.4b",
+      "lesson_content_id": "l1.4",
+      "type": "fill",
+      "prompt": "Completa los requerimientos de los estudios de caso",
+      "instructions": "Toca un espacio y después una palabra del banco.",
+      "correct_order": [],
+      "config": {
+        "sentences": [
+          "El MHC-PMS prioriza la {{privacidad}} de los pacientes.",
+          "La estación meteorológica debe ser fiable en un ambiente {{hostil}}.",
+          "La bomba debe estar {{disponible}} para entregar insulina cuando se requiere.",
+          "El sistema de mantenimiento actualiza el software de forma {{remota}}."
+        ],
+        "bank": [
+          "seguridad",
+          "amigable",
+          "confiable",
+          "local",
+          "manual"
+        ]
+      },
+      "explanation": "El MHC-PMS prioriza la privacidad; la estación debe ser fiable en ambiente hostil; la bomba exige disponibilidad y dosis correcta.",
+      "example": null,
+      "position": 41
+    },
+    {
+      "content_id": "cross1.4",
+      "lesson_content_id": "l1.4",
+      "type": "crossword",
+      "prompt": "Crucigrama de estudios de caso",
+      "instructions": "Toca una celda y escribe la palabra que corresponde a la pista.",
+      "correct_order": [],
+      "config": {
+        "crossword": {
+          "rows": 12,
+          "cols": 13,
+          "entries": [
+            {
+              "word": "METEOROLOGICA",
+              "clue": "Estación ___: opera a campo abierto y recoge datos del clima de forma automática.",
+              "row": 3,
+              "col": 0,
+              "direction": "across"
+            },
+            {
+              "word": "MHC",
+              "clue": "Siglas del caso de estudio sobre atención de salud mental.",
+              "row": 3,
+              "col": 0,
+              "direction": "down"
+            },
+            {
+              "word": "EMBEBIDO",
+              "clue": "Tipo de sistema cuyo software forma parte del hardware que controla.",
+              "row": 3,
+              "col": 1,
+              "direction": "down"
+            },
+            {
+              "word": "INSULINA",
+              "clue": "Hormona que la bomba automática suministra a personas con diabetes.",
+              "row": 3,
+              "col": 10,
+              "direction": "down"
+            }
+          ]
+        },
+        "bank": [
+          "SENSORES",
+          "PACIENTES",
+          "SATELITAL",
+          "PRIVACIDAD"
+        ]
+      },
+      "explanation": "La estación meteorológica ejemplifica la adquisición de datos a campo abierto; la bomba de insulina, un sistema embebido; y MHC identifica el caso de salud mental, donde la privacidad de la información es clave.",
+      "example": null,
+      "position": 42
+    },
+    {
+      "content_id": "match1.4b",
+      "lesson_content_id": "l1.4",
+      "type": "match",
+      "prompt": "Enlaza cada sistema con su requerimiento clave",
+      "instructions": "Toca un sistema y después su requerimiento.",
+      "correct_order": [],
+      "config": {
+        "pairs": [
+          {
+            "left": "MHC-PMS",
+            "right": "Privacidad y disponibilidad de la información clínica"
+          },
+          {
+            "left": "Estación meteorológica",
+            "right": "Fiabilidad en condiciones de ambiente hostil"
+          },
+          {
+            "left": "Bomba de insulina",
+            "right": "Disponibilidad y entrega de la dosis correcta"
+          }
+        ]
+      },
+      "explanation": "Cada sistema enfatiza un atributo: privacidad, fiabilidad en ambiente hostil y disponibilidad con dosis correcta.",
+      "example": null,
+      "position": 43
+    }
+  ],
+  "examples": [
+    {
+      "content_id": "exA1.2",
+      "lesson_content_id": "l1.2",
+      "type": "match",
+      "title": "Atributos del buen software",
+      "prompt": "Enlaza cada atributo con su descripción",
+      "config": {
+        "pairs": [
+          {
+            "left": "Mantenimiento",
+            "right": "Puede evolucionar ante necesidades cambiantes"
+          },
+          {
+            "left": "Confiabilidad y seguridad",
+            "right": "No causa daño y resiste ataques"
+          },
+          {
+            "left": "Eficiencia",
+            "right": "No desperdicia memoria ni ciclos del procesador"
+          },
+          {
+            "left": "Aceptabilidad",
+            "right": "Comprensible, utilizable y compatible"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "text": "Leer el atributo Mantenimiento",
+          "why": "Conviene identificar la propiedad de calidad antes de buscar su definición."
+        },
+        {
+          "text": "Buscar la definición que habla de evolución y cambio",
+          "why": "El cambio del software es inevitable en un entorno empresarial variable."
+        },
+        {
+          "text": "Enlazar eficiencia con el uso de recursos",
+          "why": "La eficiencia se refiere a memoria, ciclos y tiempo de respuesta."
+        },
+        {
+          "text": "Comprobar que ninguna definición se repita",
+          "why": "Cada atributo tiene una consecuencia distinta y verificable."
+        }
+      ],
+      "hints": [
+        "Concéntrate en la consecuencia de cada atributo, no en su nombre.",
+        "Confiabilidad habla de daño y ataques; eficiencia, de recursos.",
+        "Aceptabilidad se juzga desde el usuario que usará el sistema."
+      ],
+      "explanation": "Mantenimiento permite evolucionar con el cambio; confiabilidad y seguridad evitan daño y ataques; eficiencia cuida los recursos; aceptabilidad mira la comprensión y compatibilidad con otros sistemas.",
+      "position": 0
+    },
+    {
+      "content_id": "exA1.3",
+      "lesson_content_id": "l1.3",
+      "type": "match",
+      "title": "Principios del código ACM/IEEE",
+      "prompt": "Enlaza cada principio con su obligación",
+      "config": {
+        "pairs": [
+          {
+            "left": "PÚBLICO",
+            "right": "Actuar conforme al interés del público"
+          },
+          {
+            "left": "CLIENTE Y EMPLEADOR",
+            "right": "Fomentar su mejor interés en coherencia con el interés público"
+          },
+          {
+            "left": "JUICIO",
+            "right": "Mantener integridad e independencia en el juicio profesional"
+          },
+          {
+            "left": "COLEGAS",
+            "right": "Ser justos con los colegas y apoyarlos"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "text": "Leer el primer principio",
+          "why": "Cada principio nombra un ámbito de responsabilidad del ingeniero."
+        },
+        {
+          "text": "Ubicar su obligación en el código",
+          "why": "Las obligaciones están formuladas como conductas observables, no como valores abstractos."
+        },
+        {
+          "text": "Revisar que la pareja no se repita",
+          "why": "CLIENTE Y EMPLEADOR no es lo mismo que PÚBLICO: siempre se subordina al interés público."
+        }
+      ],
+      "hints": [
+        "El principio PÚBLICO antepone el interés social a cualquier beneficio particular.",
+        "JUICIO trata de integridad, no de tareas ni de clientes.",
+        "COLEGAS se refiere al trato justo y de apoyo entre profesionales."
+      ],
+      "explanation": "El código resume ocho principios. PÚBLICO antepone el interés social; CLIENTE Y EMPLEADOR busca su mejor interés sin dañar al público; JUICIO exige integridad e independencia; COLEGAS pide justicia y apoyo entre profesionales.",
+      "position": 1
+    },
+    {
+      "content_id": "exA1.4",
+      "lesson_content_id": "l1.4",
+      "type": "match",
+      "title": "Estudios de caso y tipo de sistema",
+      "prompt": "Enlaza cada sistema con su tipo",
+      "config": {
+        "pairs": [
+          {
+            "left": "Bomba de insulina",
+            "right": "Sistema embebido que controla un dispositivo médico"
+          },
+          {
+            "left": "MHC-PMS",
+            "right": "Sistema de información de pacientes de salud mental"
+          },
+          {
+            "left": "Estación meteorológica",
+            "right": "Sistema de adquisición de datos con sensores"
+          },
+          {
+            "left": "Mantenimiento de estación",
+            "right": "Monitoriza y actualiza remotamente las estaciones"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "text": "Leer la descripción del sistema",
+          "why": "Cada estudio de caso enfatiza un tipo distinto de software."
+        },
+        {
+          "text": "Reconocer qué controla o gestiona",
+          "why": "Controlar hardware indica embebido; gestionar una base de datos indica sistema de información."
+        },
+        {
+          "text": "Asignar el tipo según esa función principal",
+          "why": "El tipo de sistema determina qué técnicas de ingeniería se aplican."
+        }
+      ],
+      "hints": [
+        "Si el software controla hardware, es un sistema embebido.",
+        "MHC-PMS gestiona información clínica, no hardware.",
+        "La estación meteorológica obtiene datos de sensores en un entorno hostil."
+      ],
+      "explanation": "La bomba de insulina es embebida y crítica para la seguridad; el MHC-PMS es un sistema de información con fuertes requisitos de privacidad; la estación meteorológica es adquisición de datos con fiabilidad en ambiente hostil; el sistema de mantenimiento monitoriza y actualiza las estaciones de forma remota.",
+      "position": 2
+    }
+  ],
+  "questions": [
+    {
+      "content_id": "ev1.2-q1",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "¿Cuál es una actividad fundamental del proceso de software?",
+      "options": [
+        "Diseñar la interfaz gráfica",
+        "Validar que el sistema cumple los requisitos",
+        "Comprar hardware",
+        "Publicar en la Web"
+      ],
+      "answer": 1,
+      "config": {},
+      "explanation": "Las actividades fundamentales son especificación, desarrollo, validación y evolución del software.",
+      "position": 0
+    },
+    {
+      "content_id": "ev1.2-q2",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "¿Qué incluye un sistema de software profesional además de los programas?",
+      "options": [
+        "Solo el código fuente",
+        "Documentación y archivos de configuración",
+        "Únicamente manuales impresos",
+        "Solo el sitio de descargas"
+      ],
+      "answer": 1,
+      "config": {},
+      "explanation": "Incluye documentación del sistema y del usuario, archivos de configuración y sitios con información del producto.",
+      "position": 1
+    },
+    {
+      "content_id": "ev1.2-q3",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "En los productos personalizados, ¿quién controla generalmente la especificación?",
+      "options": [
+        "La organización desarrolladora",
+        "La organización que compra el software",
+        "El mercado abierto",
+        "El equipo de pruebas"
+      ],
+      "answer": 1,
+      "config": {},
+      "explanation": "En los personalizados la especificación la define y controla quien adquiere el software.",
+      "position": 2
+    },
+    {
+      "content_id": "ev1.2-q4",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "¿Qué caracteriza a los productos genéricos?",
+      "options": [
+        "Se desarrollan para un cliente específico",
+        "Se venden en el mercado abierto a cualquier cliente",
+        "No requieren documentación",
+        "Solo existen como servicio web"
+      ],
+      "answer": 1,
+      "config": {},
+      "explanation": "Los productos genéricos son sistemas independientes que se comercializan en el mercado abierto.",
+      "position": 3
+    },
+    {
+      "content_id": "ev1.2-q6",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "¿Qué diferencia a la ingeniería de software de las ciencias de la computación?",
+      "options": [
+        "No tienen relación",
+        "Las ciencias se enfocan en teoría; la ingeniería, en la producción práctica de software",
+        "La ingeniería estudia solo hardware",
+        "Las ciencias solo estudian juegos"
+      ],
+      "answer": 1,
+      "config": {},
+      "explanation": "Las ciencias de la computación se centran en teoría y fundamentos; la ingeniería de software, en los asuntos prácticos de la producción.",
+      "position": 5
+    },
+    {
+      "content_id": "ev1.2-q7",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "¿Por qué se afirma que no existe un método universal de ingeniería de software?",
+      "options": [
+        "Porque todos los sistemas son iguales",
+        "Porque distintos tipos de sistema requieren distintas técnicas",
+        "Porque no hay métodos",
+        "Porque solo sirve la programación"
+      ],
+      "answer": 1,
+      "config": {},
+      "explanation": "Cada tipo de sistema requiere enfoques y técnicas específicas; no hay una técnica universal.",
+      "position": 6
+    },
+    {
+      "content_id": "ev1.2-q9",
+      "evaluation_content_id": "ev1.2",
+      "type": "match",
+      "prompt": "Enlaza cada atributo con su descripción",
+      "options": [],
+      "answer": 0,
+      "config": {
+        "pairs": [
+          {
+            "left": "Mantenimiento",
+            "right": "Evolucionar ante necesidades cambiantes"
+          },
+          {
+            "left": "Eficiencia",
+            "right": "No desperdiciar recursos"
+          },
+          {
+            "left": "Aceptabilidad",
+            "right": "Comprensible y compatible"
+          }
+        ]
+      },
+      "explanation": "Cada atributo de calidad describe una propiedad distinta del software profesional.",
+      "position": 8
+    },
+    {
+      "content_id": "ev1.2-q10",
+      "evaluation_content_id": "ev1.2",
+      "type": "match",
+      "prompt": "Enlaza cada tipo de producto con su definición",
+      "options": [],
+      "answer": 0,
+      "config": {
+        "pairs": [
+          {
+            "left": "Producto genérico",
+            "right": "Se vende en el mercado abierto"
+          },
+          {
+            "left": "Producto personalizado",
+            "right": "Se desarrolla para un cliente específico"
+          },
+          {
+            "left": "ERP adaptado",
+            "right": "Producto genérico adaptado a la empresa"
+          }
+        ]
+      },
+      "explanation": "Genérico se comercializa en el mercado; personalizado se diseña para un cliente; el ERP es un genérico adaptado.",
+      "position": 9
+    },
+    {
+      "content_id": "ev1.2-q11",
+      "evaluation_content_id": "ev1.2",
+      "type": "fill",
+      "prompt": "Completa las frases",
+      "options": [],
+      "answer": 0,
+      "config": {
+        "sentences": [
+          "La calidad del software abarca los atributos {{no funcionales}}.",
+          "Un sistema profesional incluye archivos de {{configuración}}."
+        ],
+        "bank": [
+          "funcionales",
+          "seguridad",
+          "manuales",
+          "monolíticos"
+        ]
+      },
+      "explanation": "La calidad incluye atributos no funcionales y el sistema incluye configuración y documentación.",
+      "position": 10
+    },
+    {
+      "content_id": "ev1.2-q12",
+      "evaluation_content_id": "ev1.2",
+      "type": "fill",
+      "prompt": "Completa las cifras y términos",
+      "options": [],
+      "answer": 0,
+      "config": {
+        "sentences": [
+          "Aproximadamente el {{60}}% de los costos son de desarrollo.",
+          "Los productos se venden en el mercado {{abierto}}."
+        ],
+        "bank": [
+          "40",
+          "cerrado",
+          "privado",
+          "80"
+        ]
+      },
+      "explanation": "Cerca del 60% de los costos son de desarrollo y el mercado de los productos genéricos es abierto.",
+      "position": 11
+    },
+    {
+      "content_id": "ev1.2-q13",
+      "evaluation_content_id": "ev1.2",
+      "type": "order",
+      "prompt": "Ordena las actividades del proceso",
+      "options": [
+        "Especificación del software",
+        "Desarrollo del software",
+        "Validación del software",
+        "Evolución del software"
+      ],
+      "answer": 0,
+      "config": {},
+      "explanation": "El proceso va de la especificación a la evolución, pasando por desarrollo y validación.",
+      "position": 12
+    },
+    {
+      "content_id": "ev1.2-q14",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "¿Qué práctica deja trazabilidad del trabajo profesional?",
+      "options": [
+        "No documentar",
+        "Usar control de versiones y registrar incidencias",
+        "Cambiar el código en producción",
+        "Probar solo al final"
+      ],
+      "answer": 1,
+      "config": {},
+      "explanation": "Documentar y usar control de versiones deja evidencia de qué se decidió y cómo se validó.",
+      "position": 13
+    },
+    {
+      "content_id": "ev1.2-q15",
+      "evaluation_content_id": "ev1.2",
+      "type": "crossword",
+      "prompt": "Completa el crucigrama de atributos",
+      "options": [],
+      "answer": 0,
+      "config": {
+        "crossword": {
+          "rows": 16,
+          "cols": 13,
+          "entries": [
+            {
+              "word": "MANTENIMIENTO",
+              "clue": "Tu cliente cambia sus reglas de negocio y el sistema debe poder ajustarse sin rehacerse desde cero: ¿qué atributo lo permite?",
+              "row": 3,
+              "col": 0,
+              "direction": "across"
+            },
+            {
+              "word": "ACEPTABILIDAD",
+              "clue": "Los usuarios no entienden la interfaz y el sistema no se integra con sus otras herramientas: falla este atributo.",
+              "row": 3,
+              "col": 1,
+              "direction": "down"
+            },
+            {
+              "word": "EFICIENCIA",
+              "clue": "Una aplicación tarda varios segundos en responder y consume casi toda la memoria del equipo: falla este atributo.",
+              "row": 3,
+              "col": 4,
+              "direction": "down"
+            }
+          ]
+        },
+        "bank": [
+          "CONFIABILIDAD",
+          "SOFTWARE",
+          "USABILIDAD"
+        ]
+      },
+      "explanation": "Cada escenario apunta a un atributo distinto: ajustarse al cambio es mantenimiento, ser comprensible y compatible es aceptabilidad, y aprovechar bien los recursos es eficiencia.",
+      "position": 14
+    },
+    {
+      "content_id": "ev1.3-q1",
+      "evaluation_content_id": "ev1.3",
+      "type": "mcq",
+      "prompt": "¿Cuántos principios reúne el código de ética ACM/IEEE?",
+      "options": [
+        "Seis",
+        "Siete",
+        "Ocho",
+        "Nueve"
+      ],
+      "answer": 2,
+      "config": {},
+      "explanation": "El código resume ocho principios, desde PÚBLICO hasta UNO MISMO.",
+      "position": 0
+    },
+    {
+      "content_id": "ev1.3-q2",
+      "evaluation_content_id": "ev1.3",
+      "type": "mcq",
+      "prompt": "¿Qué principio antepone el interés del público?",
+      "options": [
+        "GESTIÓN",
+        "PÚBLICO",
+        "PRODUCTO",
+        "COLEGAS"
+      ],
+      "answer": 1,
+      "config": {},
+      "explanation": "PÚBLICO exige actuar consecuentemente con el interés del público.",
+      "position": 1
+    },
+    {
+      "content_id": "ev1.3-q3",
+      "evaluation_content_id": "ev1.3",
+      "type": "mcq",
+      "prompt": "¿Qué implica el principio JUICIO?",
+      "options": [
+        "Aceptar cualquier tarea",
+        "Mantener integridad e independencia en el juicio profesional",
+        "Ocultar los fallos",
+        "Priorizar el beneficio comercial"
+      ],
+      "answer": 1,
+      "config": {},
+      "explanation": "JUICIO exige integridad e independencia en el juicio profesional.",
+      "position": 2
+    },
+    {
+      "content_id": "ev1.3-q4",
+      "evaluation_content_id": "ev1.3",
+      "type": "mcq",
+      "prompt": "¿Qué exige el principio COMPETENCIA?",
+      "options": [
+        "Aceptar todo trabajo",
+        "No aceptar trabajo fuera de la propia competencia",
+        "Trabajar sin capacitación",
+        "Delegar sin supervisión"
+      ],
+      "answer": 1,
+      "config": {},
+      "explanation": "No se debe desvirtuar el nivel de competencia aceptando trabajo para el que no se está capacitado.",
+      "position": 3
+    },
+    {
+      "content_id": "ev1.3-q5",
+      "evaluation_content_id": "ev1.3",
+      "type": "mcq",
+      "prompt": "¿Cuál es un deber de confidencialidad?",
+      "options": [
+        "Revelar datos si conviene",
+        "Respetar la información del cliente o empleador, con o sin contrato",
+        "Publicar datos personales",
+        "Compartir información con terceros"
+      ],
+      "answer": 1,
+      "config": {},
+      "explanation": "La confidencialidad se respeta con independencia de que exista un acuerdo formal.",
+      "position": 4
+    },
+    {
+      "content_id": "ev1.3-q6",
+      "evaluation_content_id": "ev1.3",
+      "type": "mcq",
+      "prompt": "¿Qué abarca respetar la propiedad intelectual?",
+      "options": [
+        "Ignorar patentes",
+        "Conocer y proteger patentes y copyright",
+        "Copiar software ajeno",
+        "Distribuir licencias sin permiso"
+      ],
+      "answer": 1,
+      "config": {},
+      "explanation": "Se deben conocer las leyes locales de patentes y copyright y proteger la propiedad del empleador y del cliente.",
+      "position": 5
+    },
+    {
+      "content_id": "ev1.3-q7",
+      "evaluation_content_id": "ev1.3",
+      "type": "mcq",
+      "prompt": "Si un fallo expone datos personales, ¿qué debe priorizarse?",
+      "options": [
+        "Evitar cualquier retraso comercial",
+        "El interés público y la protección de datos",
+        "Ocultar el fallo",
+        "Delegar sin informar"
+      ],
+      "answer": 1,
+      "config": {},
+      "explanation": "El interés público y la protección de datos prevalecen; hay que informar riesgos significativos.",
+      "position": 6
+    },
+    {
+      "content_id": "ev1.3-q8",
+      "evaluation_content_id": "ev1.3",
+      "type": "mcq",
+      "prompt": "¿Por qué es un reto la participación en sistemas militares?",
+      "options": [
+        "Porque no existen",
+        "Porque genera conflictos éticos y exige transparencia anticipada",
+        "Porque está prohibida",
+        "Porque siempre es ilegal"
+      ],
+      "answer": 1,
+      "config": {},
+      "explanation": "Es un conflicto ético frecuente; empleadores y empleados deben aclarar de antemano sus posiciones.",
+      "position": 7
+    },
+    {
+      "content_id": "ev1.3-q9",
+      "evaluation_content_id": "ev1.3",
+      "type": "match",
+      "prompt": "Enlaza cada principio con su obligación",
+      "options": [],
+      "answer": 0,
+      "config": {
+        "pairs": [
+          {
+            "left": "PÚBLICO",
+            "right": "Actuar conforme al interés del público"
+          },
+          {
+            "left": "COLEGAS",
+            "right": "Ser justos y apoyarlos"
+          },
+          {
+            "left": "UNO MISMO",
+            "right": "Aprendizaje para toda la vida"
+          }
+        ]
+      },
+      "explanation": "Cada principio expresa una relación de responsabilidad distinta.",
+      "position": 8
+    },
+    {
+      "content_id": "ev1.3-q10",
+      "evaluation_content_id": "ev1.3",
+      "type": "match",
+      "prompt": "Enlaza cada responsabilidad con su descripción",
+      "options": [],
+      "answer": 0,
+      "config": {
+        "pairs": [
+          {
+            "left": "Confidencialidad",
+            "right": "Respetar la información del cliente"
+          },
+          {
+            "left": "Competencia",
+            "right": "No aceptar trabajo fuera de capacidad"
+          },
+          {
+            "left": "Mal uso de computadoras",
+            "right": "No dañar equipos o datos ajenos"
+          }
+        ]
+      },
+      "explanation": "Son áreas de responsabilidad profesional anteriores a la ley.",
+      "position": 9
+    },
+    {
+      "content_id": "ev1.3-q11",
+      "evaluation_content_id": "ev1.3",
+      "type": "fill",
+      "prompt": "Completa los principios",
+      "options": [],
+      "answer": 0,
+      "config": {
+        "sentences": [
+          "El principio {{JUICIO}} exige independencia profesional.",
+          "El código lo publican {{ACM}} e IEEE."
+        ],
+        "bank": [
+          "GESTIÓN",
+          "PRODUCTO",
+          "IEEE",
+          "ISO"
+        ]
+      },
+      "explanation": "JUICIO e instituciones como ACM e IEEE forman el marco del código.",
+      "position": 10
+    },
+    {
+      "content_id": "ev1.3-q12",
+      "evaluation_content_id": "ev1.3",
+      "type": "fill",
+      "prompt": "Completa las frases",
+      "options": [],
+      "answer": 0,
+      "config": {
+        "sentences": [
+          "El mal uso incluye diseminar {{malware}}.",
+          "Los códigos de {{conducta}} establecen estándares esperados."
+        ],
+        "bank": [
+          "virus",
+          "ética",
+          "leyes",
+          "principios"
+        ]
+      },
+      "explanation": "El mal uso va del uso trivial a la diseminación de malware; los códigos de conducta fijan estándares.",
+      "position": 11
+    },
+    {
+      "content_id": "ev1.3-q13",
+      "evaluation_content_id": "ev1.3",
+      "type": "order",
+      "prompt": "Ordena el razonamiento ético",
+      "options": [
+        "Identificar a los afectados",
+        "Reconocer el principio en juego",
+        "Evaluar riesgos y alternativas",
+        "Actuar y documentar la decisión"
+      ],
+      "answer": 0,
+      "config": {},
+      "explanation": "El análisis ético parte de los afectados y termina en la acción documentada.",
+      "position": 12
+    },
+    {
+      "content_id": "ev1.3-q14",
+      "evaluation_content_id": "ev1.3",
+      "type": "mcq",
+      "prompt": "¿Qué principio obliga a actuar conforme al interés del público?",
+      "options": [
+        "PRODUCTO",
+        "PÚBLICO",
+        "GESTIÓN",
+        "UNO MISMO"
+      ],
+      "answer": 1,
+      "config": {},
+      "explanation": "PÚBLICO exige actuar consecuentemente con el interés del público, por encima de intereses particulares.",
+      "position": 13
+    },
+    {
+      "content_id": "ev1.3-q15",
+      "evaluation_content_id": "ev1.3",
+      "type": "crossword",
+      "prompt": "Completa el crucigrama de ética",
+      "options": [],
+      "answer": 0,
+      "config": {
+        "crossword": {
+          "rows": 19,
+          "cols": 11,
+          "entries": [
+            {
+              "word": "COMPETENCIA",
+              "clue": "Te ofrecen un proyecto que supera tus habilidades y lo aceptas sin decir nada: incumples este deber.",
+              "row": 3,
+              "col": 0,
+              "direction": "across"
+            },
+            {
+              "word": "CONFIDENCIALIDAD",
+              "clue": "Publicas en redes los detalles internos del sistema de tu cliente: violas este deber, incluso sin un acuerdo firmado.",
+              "row": 3,
+              "col": 0,
+              "direction": "down"
+            },
+            {
+              "word": "ETICA",
+              "clue": "Marco de principios al que recurres cuando una instrucción de tu jefe choca con lo que es correcto.",
+              "row": 3,
+              "col": 4,
+              "direction": "down"
+            }
+          ]
+        },
+        "bank": [
+          "INTEGRIDAD",
+          "HONESTIDAD",
+          "PRODUCTO"
+        ]
+      },
+      "explanation": "Aceptar trabajo que no puedes hacer bien va contra la competencia; divulgar información del cliente va contra la confidencialidad; y la ética es el marco que te guía cuando hay un dilema profesional.",
+      "position": 14
+    },
+    {
+      "content_id": "ev1.4-q1",
+      "evaluation_content_id": "ev1.4",
+      "type": "mcq",
+      "prompt": "¿Qué tipo de sistema es la bomba de insulina?",
+      "options": [
+        "Sistema de información",
+        "Sistema embebido",
+        "Procesamiento en lotes",
+        "Entretenimiento"
+      ],
+      "answer": 1,
+      "config": {},
+      "explanation": "Controla un dispositivo médico a partir de un sensor: es un sistema embebido.",
+      "position": 0
+    },
+    {
+      "content_id": "ev1.4-q2",
+      "evaluation_content_id": "ev1.4",
+      "type": "mcq",
+      "prompt": "¿Cuál es el propósito principal del MHC-PMS?",
+      "options": [
+        "Controlar hardware médico",
+        "Gestionar información de pacientes de salud mental",
+        "Predecir el clima",
+        "Administrar energía"
+      ],
+      "answer": 1,
+      "config": {},
+      "explanation": "Es un sistema de información que administra pacientes y tratamientos de salud mental.",
+      "position": 1
+    },
+    {
+      "content_id": "ev1.4-q3",
+      "evaluation_content_id": "ev1.4",
+      "type": "mcq",
+      "prompt": "¿Qué conflicto de diseño enfrenta el MHC-PMS?",
+      "options": [
+        "Velocidad frente a color",
+        "Privacidad frente a disponibilidad",
+        "Tamaño frente a precio",
+        "Idioma frente a moneda"
+      ],
+      "answer": 1,
+      "config": {},
+      "explanation": "La privacidad es más fácil con una sola copia; la disponibilidad exige varias copias.",
+      "position": 2
+    },
+    {
+      "content_id": "ev1.4-q4",
+      "evaluation_content_id": "ev1.4",
+      "type": "mcq",
+      "prompt": "¿Qué ley afecta de forma única al MHC-PMS?",
+      "options": [
+        "Leyes de tránsito",
+        "Leyes de salud mental con detención obligatoria",
+        "Leyes de comercio",
+        "Leyes de propiedad"
+      ],
+      "answer": 1,
+      "config": {},
+      "explanation": "La salud mental es la única especialidad que puede recomendar detención contra la voluntad del paciente.",
+      "position": 3
+    },
+    {
+      "content_id": "ev1.4-q5",
+      "evaluation_content_id": "ev1.4",
+      "type": "mcq",
+      "prompt": "¿Qué mide la estación meteorológica?",
+      "options": [
+        "Solo temperatura",
+        "Temperatura, presión, luz, lluvia y viento",
+        "Solo lluvia",
+        "Solo viento"
+      ],
+      "answer": 1,
+      "config": {},
+      "explanation": "Recolecta varios parámetros climáticos mediante instrumentos.",
+      "position": 4
+    },
+    {
+      "content_id": "ev1.4-q6",
+      "evaluation_content_id": "ev1.4",
+      "type": "mcq",
+      "prompt": "¿Por qué la estación meteorológica procesa datos localmente?",
+      "options": [
+        "Por comodidad",
+        "Porque el ancho de banda satelital es estrecho",
+        "Porque no tiene sensores",
+        "Porque no usa energía"
+      ],
+      "answer": 1,
+      "config": {},
+      "explanation": "Concentra los datos localmente y los transmite cuando se solicitan, dado el enlace satelital limitado.",
+      "position": 5
+    },
+    {
+      "content_id": "ev1.4-q7",
+      "evaluation_content_id": "ev1.4",
+      "type": "mcq",
+      "prompt": "¿Qué hace el sistema de mantenimiento de estación?",
+      "options": [
+        "Adquiere datos del clima",
+        "Monitoriza y actualiza remotamente las estaciones",
+        "Vende servicios web",
+        "Gestiona pacientes"
+      ],
+      "answer": 1,
+      "config": {},
+      "explanation": "Monitoriza el estado de las estaciones y puede actualizar su software embebido.",
+      "position": 6
+    },
+    {
+      "content_id": "ev1.4-q8",
+      "evaluation_content_id": "ev1.4",
+      "type": "mcq",
+      "prompt": "¿Por qué la estación debe ser autocontenida?",
+      "options": [
+        "Para gastar menos",
+        "Porque no hay fuentes externas de energía ni red",
+        "Para ser más rápida",
+        "Porque lo exige el usuario"
+      ],
+      "answer": 1,
+      "config": {},
+      "explanation": "Se despliega en campo abierto, sin energía externa ni cables de red; usa baterías y carga solar o eólica.",
+      "position": 7
+    },
+    {
+      "content_id": "ev1.4-q9",
+      "evaluation_content_id": "ev1.4",
+      "type": "match",
+      "prompt": "Enlaza cada sistema con su tipo",
+      "options": [],
+      "answer": 0,
+      "config": {
+        "pairs": [
+          {
+            "left": "Bomba de insulina",
+            "right": "Sistema embebido médico"
+          },
+          {
+            "left": "MHC-PMS",
+            "right": "Sistema de información clínica"
+          },
+          {
+            "left": "Estación meteorológica",
+            "right": "Adquisición de datos con sensores"
+          }
+        ]
+      },
+      "explanation": "Cada estudio de caso representa un tipo distinto de sistema.",
+      "position": 8
+    },
+    {
+      "content_id": "ev1.4-q10",
+      "evaluation_content_id": "ev1.4",
+      "type": "match",
+      "prompt": "Enlaza cada sistema con su requerimiento clave",
+      "options": [],
+      "answer": 0,
+      "config": {
+        "pairs": [
+          {
+            "left": "MHC-PMS",
+            "right": "Privacidad"
+          },
+          {
+            "left": "Estación meteorológica",
+            "right": "Fiabilidad en ambiente hostil"
+          },
+          {
+            "left": "Bomba de insulina",
+            "right": "Disponibilidad y dosis correcta"
+          }
+        ]
+      },
+      "explanation": "Cada sistema enfatiza un atributo de calidad distinto.",
+      "position": 9
+    },
+    {
+      "content_id": "ev1.4-q11",
+      "evaluation_content_id": "ev1.4",
+      "type": "fill",
+      "prompt": "Completa las frases",
+      "options": [],
+      "answer": 0,
+      "config": {
+        "sentences": [
+          "La bomba entrega insulina en respuesta a {{pulsos}} del controlador.",
+          "El MHC-PMS usa una base de datos {{centralizada}}."
+        ],
+        "bank": [
+          "señales",
+          "distribuida",
+          "local",
+          "respuestas"
+        ]
+      },
+      "explanation": "La bomba responde a pulsos y el MHC-PMS se apoya en una base de datos centralizada con copias locales.",
+      "position": 10
+    },
+    {
+      "content_id": "ev1.4-q12",
+      "evaluation_content_id": "ev1.4",
+      "type": "fill",
+      "prompt": "Completa las frases",
+      "options": [],
+      "answer": 0,
+      "config": {
+        "sentences": [
+          "Las estaciones se despliegan en campo {{abierto}}.",
+          "La estación se comunica por {{satélite}}."
+        ],
+        "bank": [
+          "cerrado",
+          "cable",
+          "radio",
+          "remoto"
+        ]
+      },
+      "explanation": "El escenario es campo abierto con comunicación satelital.",
+      "position": 11
+    },
+    {
+      "content_id": "ev1.4-q13",
+      "evaluation_content_id": "ev1.4",
+      "type": "order",
+      "prompt": "Ordena el funcionamiento de la bomba de insulina",
+      "options": [
+        "Medir el nivel de azúcar en la sangre",
+        "Calcular la dosis necesaria",
+        "Enviar pulsos a la bomba",
+        "Administrar la insulina"
+      ],
+      "answer": 0,
+      "config": {},
+      "explanation": "El sistema mide, calcula, envía pulsos y administra la dosis.",
+      "position": 12
+    },
+    {
+      "content_id": "ev1.4-q14",
+      "evaluation_content_id": "ev1.4",
+      "type": "mcq",
+      "prompt": "¿Qué atributo es prioritario en el MHC-PMS?",
+      "options": [
+        "Capacidad gráfica",
+        "Privacidad de la información clínica",
+        "Tamaño físico",
+        "Ancho de banda"
+      ],
+      "answer": 1,
+      "config": {},
+      "explanation": "El MHC-PMS maneja información sensible: la privacidad es un requerimiento crítico.",
+      "position": 13
+    },
+    {
+      "content_id": "ev1.4-q15",
+      "evaluation_content_id": "ev1.4",
+      "type": "crossword",
+      "prompt": "Completa el crucigrama de estudios de caso",
+      "options": [],
+      "answer": 0,
+      "config": {
+        "crossword": {
+          "rows": 11,
+          "cols": 8,
+          "entries": [
+            {
+              "word": "INSULINA",
+              "clue": "Hormona que la bomba automática dosifica después de medir la glucosa de la persona.",
+              "row": 3,
+              "col": 0,
+              "direction": "across"
+            },
+            {
+              "word": "SENSORES",
+              "clue": "Dispositivos que miden variables del entorno, como temperatura, viento o humedad, y las convierten en datos.",
+              "row": 3,
+              "col": 2,
+              "direction": "down"
+            }
+          ]
+        },
+        "bank": [
+          "EMBEBIDO",
+          "MHC",
+          "PACIENTES"
+        ]
+      },
+      "explanation": "La bomba administra insulina tras medir la glucosa, y la estación meteorológica obtiene sus datos mediante sensores.",
+      "position": 14
+    },
+    {
+      "content_id": "ev1.2-bank-q01",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "¿Cuál es un atributo esencial del buen software?",
+      "options": [
+        "Que solo funcione en un equipo",
+        "Que sea mantenible y confiable",
+        "Que se entregue sin pruebas",
+        "Que no tenga documentación"
+      ],
+      "answer": 1,
+      "config": {},
+      "explanation": "Mantenibilidad y confiabilidad son atributos esenciales del software.",
+      "position": 1000
+    },
+    {
+      "content_id": "ev1.2-bank-q02",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "¿Qué es software según la ingeniería de software?",
+      "options": [
+        "Únicamente el código fuente de un programa",
+        "Solo las aplicaciones que corren en teléfonos móviles",
+        "Programas de cómputo y documentación asociada",
+        "El conjunto de dispositivos físicos de una computadora"
+      ],
+      "answer": 2,
+      "config": {},
+      "explanation": "El software incluye los programas y toda la documentación asociada (y datos de configuración) necesaria para que operen correctamente.",
+      "position": 1001
+    },
+    {
+      "content_id": "ev1.2-bank-q03",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "¿Cómo se define la ingeniería de software?",
+      "options": [
+        "Una disciplina de la ingeniería que se interesa por todos los aspectos de la producción de software",
+        "La disciplina que estudia únicamente la teoría de la computación",
+        "La actividad de escribir código sin planeación previa",
+        "El diseño de hardware para sistemas basados en computadoras"
+      ],
+      "answer": 0,
+      "config": {},
+      "explanation": "Abarca desde la especificación inicial hasta el mantenimiento del sistema después de ponerlo en operación.",
+      "position": 1002
+    },
+    {
+      "content_id": "ev1.2-bank-q04",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "¿Cuáles son las cuatro actividades fundamentales comunes a todos los procesos de software?",
+      "options": [
+        "Compra, instalación, venta y soporte",
+        "Diseño gráfico, programación, publicidad y cobro",
+        "Planeación, contratación, despliegue y auditoría",
+        "Especificación, desarrollo, validación y evolución"
+      ],
+      "answer": 3,
+      "config": {},
+      "explanation": "Todo proceso de software incluye especificar, desarrollar, validar y evolucionar el software.",
+      "position": 1003
+    },
+    {
+      "content_id": "ev1.2-bank-q05",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "¿Cuál es la diferencia entre ciencias de la computación e ingeniería de software?",
+      "options": [
+        "No existe ninguna diferencia, son términos equivalentes",
+        "Las ciencias de la computación se enfocan en teoría y fundamentos; la ingeniería de software, en el sentido práctico del desarrollo y la distribución",
+        "La ingeniería de software se ocupa solo de teoría y las ciencias de la computación solo de práctica",
+        "Las ciencias de la computación estudian únicamente hardware"
+      ],
+      "answer": 1,
+      "config": {},
+      "explanation": "Las ciencias de la computación se interesan por teorías y métodos; la ingeniería de software por los asuntos prácticos de producir software.",
+      "position": 1004
+    },
+    {
+      "content_id": "ev1.2-bank-q06",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "¿Qué distingue a la ingeniería de sistemas de la ingeniería de software?",
+      "options": [
+        "La ingeniería de sistemas solo se ocupa de redes de datos",
+        "La ingeniería de sistemas es parte de la ingeniería de software",
+        "La ingeniería de sistemas abarca todo el sistema basado en computadoras (hardware, software y procesos) y la ingeniería de software es parte de ella",
+        "Ambas se ocupan exclusivamente de programar"
+      ],
+      "answer": 2,
+      "config": {},
+      "explanation": "La ingeniería de sistemas se interesa por hardware, software e ingeniería de procesos; la ingeniería de software es parte de ese proceso más general.",
+      "position": 1005
+    },
+    {
+      "content_id": "ev1.2-bank-q07",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "¿Cuáles son los principales retos que enfrenta la ingeniería de software?",
+      "options": [
+        "Diversidad creciente, demandas por tiempos de distribución limitados y desarrollo de software confiable",
+        "Escasez de lenguajes de programación y ausencia de usuarios",
+        "Exceso de tiempo disponible y presupuestos ilimitados",
+        "Eliminar la documentación y reducir las pruebas"
+      ],
+      "answer": 0,
+      "config": {},
+      "explanation": "Heterogeneidad, cambio empresarial y social, y seguridad y confianza son retos generales que afectan a muchos tipos de software.",
+      "position": 1006
+    },
+    {
+      "content_id": "ev1.2-bank-q08",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "¿Cómo se distribuyen aproximadamente los costos del software elaborado de forma genérica?",
+      "options": [
+        "90% en pruebas y 10% en desarrollo",
+        "50% en documentación y 50% en ventas",
+        "Aproximadamente 60% en desarrollo y 40% en pruebas",
+        "100% en desarrollo, las pruebas no tienen costo"
+      ],
+      "answer": 2,
+      "config": {},
+      "explanation": "Alrededor del 60% de los costos es de desarrollo y 40% de prueba.",
+      "position": 1007
+    },
+    {
+      "content_id": "ev1.2-bank-q09",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "En el software elaborado específicamente para un cliente, ¿qué ocurre con frecuencia con los costos?",
+      "options": [
+        "Los costos de evolución son siempre nulos",
+        "Los costos de evolución superan con frecuencia los costos de desarrollo",
+        "Los costos de prueba son mayores que los de desarrollo en todos los casos",
+        "Los costos se mantienen constantes después de la entrega"
+      ],
+      "answer": 1,
+      "config": {},
+      "explanation": "Para muchos sistemas, la mayor parte del costo se genera al cambiar el software después de ponerlo en operación.",
+      "position": 1008
+    },
+    {
+      "content_id": "ev1.2-bank-q10",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "¿Existe un método o técnica de ingeniería de software mejor que todos los demás?",
+      "options": [
+        "Sí, la cascada es la mejor para todos los sistemas",
+        "Sí, el desarrollo sin documentación es siempre el mejor",
+        "Sí, siempre se debe usar prototipado",
+        "No, la técnica adecuada depende del tipo de sistema"
+      ],
+      "answer": 3,
+      "config": {},
+      "explanation": "Los juegos se diseñan con prototipos, mientras que los sistemas críticos de seguridad requieren una especificación completa y analizable. No puede decirse que un método sea mejor que otro.",
+      "position": 1009
+    },
+    {
+      "content_id": "ev1.2-bank-q11",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "¿Qué aportó la Web a la ingeniería de software?",
+      "options": [
+        "Disponibilidad de servicios de software y posibilidad de desarrollar sistemas basados en servicios distribuidos",
+        "La desaparición de la necesidad de reutilizar software",
+        "El fin de los sistemas legados",
+        "La eliminación de las interfaces de usuario"
+      ],
+      "answer": 0,
+      "config": {},
+      "explanation": "El desarrollo de sistemas basados en Web condujo a avances en lenguajes de programación y reutilización de software.",
+      "position": 1010
+    },
+    {
+      "content_id": "ev1.2-bank-q12",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "¿Por qué los sistemas de software pueden volverse rápidamente complejos y costosos de cambiar?",
+      "options": [
+        "Porque están hechos de materiales frágiles",
+        "Porque son abstractos e intangibles y no tienen restricciones físicas que limiten su crecimiento",
+        "Porque siempre se desarrollan por una sola persona",
+        "Porque no necesitan requerimientos"
+      ],
+      "answer": 1,
+      "config": {},
+      "explanation": "Al no estar restringido por leyes físicas ni procesos de fabricación, el software no tiene límites naturales de potencial, pero sí puede crecer en complejidad.",
+      "position": 1011
+    },
+    {
+      "content_id": "ev1.2-bank-q13",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "Muchas de las llamadas \"fallas del software\" se deben principalmente a dos factores. ¿Cuáles son?",
+      "options": [
+        "Exceso de pruebas y exceso de documentación",
+        "Falta de hardware y falta de energía eléctrica",
+        "Demandas crecientes y expectativas bajas",
+        "Demasiados usuarios y demasiados desarrolladores"
+      ],
+      "answer": 2,
+      "config": {},
+      "explanation": "Los sistemas deben ser más grandes, complejos y rápidos de entregar (demandas crecientes), y muchas compañías no usan métodos de ingeniería de software (expectativas bajas).",
+      "position": 1012
+    },
+    {
+      "content_id": "ev1.2-bank-q14",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "¿A qué se refiere el factor \"expectativas bajas\" en las fallas del software?",
+      "options": [
+        "A que es sencillo escribir programas sin usar métodos de ingeniería de software, lo que genera software más costoso y menos confiable",
+        "A que los clientes no desean usar el software",
+        "A que los sistemas siempre son pequeños",
+        "A que el software no necesita mantenimiento"
+      ],
+      "answer": 0,
+      "config": {},
+      "explanation": "Muchas empresas se deslizan hacia la ingeniería de software conforme evolucionan, por lo que se requiere mejor educación y capacitación.",
+      "position": 1013
+    },
+    {
+      "content_id": "ev1.2-bank-q15",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "¿Qué son los productos de software genéricos?",
+      "options": [
+        "Sistemas desarrollados exclusivamente para un cliente específico",
+        "Sistemas que solo se usan dentro de una empresa",
+        "Programas que no requieren especificación",
+        "Sistemas independientes producidos por una organización y vendidos en el mercado abierto a cualquier cliente"
+      ],
+      "answer": 3,
+      "config": {},
+      "explanation": "Ejemplos: software para PC, bases de datos, procesadores de texto, paquetes de dibujo y herramientas de administración de proyectos.",
+      "position": 1014
+    },
+    {
+      "content_id": "ev1.2-bank-q16",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "¿Qué son los productos de software personalizados (a la medida)?",
+      "options": [
+        "Software que se vende a cualquier persona en tiendas",
+        "Sistemas destinados a un cliente en particular, desarrollados por un contratista para ese cliente",
+        "Programas que no pueden modificarse",
+        "Software libre sin documentación"
+      ],
+      "answer": 1,
+      "config": {},
+      "explanation": "Ejemplos: sistemas de control para dispositivos electrónicos, sistemas para procesos empresariales y sistemas de control de tráfico aéreo.",
+      "position": 1015
+    },
+    {
+      "content_id": "ev1.2-bank-q17",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "¿Quién controla la especificación en un producto de software genérico?",
+      "options": [
+        "La organización que desarrolla el software",
+        "La organización que compra el software",
+        "Cada usuario final de forma individual",
+        "Un organismo gubernamental"
+      ],
+      "answer": 0,
+      "config": {},
+      "explanation": "En los productos personalizados, en cambio, la organización que compra el software suele definir y controlar la especificación.",
+      "position": 1016
+    },
+    {
+      "content_id": "ev1.2-bank-q18",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "¿Por qué los sistemas ERP, como SAP, ilustran que la distinción entre producto genérico y personalizado es cada vez más difusa?",
+      "options": [
+        "Porque se desarrollan desde cero para cada cliente",
+        "Porque no se pueden adaptar a las necesidades del cliente",
+        "Porque un sistema genérico grande y complejo se adapta a una compañía incorporando sus reglas, procesos y reportes",
+        "Porque son sistemas embebidos"
+      ],
+      "answer": 2,
+      "config": {},
+      "explanation": "Cada vez más sistemas se construyen con un producto genérico como base que luego se adapta a los requerimientos de un cliente.",
+      "position": 1017
+    },
+    {
+      "content_id": "ev1.2-bank-q19",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "¿Por qué el mantenimiento es un atributo crítico del buen software?",
+      "options": [
+        "Porque el software nunca cambia",
+        "Porque el cambio del software es un requerimiento inevitable de un entorno empresarial variable",
+        "Porque reduce la necesidad de usuarios",
+        "Porque elimina la necesidad de pruebas"
+      ],
+      "answer": 1,
+      "config": {},
+      "explanation": "El software debe escribirse de forma que pueda evolucionar para satisfacer las necesidades cambiantes de los clientes.",
+      "position": 1018
+    },
+    {
+      "content_id": "ev1.2-bank-q20",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "¿Qué abarca el atributo \"confiabilidad y seguridad\" del software?",
+      "options": [
+        "Solo la velocidad de respuesta",
+        "Únicamente la apariencia de la interfaz",
+        "El número de líneas de código",
+        "Fiabilidad, seguridad y protección: no causar daño físico ni económico en caso de falla y evitar el acceso de usuarios malintencionados"
+      ],
+      "answer": 3,
+      "config": {},
+      "explanation": "Los usuarios malintencionados no deben tener posibilidad de acceder al sistema o dañarlo.",
+      "position": 1019
+    },
+    {
+      "content_id": "ev1.2-bank-q21",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "¿Qué significa que el software sea eficiente?",
+      "options": [
+        "Que no desperdicie los recursos del sistema, como la memoria y los ciclos del procesador",
+        "Que tenga la mayor cantidad posible de funciones",
+        "Que sea fácil de vender",
+        "Que se escriba en un solo lenguaje"
+      ],
+      "answer": 0,
+      "config": {},
+      "explanation": "La eficiencia incluye capacidad de respuesta, tiempo de procesamiento y utilización de memoria.",
+      "position": 1020
+    },
+    {
+      "content_id": "ev1.2-bank-q22",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "¿Qué implica el atributo de aceptabilidad del software?",
+      "options": [
+        "Que el software sea gratuito",
+        "Que el software sea difícil de copiar",
+        "Que sea comprensible, utilizable y compatible con otros sistemas que usan los usuarios para quienes se diseña",
+        "Que el software no requiera usuarios"
+      ],
+      "answer": 2,
+      "config": {},
+      "explanation": "El software debe ser aceptable para el tipo de usuarios a quienes está dirigido.",
+      "position": 1021
+    },
+    {
+      "content_id": "ev1.2-bank-q23",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "Además de los programas, ¿qué incluye normalmente un sistema de software profesional?",
+      "options": [
+        "Nada más que un archivo ejecutable",
+        "Archivos de configuración, documentación del sistema, manuales de usuario y sitios web de información",
+        "Solo el código fuente",
+        "Únicamente los datos de los usuarios"
+      ],
+      "answer": 1,
+      "config": {},
+      "explanation": "Un sistema profesional es más que un solo programa: consta de programas, archivos de configuración y documentación asociada.",
+      "position": 1022
+    },
+    {
+      "content_id": "ev1.2-bank-q24",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "¿Cuál es una diferencia clave entre el desarrollo profesional y el de aficionado?",
+      "options": [
+        "El software profesional nunca se modifica",
+        "El software de aficionado siempre es más seguro",
+        "No existe ninguna diferencia",
+        "El software profesional lo usan otros y lo modifican otros ingenieros, por lo que requiere documentación adicional junto con el código"
+      ],
+      "answer": 3,
+      "config": {},
+      "explanation": "En un programa personal nadie más lo usará, por lo que no hay que elaborar guías ni documentar el diseño.",
+      "position": 1023
+    },
+    {
+      "content_id": "ev1.2-bank-q25",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "En la actividad de validación del software, ¿qué se hace?",
+      "options": [
+        "Se verifica el software para asegurar que sea lo que el cliente requiere",
+        "Se definen por primera vez las restricciones del sistema",
+        "Se programa el sistema",
+        "Se modifica el software para nuevos requerimientos del mercado"
+      ],
+      "answer": 0,
+      "config": {},
+      "explanation": "La validación comprueba que el software cumple lo que el cliente necesita.",
+      "position": 1024
+    },
+    {
+      "content_id": "ev1.2-bank-q26",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "En la actividad de evolución del software, ¿qué ocurre?",
+      "options": [
+        "Los clientes e ingenieros definen el software por producir",
+        "Se diseña la arquitectura inicial del sistema",
+        "Se modifica el software para reflejar los requerimientos cambiantes del cliente y del mercado",
+        "Se verifica que el sistema funcione sin errores"
+      ],
+      "answer": 2,
+      "config": {},
+      "explanation": "El software debe cambiar a lo largo de su vida para seguir siendo útil.",
+      "position": 1025
+    },
+    {
+      "content_id": "ev1.2-bank-q27",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "¿Qué factor es quizás el más significativo para determinar qué métodos y técnicas de ingeniería de software son más importantes?",
+      "options": [
+        "El color de la interfaz",
+        "El tipo de aplicación que se está desarrollando",
+        "El tamaño del equipo de ventas",
+        "La marca de la computadora"
+      ],
+      "answer": 1,
+      "config": {},
+      "explanation": "Existen muchos tipos de aplicación (independientes, transaccionales, embebidas, por lotes, entretenimiento, etc.) y cada una requiere técnicas distintas.",
+      "position": 1026
+    },
+    {
+      "content_id": "ev1.2-bank-q28",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "¿Cuál es un ejemplo de sistema de control embebido?",
+      "options": [
+        "Un procesador de texto",
+        "Un sistema de comercio electrónico",
+        "Un programa de facturación mensual",
+        "El software que controla los frenos antibloqueo de un automóvil"
+      ],
+      "answer": 3,
+      "config": {},
+      "explanation": "Los sistemas embebidos regulan y gestionan dispositivos de hardware; también incluyen el software de un celular o de un horno de microondas.",
+      "position": 1027
+    },
+    {
+      "content_id": "ev1.2-bank-q29",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "¿Cuál es un ejemplo de sistema de procesamiento en lotes (batch)?",
+      "options": [
+        "Un sistema de facturación telefónica o de pago de salarios",
+        "Un videojuego en línea",
+        "Un navegador web",
+        "El software de un horno de microondas"
+      ],
+      "answer": 0,
+      "config": {},
+      "explanation": "Los sistemas batch procesan grandes cantidades de entradas individuales para crear salidas correspondientes.",
+      "position": 1028
+    },
+    {
+      "content_id": "ev1.2-bank-q30",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "¿Cuándo y en qué contexto se propuso originalmente el concepto de \"ingeniería de software\"?",
+      "options": [
+        "En 1995, durante el auge de Internet",
+        "En 1980, con la aparición de los lenguajes orientados a objetos",
+        "En 1968, en una conferencia sobre la llamada \"crisis del software\"",
+        "En 2010, con los métodos ágiles"
+      ],
+      "answer": 2,
+      "config": {},
+      "explanation": "Se hizo claro que los enfoques individuales no escalaban a sistemas grandes y complejos, que eran poco confiables, costaban más de lo esperado y se entregaban con demora.",
+      "position": 1029
+    },
+    {
+      "content_id": "ev1.2-bank-q31",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "¿Cuál NO es un fundamento de la ingeniería de software aplicable a todos los tipos de sistemas?",
+      "options": [
+        "Usar un proceso de desarrollo administrado y comprendido",
+        "Garantizar confiabilidad y desempeño",
+        "Utilizar un único lenguaje de programación para todos los sistemas",
+        "Reutilizar software ya desarrollado cuando sea adecuado"
+      ],
+      "answer": 2,
+      "config": {},
+      "explanation": "Los fundamentos son proceso, confiabilidad, requerimientos y reutilización; no cubren técnicas específicas de programación, que varían de un sistema a otro.",
+      "position": 1030
+    },
+    {
+      "content_id": "ev1.2-bank-q32",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "¿En qué consiste el reto de la heterogeneidad en la ingeniería de software?",
+      "options": [
+        "En construir software confiable y flexible que opere como sistema distribuido sobre diferentes tipos de computadoras, dispositivos móviles y sistemas legados",
+        "En desarrollar software que solo funcione en un tipo de computadora",
+        "En evitar integrar sistemas nuevos con sistemas viejos",
+        "En reducir el número de lenguajes de programación a uno"
+      ],
+      "answer": 0,
+      "config": {},
+      "explanation": "Con frecuencia es necesario integrar software nuevo con sistemas legados escritos en diferentes lenguajes.",
+      "position": 1031
+    },
+    {
+      "content_id": "ev1.2-bank-q33",
+      "evaluation_content_id": "ev1.2",
+      "type": "mcq",
+      "prompt": "¿Qué enfoque se ha vuelto dominante para construir sistemas basados en la Web?",
+      "options": [
+        "Desarrollar todo desde cero para cada proyecto",
+        "Especificar por adelantado todos los requerimientos",
+        "Evitar el uso de navegadores",
+        "La reutilización de software: ensamblar a partir de componentes y sistemas preexistentes"
+      ],
+      "answer": 3,
+      "config": {},
+      "explanation": "Además, los sistemas web se desarrollan y entregan de manera progresiva, y sus interfaces están restringidas por las capacidades de los navegadores.",
+      "position": 1032
+    }
+  ]
+}
