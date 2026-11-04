@@ -27,16 +27,22 @@ export function LessonTabs({
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap gap-1 border-b border-zinc-200">
+      <div
+        role="tablist"
+        aria-label="Secciones de la lección"
+        className="flex flex-wrap gap-1 border-b border-line"
+      >
         {tabs.map((item) => (
           <button
             key={item.id}
             type="button"
+            role="tab"
+            aria-selected={tab === item.id}
             onClick={() => setTab(item.id)}
-            className={`-mb-px border-b-2 px-3 py-2 text-sm ${
+            className={`-mb-px border-b-2 px-3.5 py-2 text-sm transition-colors ${
               tab === item.id
-                ? "border-zinc-900 font-medium text-zinc-900"
-                : "border-transparent text-zinc-500 hover:text-zinc-900"
+                ? "border-ink font-medium text-ink"
+                : "border-transparent text-ink-muted hover:text-ink"
             }`}
           >
             {item.label}
@@ -44,9 +50,11 @@ export function LessonTabs({
         ))}
       </div>
 
-      {tab === "contenido" && content}
-      {tab === "ejercicios" && exercises}
-      {tab === "ejemplos" && examples}
+      <div role="tabpanel">
+        {tab === "contenido" && content}
+        {tab === "ejercicios" && exercises}
+        {tab === "ejemplos" && examples}
+      </div>
     </div>
   );
 }

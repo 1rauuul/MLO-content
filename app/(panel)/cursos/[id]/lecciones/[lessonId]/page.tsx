@@ -68,15 +68,18 @@ export default async function LessonPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <Link href={`/cursos/${courseId}`} className="text-sm text-zinc-500 hover:text-zinc-900">
+      <header>
+        <Link href={`/cursos/${courseId}`} className="text-sm text-ink-muted hover:text-ink">
           ← {lesson.course_title}
         </Link>
-        <h1 className="mt-1 text-2xl font-semibold text-zinc-900">{lesson.title}</h1>
-        <p className="mt-1 text-sm text-zinc-500">
-          Lección <span className="font-mono">{lesson.code}</span>
-        </p>
-      </div>
+        <div className="mt-1 flex flex-wrap items-center gap-3">
+          <h1 className="page-title">{lesson.title}</h1>
+          <span className="rounded-lg bg-surface px-2 py-0.5 font-mono text-xs text-ink-soft ring-1 ring-line">
+            {lesson.code}
+          </span>
+          {!canEdit && <span className="badge badge-warning">Solo lectura</span>}
+        </div>
+      </header>
 
       <LessonTabs
         exerciseCount={exercises.length}

@@ -10,17 +10,17 @@ export function PublishForm({ courseId }: { courseId: string }) {
   return (
     <form action={action} className="space-y-3">
       <input type="hidden" name="courseId" value={courseId} />
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 disabled:opacity-50"
-      >
+      <button type="submit" disabled={pending} className="btn btn-primary">
         {pending ? "Publicando…" : "Publicar nueva versión"}
       </button>
 
-      {state.error && <p className="text-sm text-red-600">{state.error}</p>}
+      {state.error && (
+        <p className="form-error" role="alert">
+          {state.error}
+        </p>
+      )}
       {state.version && (
-        <p className="text-sm text-green-700">
+        <p className="form-ok" role="status">
           Versión {state.version} publicada con {state.lessons} lecciones. Hash{" "}
           <span className="font-mono text-xs">{state.hash?.slice(0, 12)}</span>.
         </p>

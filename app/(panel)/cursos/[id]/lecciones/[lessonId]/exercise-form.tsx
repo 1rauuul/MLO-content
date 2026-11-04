@@ -98,7 +98,7 @@ export function ExerciseForm({
     });
 
   return (
-    <form action={action} className="space-y-5 rounded-xl border border-zinc-300 bg-white p-5">
+    <form action={action} className="card space-y-5 border-line-strong p-5">
       <input type="hidden" name="lessonId" value={lessonId} />
       <input type="hidden" name="exerciseId" value={initial?.content_id ?? ""} />
       <input type="hidden" name="data" value={JSON.stringify(draft)} />
@@ -247,8 +247,8 @@ export function ExerciseForm({
         </div>
       )}
 
-      <div className="space-y-3 rounded-xl border border-zinc-200 bg-zinc-50 p-4">
-        <label className="flex items-center gap-2 text-sm font-medium text-zinc-800">
+      <div className="space-y-3 rounded-xl border border-line bg-surface-soft p-4">
+        <label className="flex items-center gap-2 text-sm font-medium text-ink-soft">
           <input
             type="checkbox"
             checked={draft.example !== null}
@@ -257,13 +257,13 @@ export function ExerciseForm({
           />
           Añadir como ejemplo
         </label>
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-ink-muted">
           El ejercicio se muestra también en la pantalla de ejemplos. El enunciado, la
           configuración y la explicación se reutilizan.
         </p>
 
         {draft.example && (
-          <div className="space-y-4 border-t border-zinc-200 pt-4">
+          <div className="space-y-4 border-t border-line pt-4">
             <Field label="Título del ejemplo">
               <input
                 value={draft.example.title}
@@ -289,7 +289,7 @@ export function ExerciseForm({
       </div>
 
       <div className="space-y-2">
-        <p className="text-xs uppercase tracking-wide text-zinc-400">Vista previa</p>
+        <p className="eyebrow">Vista previa</p>
         <ExercisePreview
           type={draft.type}
           prompt={draft.prompt}
@@ -305,18 +305,22 @@ export function ExerciseForm({
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 disabled:opacity-50"
+          className="btn btn-primary"
         >
           {pending ? "Guardando…" : initial ? "Guardar cambios" : "Crear ejercicio"}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-lg border border-zinc-300 px-4 py-2 text-sm text-zinc-600 hover:border-zinc-500 hover:text-zinc-900"
+          className="btn btn-secondary"
         >
           Cancelar
         </button>
-        {state.error && <p className="text-sm text-red-600">{state.error}</p>}
+        {state.error && (
+          <p className="form-error" role="alert">
+            {state.error}
+          </p>
+        )}
       </div>
     </form>
   );

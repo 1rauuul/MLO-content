@@ -82,7 +82,7 @@ export function ExampleForm({
     patch({ type, config: emptyConfig(type) });
 
   return (
-    <form action={action} className="space-y-5 rounded-xl border border-zinc-300 bg-white p-5">
+    <form action={action} className="card space-y-5 border-line-strong p-5">
       <input type="hidden" name="lessonId" value={lessonId} />
       <input type="hidden" name="exampleId" value={initial?.content_id ?? ""} />
       <input type="hidden" name="data" value={JSON.stringify(draft)} />
@@ -231,7 +231,7 @@ export function ExampleForm({
       />
 
       <div className="space-y-2">
-        <p className="text-xs uppercase tracking-wide text-zinc-400">Vista previa</p>
+        <p className="eyebrow">Vista previa</p>
         <ExamplePreview
           type={draft.type}
           title={draft.title}
@@ -247,18 +247,22 @@ export function ExampleForm({
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 disabled:opacity-50"
+          className="btn btn-primary"
         >
           {pending ? "Guardando…" : initial ? "Guardar cambios" : "Crear ejemplo"}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-lg border border-zinc-300 px-4 py-2 text-sm text-zinc-600 hover:border-zinc-500 hover:text-zinc-900"
+          className="btn btn-secondary"
         >
           Cancelar
         </button>
-        {state.error && <p className="text-sm text-red-600">{state.error}</p>}
+        {state.error && (
+          <p className="form-error" role="alert">
+            {state.error}
+          </p>
+        )}
       </div>
     </form>
   );

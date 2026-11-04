@@ -37,8 +37,8 @@ export function ExercisesPanel({
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="font-medium text-zinc-900">Ejercicios</h2>
-          <p className="text-sm text-zinc-500">
+          <h2 className="text-sm font-semibold text-ink">Ejercicios</h2>
+          <p className="text-sm text-ink-muted">
             {exercises.length} {exercises.length === 1 ? "ejercicio" : "ejercicios"}.
             Puedes marcarlos también como ejemplo.
           </p>
@@ -47,7 +47,7 @@ export function ExercisesPanel({
           <button
             type="button"
             onClick={() => setCreating(true)}
-            className="rounded-lg bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-zinc-700"
+            className="btn btn-primary btn-sm"
           >
             Agregar ejercicio
           </button>
@@ -65,30 +65,30 @@ export function ExercisesPanel({
       )}
 
       {exercises.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-zinc-300 bg-white p-6 text-center text-sm text-zinc-500">
+        <p className="empty">
           Esta lección todavía no tiene ejercicios.
         </p>
       ) : (
         <ul className="space-y-3">
           {exercises.map((exercise) => (
-            <li key={exercise.content_id} className="rounded-xl border border-zinc-200 bg-white p-4">
+            <li key={exercise.content_id} className="card p-4">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600">
+                <span className="badge badge-neutral">
                   {TYPE_LABEL[exercise.type]}
                 </span>
-                <span className="font-medium text-zinc-900">{exercise.prompt}</span>
+                <span className="font-medium text-ink">{exercise.prompt}</span>
                 {exercise.example && (
-                  <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs text-amber-700">
+                  <span className="badge badge-warning">
                     También ejemplo
                   </span>
                 )}
-                <span className="ml-auto font-mono text-xs text-zinc-400">
+                <span className="ml-auto font-mono text-xs text-ink-faint">
                   {exercise.content_id}
                 </span>
               </div>
 
               <details className="mt-3">
-                <summary className="cursor-pointer text-sm text-zinc-500">Vista previa</summary>
+                <summary className="cursor-pointer text-sm text-ink-muted">Vista previa</summary>
                 <div className="mt-3">
                   <ExercisePreview
                     type={exercise.type}
@@ -110,7 +110,7 @@ export function ExercisesPanel({
                       setCreating(false);
                       setEditingId(exercise.content_id);
                     }}
-                    className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm text-zinc-600 hover:border-zinc-500 hover:text-zinc-900"
+                    className="btn btn-secondary btn-sm"
                   >
                     Editar
                   </button>
@@ -126,7 +126,7 @@ export function ExercisesPanel({
                     <input type="hidden" name="exerciseId" value={exercise.content_id} />
                     <button
                       type="submit"
-                      className="rounded-lg border border-red-200 px-3 py-1.5 text-sm text-red-600 hover:border-red-400"
+                      className="btn btn-danger btn-sm"
                     >
                       Eliminar
                     </button>

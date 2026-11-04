@@ -27,39 +27,37 @@ export default async function MisCursosPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-zinc-900">Mis cursos</h1>
-        <p className="mt-1 text-sm text-zinc-500">
+      <header>
+        <h1 className="page-title">Mis cursos</h1>
+        <p className="page-lead">
           El core es compartido. Lo que agregues se publica en tu propio curso.
         </p>
-      </div>
+      </header>
 
       <CreateCourseForm />
 
       {courses.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-zinc-300 bg-white p-8 text-center text-sm text-zinc-500">
+        <p className="empty">
           Todavía no hay cursos. El curso base se crea al importar el contenido del core.
         </p>
       ) : (
         <ul className="grid gap-4 sm:grid-cols-2">
           {courses.map((course) => (
-            <li key={course.id} className="rounded-xl border border-zinc-200 bg-white p-5">
+            <li key={course.id} className="card card-hover flex flex-col p-5">
               <div className="flex items-start justify-between gap-3">
                 <Link
                   href={`/cursos/${course.id}`}
-                  className="font-medium text-zinc-900 underline-offset-2 hover:underline"
+                  className="text-[15px] font-medium text-ink underline-offset-4 hover:underline"
                 >
                   {course.title}
                 </Link>
-                {course.is_base && (
-                  <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600">
-                    Core
-                  </span>
-                )}
+                {course.is_base && <span className="badge badge-neutral">Core</span>}
               </div>
-              <p className="mt-1 font-mono text-xs text-zinc-500">{course.key}</p>
-              <p className="mt-4 text-sm text-zinc-500">
-                {course.lesson_count}{" "}
+
+              <p className="mt-1 font-mono text-xs text-ink-faint">{course.key}</p>
+
+              <p className="mt-auto border-t border-line pt-3 text-sm text-ink-muted">
+                <span className="font-mono text-ink-soft">{course.lesson_count}</span>{" "}
                 {course.is_base
                   ? course.lesson_count === 1
                     ? "lección del core"

@@ -16,7 +16,7 @@ const TYPE_LABEL: Record<ExerciseType, string> = {
 
 function Badge({ type }: { type: ExerciseType }) {
   return (
-    <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600">
+    <span className="badge badge-neutral">
       {TYPE_LABEL[type]}
     </span>
   );
@@ -28,7 +28,7 @@ function FillText({ sentence }: { sentence: string }) {
     <p>
       {parts.map((part, index) =>
         part.startsWith("{{") ? (
-          <mark key={index} className="rounded bg-amber-100 px-1 text-zinc-900">
+          <mark key={index} className="rounded bg-warning-soft px-1 text-ink">
             {part.slice(2, -2)}
           </mark>
         ) : (
@@ -55,7 +55,7 @@ function CrosswordGrid({ config }: { config: ExerciseConfig }) {
   return (
     <div className="overflow-auto">
       <div
-        className="inline-grid gap-px bg-zinc-300"
+        className="inline-grid gap-px bg-line-strong"
         style={{ gridTemplateColumns: `repeat(${crossword.cols}, 1.5rem)` }}
       >
         {Array.from({ length: crossword.rows * crossword.cols }, (_, index) => {
@@ -64,7 +64,7 @@ function CrosswordGrid({ config }: { config: ExerciseConfig }) {
           return (
             <div
               key={index}
-              className="flex h-6 items-center justify-center bg-white text-xs font-medium text-zinc-700"
+              className="flex h-6 items-center justify-center bg-white text-xs font-medium text-ink-soft"
             >
               {letters.get(`${row}-${col}`) ?? ""}
             </div>
@@ -86,7 +86,7 @@ function TypePreview({
 }) {
   if (type === "order") {
     return (
-      <ol className="list-decimal space-y-1 pl-5 text-sm text-zinc-700">
+      <ol className="list-decimal space-y-1 pl-5 text-sm text-ink-soft">
         {correctOrder.map((item, index) => (
           <li key={index}>{item}</li>
         ))}
@@ -96,12 +96,12 @@ function TypePreview({
 
   if (type === "fill") {
     return (
-      <div className="space-y-2 text-sm text-zinc-700">
+      <div className="space-y-2 text-sm text-ink-soft">
         {(config.sentences ?? []).map((sentence, index) => (
           <FillText key={index} sentence={sentence} />
         ))}
         {(config.bank ?? []).length > 0 && (
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-ink-muted">
             Palabras extra: {config.bank?.join(" · ")}
           </p>
         )}
@@ -113,9 +113,9 @@ function TypePreview({
     return (
       <div className="grid gap-2 text-sm sm:grid-cols-2">
         {(config.pairs ?? []).map((pair, index) => (
-          <div key={index} className="rounded-lg border border-zinc-200 p-2">
-            <strong className="block text-zinc-800">{pair.left}</strong>
-            <span className="text-zinc-500">{pair.right}</span>
+          <div key={index} className="rounded-lg border border-line p-2">
+            <strong className="block text-ink-soft">{pair.left}</strong>
+            <span className="text-ink-muted">{pair.right}</span>
           </div>
         ))}
       </div>
@@ -125,10 +125,10 @@ function TypePreview({
   return (
     <div className="space-y-3">
       <CrosswordGrid config={config} />
-      <ul className="space-y-1 text-sm text-zinc-700">
+      <ul className="space-y-1 text-sm text-ink-soft">
         {(config.crossword?.entries ?? []).map((entry, index) => (
           <li key={index}>
-            <span className="font-mono text-xs text-zinc-400">
+            <span className="font-mono text-xs text-ink-faint">
               {entry.row},{entry.col} {entry.direction === "across" ? "H" : "V"}
             </span>{" "}
             {entry.word}: {entry.clue}
@@ -136,7 +136,7 @@ function TypePreview({
         ))}
       </ul>
       {(config.bank ?? []).length > 0 && (
-        <p className="text-xs text-zinc-500">Palabras extra: {config.bank?.join(" · ")}</p>
+        <p className="text-xs text-ink-muted">Palabras extra: {config.bank?.join(" · ")}</p>
       )}
     </div>
   );
@@ -147,8 +147,8 @@ function Steps({ steps }: { steps: ExerciseStep[] }) {
     <ol className="space-y-2 text-sm">
       {steps.map((step, index) => (
         <li key={index}>
-          <span className="font-medium text-zinc-800">{step.text}</span>
-          <span className="block text-zinc-500">{step.why}</span>
+          <span className="font-medium text-ink-soft">{step.text}</span>
+          <span className="block text-ink-muted">{step.why}</span>
         </li>
       ))}
     </ol>
@@ -157,12 +157,12 @@ function Steps({ steps }: { steps: ExerciseStep[] }) {
 
 export function ExerciseExamplePreview({ example }: { example: ExerciseExample }) {
   return (
-    <div className="rounded-lg bg-zinc-50 p-3">
-      <p className="text-xs uppercase tracking-wide text-zinc-400">Ejemplo</p>
-      <p className="mt-1 font-medium text-zinc-800">{example.title}</p>
+    <div className="rounded-lg bg-surface-soft p-3">
+      <p className="eyebrow">Ejemplo</p>
+      <p className="mt-1 font-medium text-ink-soft">{example.title}</p>
       <Steps steps={example.steps} />
       {example.hints.length > 0 && (
-        <p className="mt-2 text-xs text-zinc-500">Pistas: {example.hints.join(" · ")}</p>
+        <p className="mt-2 text-xs text-ink-muted">Pistas: {example.hints.join(" · ")}</p>
       )}
     </div>
   );
@@ -186,14 +186,14 @@ export function ExercisePreview({
   example: ExerciseExample | null;
 }) {
   return (
-    <div className="space-y-3 rounded-xl border border-zinc-200 bg-white p-4">
+    <div className="space-y-3 card p-4">
       <div className="flex items-center gap-2">
         <Badge type={type} />
-        <p className="font-medium text-zinc-900">{prompt || "Enunciado del ejercicio"}</p>
+        <p className="font-medium text-ink">{prompt || "Enunciado del ejercicio"}</p>
       </div>
-      {instructions && <p className="text-sm text-zinc-500">{instructions}</p>}
+      {instructions && <p className="text-sm text-ink-muted">{instructions}</p>}
       <TypePreview type={type} config={config} correctOrder={correctOrder} />
-      {explanation && <p className="text-sm text-zinc-500">{explanation}</p>}
+      {explanation && <p className="text-sm text-ink-muted">{explanation}</p>}
       {example && <ExerciseExamplePreview example={example} />}
     </div>
   );
@@ -217,18 +217,18 @@ export function ExamplePreview({
   explanation: string;
 }) {
   return (
-    <div className="space-y-3 rounded-xl border border-zinc-200 bg-white p-4">
+    <div className="space-y-3 card p-4">
       <div className="flex flex-wrap items-center gap-2">
         <Badge type={type} />
-        <p className="font-medium text-zinc-900">{title || "Título del ejemplo"}</p>
+        <p className="font-medium text-ink">{title || "Título del ejemplo"}</p>
       </div>
-      <p className="text-sm text-zinc-700">{prompt}</p>
+      <p className="text-sm text-ink-soft">{prompt}</p>
       <TypePreview type={type} config={config} correctOrder={[]} />
       <Steps steps={steps} />
       {hints.length > 0 && (
-        <p className="text-xs text-zinc-500">Pistas: {hints.join(" · ")}</p>
+        <p className="text-xs text-ink-muted">Pistas: {hints.join(" · ")}</p>
       )}
-      {explanation && <p className="text-sm text-zinc-500">{explanation}</p>}
+      {explanation && <p className="text-sm text-ink-muted">{explanation}</p>}
     </div>
   );
 }

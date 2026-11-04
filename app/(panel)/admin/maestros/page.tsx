@@ -21,31 +21,33 @@ export default async function MaestrosPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-zinc-900">Maestros</h1>
-        <p className="mt-1 text-sm text-zinc-500">
-          Solo el administrador puede dar de alta cuentas.
-        </p>
-      </div>
+      <header>
+        <h1 className="page-title">Maestros</h1>
+        <p className="page-lead">Solo el administrador puede dar de alta cuentas.</p>
+      </header>
 
       <CreateTeacherForm />
 
-      <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white">
-        <table className="w-full text-left text-sm">
-          <thead className="border-b border-zinc-200 text-xs uppercase tracking-wide text-zinc-500">
+      <div className="card overflow-hidden">
+        <table className="table-panel">
+          <thead>
             <tr>
-              <th className="px-5 py-3 font-medium">Nombre</th>
-              <th className="px-5 py-3 font-medium">Correo</th>
-              <th className="px-5 py-3 font-medium">Rol</th>
+              <th>Nombre</th>
+              <th>Correo</th>
+              <th>Rol</th>
             </tr>
           </thead>
           <tbody>
             {teachers.map((teacher) => (
-              <tr key={teacher.id} className="border-b border-zinc-100 last:border-0">
-                <td className="px-5 py-3 text-zinc-900">{teacher.name}</td>
-                <td className="px-5 py-3 text-zinc-600">{teacher.email}</td>
-                <td className="px-5 py-3 text-zinc-600">
-                  {teacher.role === "admin" ? "Administrador" : "Maestro"}
+              <tr key={teacher.id}>
+                <td className="font-medium text-ink">{teacher.name}</td>
+                <td className="text-ink-muted">{teacher.email}</td>
+                <td>
+                  {teacher.role === "admin" ? (
+                    <span className="badge badge-brand">Administrador</span>
+                  ) : (
+                    <span className="badge badge-neutral">Maestro</span>
+                  )}
                 </td>
               </tr>
             ))}

@@ -11,53 +11,57 @@ export default async function ClasesPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-zinc-900">Clases</h1>
-        <p className="mt-1 text-sm text-zinc-500">
+      <header>
+        <h1 className="page-title">Clases</h1>
+        <p className="page-lead">
           Cada clase tiene un código fijo para que los alumnos se unan. El contenido extra
           que asignes se publica por clase.
         </p>
-      </div>
+      </header>
 
       <CreateClassForm />
 
       {classes.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-zinc-300 bg-white p-8 text-center text-sm text-zinc-500">
+        <p className="empty">
           Todavía no tienes clases. Crea la primera para generar su código.
         </p>
       ) : (
         <ul className="grid gap-4 sm:grid-cols-2">
           {classes.map((klass) => (
-            <li key={klass.id} className="rounded-xl border border-zinc-200 bg-white p-5">
-              <div className="flex flex-wrap items-start justify-between gap-2">
+            <li key={klass.id} className="card card-hover flex flex-col p-5">
+              <div className="flex flex-wrap items-start justify-between gap-3">
                 <Link
                   href={`/clases/${klass.id}`}
-                  className="font-medium text-zinc-900 underline-offset-2 hover:underline"
+                  className="text-[15px] font-medium text-ink underline-offset-4 hover:underline"
                 >
                   {klass.name}
                 </Link>
-                <span className="rounded-lg bg-zinc-100 px-2 py-1 font-mono text-sm tracking-widest text-zinc-800">
+                <span className="rounded-lg bg-surface-soft px-2 py-1 font-mono text-sm tracking-widest text-ink-soft ring-1 ring-line">
                   {klass.join_code}
                 </span>
               </div>
 
               {teacher.role === "admin" && (
-                <p className="mt-1 text-xs text-zinc-500">Docente: {klass.teacher_name}</p>
+                <p className="mt-1 text-xs text-ink-faint">Docente: {klass.teacher_name}</p>
               )}
 
-              <dl className="mt-4 grid grid-cols-3 gap-2 text-sm">
+              <dl className="mt-auto grid grid-cols-3 gap-2 border-t border-line pt-3 text-sm">
                 <div>
-                  <dt className="text-xs uppercase tracking-wide text-zinc-400">Alumnos</dt>
-                  <dd className="font-medium text-zinc-900">{klass.student_count}</dd>
+                  <dt className="eyebrow">Alumnos</dt>
+                  <dd className="mt-0.5 font-medium text-ink">{klass.student_count}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs uppercase tracking-wide text-zinc-400">Extras</dt>
-                  <dd className="font-medium text-zinc-900">{klass.extra_count}</dd>
+                  <dt className="eyebrow">Extras</dt>
+                  <dd className="mt-0.5 font-medium text-ink">{klass.extra_count}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs uppercase tracking-wide text-zinc-400">Publicado</dt>
-                  <dd className="font-medium text-zinc-900">
-                    {klass.published_version ? `v${klass.published_version}` : "—"}
+                  <dt className="eyebrow">Publicado</dt>
+                  <dd className="mt-0.5">
+                    {klass.published_version ? (
+                      <span className="badge badge-positive">v{klass.published_version}</span>
+                    ) : (
+                      <span className="text-ink-faint">—</span>
+                    )}
                   </dd>
                 </div>
               </dl>

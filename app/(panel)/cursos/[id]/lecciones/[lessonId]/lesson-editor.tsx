@@ -7,8 +7,7 @@ import type { ContentBlock } from "@/lib/content";
 
 import { BlockEditor } from "./block-editor";
 
-const fieldClass =
-  "w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 outline-none focus:border-zinc-900";
+const fieldClass = "field";
 
 export type EditableLesson = {
   id: string;
@@ -27,85 +26,96 @@ export function LessonEditor({ lesson }: { lesson: EditableLesson }) {
   const [state, action, pending] = useActionState<LessonResult, FormData>(updateLesson, {});
 
   return (
-    <form action={action} className="space-y-6">
+    <form action={action} className="space-y-5">
       <input type="hidden" name="lessonId" value={lesson.id} />
 
-      <div className="grid gap-4 rounded-xl border border-zinc-200 bg-white p-5 sm:grid-cols-2">
-        <label className="flex flex-col gap-1.5 text-sm text-zinc-700">
-          Título
-          <input name="title" required defaultValue={lesson.title} className={fieldClass} />
-        </label>
+      <section className="card p-5">
+        <h2 className="mb-4 text-sm font-semibold text-ink">Datos de la lección</h2>
 
-        <div className="flex flex-col gap-1.5 text-sm text-zinc-700">
-          Código
-          <p className="rounded-lg bg-zinc-50 px-3 py-2 font-mono text-sm text-zinc-600">
-            {lesson.code}
-          </p>
-          <span className="text-xs text-zinc-400">
-            No cambia: los ids publicados dependen de él.
-          </span>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="field-label">
+            Título
+            <input name="title" required defaultValue={lesson.title} className={fieldClass} />
+          </label>
+
+          <div className="field-label">
+            Código
+            <p className="rounded-[var(--radius-control)] bg-surface-soft px-3 py-2 font-mono text-sm text-ink-soft ring-1 ring-line">
+              {lesson.code}
+            </p>
+            <span className="hint">No cambia: los ids publicados dependen de él.</span>
+          </div>
+
+          <label className="field-label sm:col-span-2">
+            Subtítulo (eyebrow)
+            <input name="eyebrow" defaultValue={lesson.eyebrow} className={fieldClass} />
+          </label>
+
+          <label className="field-label sm:col-span-2">
+            Resumen
+            <textarea name="body" rows={3} defaultValue={lesson.body} className={fieldClass} />
+          </label>
+
+          <label className="field-label">
+            Título del contexto
+            <input
+              name="contextTitle"
+              defaultValue={lesson.contextTitle}
+              className={fieldClass}
+            />
+          </label>
+
+          <label className="field-label sm:row-span-2">
+            Texto del contexto
+            <textarea
+              name="contextBody"
+              rows={4}
+              defaultValue={lesson.contextBody}
+              className={fieldClass}
+            />
+          </label>
+
+          <label className="field-label sm:col-span-2">
+            Ejemplo de código (opcional)
+            <textarea
+              name="codeSample"
+              rows={4}
+              defaultValue={lesson.codeSample}
+              className={`${fieldClass} font-mono`}
+            />
+          </label>
+
+          <label className="field-label sm:col-span-2">
+            Síntesis (una idea por línea)
+            <textarea
+              name="synthesis"
+              rows={4}
+              defaultValue={lesson.synthesis.join("\n")}
+              className={fieldClass}
+            />
+          </label>
         </div>
+      </section>
 
-        <label className="flex flex-col gap-1.5 text-sm text-zinc-700 sm:col-span-2">
-          Subtítulo (eyebrow)
-          <input name="eyebrow" defaultValue={lesson.eyebrow} className={fieldClass} />
-        </label>
-
-        <label className="flex flex-col gap-1.5 text-sm text-zinc-700 sm:col-span-2">
-          Resumen
-          <textarea name="body" rows={3} defaultValue={lesson.body} className={fieldClass} />
-        </label>
-
-        <label className="flex flex-col gap-1.5 text-sm text-zinc-700">
-          Título del contexto
-          <input name="contextTitle" defaultValue={lesson.contextTitle} className={fieldClass} />
-        </label>
-
-        <label className="flex flex-col gap-1.5 text-sm text-zinc-700 sm:row-span-2">
-          Texto del contexto
-          <textarea
-            name="contextBody"
-            rows={4}
-            defaultValue={lesson.contextBody}
-            className={fieldClass}
-          />
-        </label>
-
-        <label className="flex flex-col gap-1.5 text-sm text-zinc-700 sm:col-span-2">
-          Ejemplo de código (opcional)
-          <textarea
-            name="codeSample"
-            rows={4}
-            defaultValue={lesson.codeSample}
-            className={`${fieldClass} font-mono`}
-          />
-        </label>
-
-        <label className="flex flex-col gap-1.5 text-sm text-zinc-700 sm:col-span-2">
-          Síntesis (una idea por línea)
-          <textarea
-            name="synthesis"
-            rows={4}
-            defaultValue={lesson.synthesis.join("\n")}
-            className={fieldClass}
-          />
-        </label>
-      </div>
-
-      <div className="rounded-xl border border-zinc-200 bg-white p-5">
+      <section className="card p-5">
+        <h2 className="mb-4 text-sm font-semibold text-ink">Bloques de contenido</h2>
         <BlockEditor initial={lesson.content} />
-      </div>
+      </section>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <button
-          type="submit"
-          disabled={pending}
-          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 disabled:opacity-50"
-        >
+      <div className="card flex flex-wrap items-center gap-3 p-4">
+        <button type="submit" disabled={pending} className="btn btn-primary">
           {pending ? "Guardando…" : "Guardar cambios"}
         </button>
-        {state.error && <p className="text-sm text-red-600">{state.error}</p>}
-        {state.ok && <p className="text-sm text-green-700">Cambios guardados.</p>}
+        {state.error && (
+          <p className="form-error" role="alert">
+            {state.error}
+          </p>
+        )}
+        {state.ok && (
+          <p className="form-ok" role="status">
+            Cambios guardados.
+          </p>
+        )}
       </div>
     </form>
   );

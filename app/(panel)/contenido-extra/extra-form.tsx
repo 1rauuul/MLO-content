@@ -202,16 +202,16 @@ export function ExtraForm({
   return (
     <form
       action={action}
-      className="space-y-5 rounded-xl border border-zinc-300 bg-white p-5"
+      className="card space-y-5 border-line-strong p-5"
     >
       <input type="hidden" name="extraId" value={initial?.id ?? ""} />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-medium text-zinc-900">
+        <h2 className="text-sm font-semibold text-ink">
           {initial ? "Editar contenido extra" : "Nuevo contenido extra"}
         </h2>
         {initial && (
-          <Link href="/contenido-extra" className="text-sm text-zinc-500 hover:text-zinc-900">
+          <Link href="/contenido-extra" className="text-sm text-ink-muted hover:text-ink">
             Cancelar edición
           </Link>
         )}
@@ -255,11 +255,11 @@ export function ExtraForm({
 
       <div className="space-y-2">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-sm text-zinc-700">Clases a las que se asigna</p>
+          <p className="text-sm text-ink-soft">Clases a las que se asigna</p>
           <button
             type="button"
             onClick={toggleAll}
-            className="rounded-lg border border-zinc-300 px-2.5 py-1 text-xs text-zinc-600 hover:bg-zinc-50"
+            className="btn btn-secondary btn-sm"
           >
             {allSelected ? "Quitar todas" : "Todas"}
           </button>
@@ -270,8 +270,8 @@ export function ExtraForm({
               key={klass.id}
               className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
                 classIds.includes(klass.id)
-                  ? "border-zinc-900 bg-zinc-50 text-zinc-900"
-                  : "border-zinc-300 text-zinc-600"
+                  ? "border-ink bg-surface-soft font-medium text-ink"
+                  : "border-line-strong text-ink-soft"
               }`}
             >
               <input
@@ -286,7 +286,7 @@ export function ExtraForm({
             </label>
           ))}
         </div>
-        <p className="text-xs text-zinc-400">
+        <p className="text-xs text-ink-faint">
           Si eliges varias, el mismo contenido entra en la publicación de cada clase.
         </p>
       </div>
@@ -493,7 +493,7 @@ export function ExtraForm({
           )}
 
           <div className="space-y-2">
-            <p className="text-xs uppercase tracking-wide text-zinc-400">Vista previa</p>
+            <p className="eyebrow">Vista previa</p>
             <ExercisePreview
               type={exercise.type}
               prompt={exercise.prompt}
@@ -673,7 +673,7 @@ export function ExtraForm({
           />
 
           <div className="space-y-2">
-            <p className="text-xs uppercase tracking-wide text-zinc-400">Vista previa</p>
+            <p className="eyebrow">Vista previa</p>
             <ExamplePreview
               type={example.type}
               title={example.title}
@@ -699,7 +699,7 @@ export function ExtraForm({
         <button
           type="submit"
           disabled={pending || lessons.length === 0}
-          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 disabled:opacity-50"
+          className="btn btn-primary"
         >
           {pending
             ? "Guardando…"
@@ -710,18 +710,26 @@ export function ExtraForm({
         {initial && (
           <Link
             href="/contenido-extra"
-            className="rounded-lg border border-zinc-300 px-4 py-2 text-sm text-zinc-600 hover:border-zinc-500 hover:text-zinc-900"
+            className="btn btn-secondary"
           >
             Cancelar
           </Link>
         )}
         {lessons.length === 0 && (
-          <p className="text-sm text-amber-700">
+          <p className="text-sm text-warning">
             No hay lecciones del curso base. Importa el core antes de agregar contenido.
           </p>
         )}
-        {state.error && <p className="text-sm text-red-600">{state.error}</p>}
-        {state.ok && <p className="text-sm text-green-700">Contenido guardado.</p>}
+        {state.error && (
+          <p className="form-error" role="alert">
+            {state.error}
+          </p>
+        )}
+        {state.ok && (
+          <p className="form-ok" role="status">
+            Contenido guardado.
+          </p>
+        )}
       </div>
     </form>
   );

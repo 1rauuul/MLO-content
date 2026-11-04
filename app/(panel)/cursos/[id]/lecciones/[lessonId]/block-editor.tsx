@@ -4,11 +4,9 @@ import { useState } from "react";
 
 import { BLOCK_LABELS, emptyBlock, type BlockType, type ContentBlock } from "@/lib/content";
 
-const buttonClass =
-  "rounded-lg border border-zinc-300 px-2.5 py-1 text-xs text-zinc-600 hover:bg-zinc-50";
+const buttonClass = "btn btn-secondary btn-sm";
 
-const textareaClass =
-  "w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 outline-none focus:border-zinc-900";
+const textareaClass = "field";
 
 export function BlockEditor({
   initial,
@@ -53,7 +51,7 @@ export function BlockEditor({
       case "bullets":
       case "numbers":
         return (
-          <label className="block text-xs text-zinc-500">
+          <label className="block text-xs text-ink-muted">
             Un elemento por línea
             <textarea
               rows={4}
@@ -69,7 +67,7 @@ export function BlockEditor({
       case "table":
         return (
           <div className="grid gap-3 sm:grid-cols-2">
-            <label className="block text-xs text-zinc-500">
+            <label className="block text-xs text-ink-muted">
               Encabezados (uno por línea)
               <textarea
                 rows={3}
@@ -84,7 +82,7 @@ export function BlockEditor({
                 className={textareaClass}
               />
             </label>
-            <label className="block text-xs text-zinc-500">
+            <label className="block text-xs text-ink-muted">
               Filas (una por línea, celdas separadas por |)
               <textarea
                 rows={3}
@@ -111,7 +109,7 @@ export function BlockEditor({
       <input type="hidden" name="content" value={JSON.stringify(blocks)} />
 
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-sm font-medium text-zinc-900">{label}</span>
+        <span className="mr-1 text-xs text-ink-muted">Agregar bloque:</span>
         {(Object.keys(BLOCK_LABELS) as BlockType[]).map((type) => (
           <button
             key={type}
@@ -125,22 +123,35 @@ export function BlockEditor({
       </div>
 
       {blocks.length === 0 && (
-        <p className="rounded-lg border border-dashed border-zinc-300 p-4 text-sm text-zinc-500">
-          Agrega el primer bloque.
+        <p className="rounded-[var(--radius-control)] border border-dashed border-line-strong p-4 text-sm text-ink-muted">
+          {label} está vacío. Agrega el primer bloque.
         </p>
       )}
 
       {blocks.map((block, index) => (
-        <article key={index} className="rounded-lg border border-zinc-200 p-4">
+        <article key={index} className="rounded-xl border border-line bg-surface-soft/40 p-4">
           <header className="mb-2 flex items-center justify-between gap-2">
-            <span className="text-xs uppercase tracking-wide text-zinc-500">
+            <span className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-ink-muted">
+              <span className="grid size-5 place-items-center rounded bg-surface font-mono text-[10px] text-ink-faint ring-1 ring-line">
+                {index + 1}
+              </span>
               {BLOCK_LABELS[block.type]}
             </span>
             <div className="flex gap-1">
-              <button type="button" onClick={() => move(index, -1)} className={buttonClass}>
+              <button
+                type="button"
+                onClick={() => move(index, -1)}
+                className={`${buttonClass} px-2`}
+                aria-label="Subir bloque"
+              >
                 ↑
               </button>
-              <button type="button" onClick={() => move(index, 1)} className={buttonClass}>
+              <button
+                type="button"
+                onClick={() => move(index, 1)}
+                className={`${buttonClass} px-2`}
+                aria-label="Bajar bloque"
+              >
                 ↓
               </button>
               <button type="button" onClick={() => remove(index)} className={buttonClass}>

@@ -49,38 +49,25 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
 
   return (
     <div className="space-y-6">
-      <div>
-        <Link href="/mis-cursos" className="text-sm text-zinc-500 hover:text-zinc-900">
+      <header>
+        <Link href="/mis-cursos" className="text-sm text-ink-muted hover:text-ink">
           ← Mis cursos
         </Link>
         <div className="mt-1 flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-semibold text-zinc-900">{course.title}</h1>
-          <span className="font-mono text-xs text-zinc-500">{course.key}</span>
-          {course.is_base && (
-            <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600">
-              Core
-            </span>
-          )}
-          {!canEdit && (
-            <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs text-amber-700">
-              Solo lectura
-            </span>
-          )}
+          <h1 className="page-title">{course.title}</h1>
+          <span className="font-mono text-xs text-ink-faint">{course.key}</span>
+          {course.is_base && <span className="badge badge-neutral">Core</span>}
+          {!canEdit && <span className="badge badge-warning">Solo lectura</span>}
           {canEdit && (
-            <Link
-              href={`/cursos/${course.id}/publicar`}
-              className="ml-auto rounded-lg bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-zinc-700"
-            >
+            <Link href={`/cursos/${course.id}/publicar`} className="btn btn-primary btn-sm ml-auto">
               Publicar
             </Link>
           )}
         </div>
-      </div>
+      </header>
 
       {units.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-zinc-300 bg-white p-8 text-center text-sm text-zinc-500">
-          Este curso todavía no tiene unidades.
-        </p>
+        <p className="empty">Este curso todavía no tiene unidades.</p>
       ) : (
         <div className="space-y-4">
           {units.map((unit) => {
@@ -88,30 +75,24 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
             const isCore = unit.course_id !== course.id;
 
             return (
-              <section
-                key={unit.id}
-                className="rounded-xl border border-zinc-200 bg-white p-5"
-              >
+              <section key={unit.id} className="card p-5">
                 <div className="flex flex-wrap items-center gap-3">
-                  <h2 className="font-medium text-zinc-900">
-                    {unit.number}. {unit.title}
-                  </h2>
-                  <span className="text-xs text-zinc-500">
+                  <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-surface-soft font-mono text-xs font-medium text-ink-soft ring-1 ring-line">
+                    {unit.number}
+                  </span>
+                  <h2 className="text-sm font-semibold text-ink">{unit.title}</h2>
+                  <span className="text-xs text-ink-faint">
                     {unit.difficulty} · {unit.color}
                   </span>
-                  {isCore && (
-                    <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600">
-                      Core
-                    </span>
-                  )}
+                  {isCore && <span className="badge badge-neutral">Core</span>}
                 </div>
 
                 {unit.description && (
-                  <p className="mt-1 text-sm text-zinc-500">{unit.description}</p>
+                  <p className="mt-2 text-sm text-ink-muted">{unit.description}</p>
                 )}
 
                 {unitLessons.length > 0 && (
-                  <ul className="mt-4 divide-y divide-zinc-100 border-t border-zinc-100">
+                  <ul className="mt-4 divide-y divide-line border-t border-line">
                     {unitLessons.map((lesson) => {
                       const own = lesson.course_id === course.id;
 
@@ -120,8 +101,8 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
                           key={lesson.id}
                           className="flex flex-wrap items-center justify-between gap-2 py-2.5 text-sm"
                         >
-                          <span className="text-zinc-700">
-                            <span className="mr-2 font-mono text-xs text-zinc-400">
+                          <span className="text-ink-soft">
+                            <span className="mr-2 font-mono text-xs text-ink-faint">
                               {lesson.code}
                             </span>
                             {lesson.title}
@@ -130,12 +111,12 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
                           {own && canEdit ? (
                             <Link
                               href={`/cursos/${course.id}/lecciones/${lesson.id}`}
-                              className="text-zinc-600 underline-offset-2 hover:text-zinc-900 hover:underline"
+                              className="text-sm text-ink-muted underline-offset-4 hover:text-ink hover:underline"
                             >
                               Editar
                             </Link>
                           ) : (
-                            <span className="text-xs text-zinc-400">Core</span>
+                            <span className="text-xs text-ink-faint">Core</span>
                           )}
                         </li>
                       );

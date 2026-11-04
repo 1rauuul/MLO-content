@@ -38,96 +38,85 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
 
   return (
     <div className="space-y-6">
-      <div>
-        <Link href="/clases" className="text-sm text-zinc-500 hover:text-zinc-900">
+      <header>
+        <Link href="/clases" className="text-sm text-ink-muted hover:text-ink">
           ← Clases
         </Link>
         <div className="mt-1 flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-semibold text-zinc-900">{klass.name}</h1>
-          <span className="rounded-lg bg-white px-2 py-1 font-mono text-sm tracking-widest text-zinc-800 ring-1 ring-zinc-200">
+          <h1 className="page-title">{klass.name}</h1>
+          <span className="rounded-lg bg-surface px-2 py-1 font-mono text-sm tracking-widest text-ink-soft ring-1 ring-line">
             {klass.join_code}
           </span>
           {teacher.role === "admin" && (
-            <span className="text-xs text-zinc-500">Docente: {klass.teacher_name}</span>
+            <span className="text-xs text-ink-faint">Docente: {klass.teacher_name}</span>
           )}
         </div>
-        <p className="mt-1 text-sm text-zinc-500">
+        <p className="page-lead">
           Comparte el código para que los alumnos se unan. Los cambios se ven cuando publicas.
         </p>
-      </div>
+      </header>
 
-      <section className="rounded-xl border border-zinc-200 bg-white p-5">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h2 className="font-medium text-zinc-900">Publicación</h2>
-            {last ? (
-              <p className="mt-1 text-sm text-zinc-500">
-                Versión <strong className="text-zinc-800">{last.version}</strong> ·{" "}
-                {formatDate(last.published_at)} · hash{" "}
-                <span className="font-mono text-xs">{last.content_hash.slice(0, 12)}</span>
-              </p>
-            ) : (
-              <p className="mt-1 text-sm text-zinc-500">Todavía no hay una versión publicada.</p>
-            )}
-            <p className="mt-1 text-sm">
-              {pending ? (
-                <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs text-amber-700">
-                  Hay cambios sin publicar
-                </span>
-              ) : last ? (
-                <span className="rounded-full bg-green-50 px-2 py-0.5 text-xs text-green-700">
-                  Publicado
-                </span>
-              ) : null}
+      <section className="card flex flex-wrap items-start justify-between gap-4 p-5">
+        <div>
+          <h2 className="text-sm font-semibold text-ink">Publicación</h2>
+          {last ? (
+            <p className="mt-1 text-sm text-ink-muted">
+              Versión <strong className="text-ink-soft">{last.version}</strong> ·{" "}
+              {formatDate(last.published_at)} · hash{" "}
+              <span className="font-mono text-xs">{last.content_hash.slice(0, 12)}</span>
             </p>
-          </div>
-          <PublishClassForm classId={klass.id} />
+          ) : (
+            <p className="mt-1 text-sm text-ink-muted">
+              Todavía no hay una versión publicada.
+            </p>
+          )}
+          <p className="mt-2">
+            {pending ? (
+              <span className="badge badge-warning">Hay cambios sin publicar</span>
+            ) : last ? (
+              <span className="badge badge-positive">Publicado</span>
+            ) : null}
+          </p>
         </div>
+        <PublishClassForm classId={klass.id} />
       </section>
 
-      <section className="rounded-xl border border-zinc-200 bg-white p-5">
+      <section className="card p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="font-medium text-zinc-900">Contenido de la clase</h2>
-            <p className="text-sm text-zinc-500">
+            <h2 className="text-sm font-semibold text-ink">Contenido de la clase</h2>
+            <p className="mt-1 text-sm text-ink-muted">
               {extras.length}{" "}
               {extras.length === 1 ? "contenido asignado" : "contenidos asignados"}.
             </p>
           </div>
-          <Link
-            href={`/contenido-extra?classId=${klass.id}`}
-            className="rounded-lg bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-zinc-700"
-          >
+          <Link href={`/contenido-extra?classId=${klass.id}`} className="btn btn-primary btn-sm">
             Agregar contenido
           </Link>
         </div>
 
         {extras.length === 0 ? (
-          <p className="mt-4 rounded-lg border border-dashed border-zinc-300 p-6 text-center text-sm text-zinc-500">
-            Esta clase todavía no tiene contenido extra.
-          </p>
+          <p className="empty mt-4">Esta clase todavía no tiene contenido extra.</p>
         ) : (
-          <ul className="mt-4 divide-y divide-zinc-100 border-t border-zinc-100">
+          <ul className="mt-4 divide-y divide-line border-t border-line">
             {extras.map((extra) => (
               <li key={extra.id} className="flex flex-wrap items-start gap-3 py-3">
-                <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600">
-                  {TYPE_LABEL[extra.type]}
-                </span>
+                <span className="badge badge-neutral">{TYPE_LABEL[extra.type]}</span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-zinc-900">{extraSummary(extra)}</p>
-                  <p className="text-xs text-zinc-500">
+                  <p className="text-sm font-medium text-ink">{extraSummary(extra)}</p>
+                  <p className="text-xs text-ink-muted">
                     Lección <span className="font-mono">{extra.lesson_code}</span> ·{" "}
                     {extra.lesson_title}
                   </p>
                   {extra.class_names.length > 0 && (
-                    <p className="text-xs text-zinc-400">
+                    <p className="text-xs text-ink-faint">
                       También en: {extra.class_names.join(", ")}
                     </p>
                   )}
                 </div>
                 <Link
                   href={`/contenido-extra?extra=${extra.id}`}
-                  className="text-sm text-zinc-600 underline-offset-2 hover:text-zinc-900 hover:underline"
+                  className="text-sm text-ink-muted underline-offset-4 hover:text-ink hover:underline"
                 >
                   Editar
                 </Link>
@@ -137,29 +126,29 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
         )}
       </section>
 
-      <section className="rounded-xl border border-zinc-200 bg-white p-5">
-        <h2 className="font-medium text-zinc-900">Alumnos</h2>
-        <p className="text-sm text-zinc-500">
+      <section className="card p-5">
+        <h2 className="text-sm font-semibold text-ink">Alumnos</h2>
+        <p className="mt-1 text-sm text-ink-muted">
           {students.length} {students.length === 1 ? "alumno" : "alumnos"} en esta clase.
         </p>
 
         {students.length === 0 ? (
-          <p className="mt-4 rounded-lg border border-dashed border-zinc-300 p-6 text-center text-sm text-zinc-500">
+          <p className="empty mt-4">
             Todavía no se ha unido nadie con el código {klass.join_code}.
           </p>
         ) : (
           <table className="mt-4 w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-zinc-200 text-xs uppercase tracking-wide text-zinc-400">
-                <th className="py-2 font-medium">Nombre</th>
-                <th className="py-2 font-medium">Se unió</th>
+              <tr className="border-b border-line">
+                <th className="eyebrow py-2 font-medium">Nombre</th>
+                <th className="eyebrow py-2 font-medium">Se unió</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100">
+            <tbody className="divide-y divide-line">
               {students.map((student) => (
-                <tr key={student.id}>
-                  <td className="py-2 text-zinc-800">{student.name}</td>
-                  <td className="py-2 text-zinc-500">{formatDate(student.joined_at)}</td>
+                <tr key={student.id} className="transition-colors hover:bg-surface-soft/70">
+                  <td className="py-2 text-ink-soft">{student.name}</td>
+                  <td className="py-2 text-ink-muted">{formatDate(student.joined_at)}</td>
                 </tr>
               ))}
             </tbody>

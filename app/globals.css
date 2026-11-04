@@ -1,26 +1,195 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Tokens del panel: Swiss/minimal, densidad de dashboard. */
+@theme {
+  --color-canvas: #f6f7f9;
+  --color-surface: #ffffff;
+  --color-surface-soft: #f8fafc;
+  --color-line: #e4e8ee;
+  --color-line-strong: #cfd6df;
+  --color-ink: #0f172a;
+  --color-ink-soft: #475569;
+  --color-ink-muted: #64748b;
+  --color-ink-faint: #94a3b8;
+  --color-brand: #0f172a;
+  --color-brand-hover: #1e293b;
+  --color-positive: #15803d;
+  --color-positive-soft: #ecfdf3;
+  --color-warning: #b45309;
+  --color-warning-soft: #fffbeb;
+  --color-danger: #b91c1c;
+  --color-danger-soft: #fef2f2;
+  --radius-card: 14px;
+  --radius-control: 9px;
+  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.05);
+  --shadow-lift: 0 6px 20px -6px rgb(15 23 42 / 0.14);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    color-scheme: light;
+  }
+
+  body {
+    background: var(--color-canvas);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: var(--color-brand);
+    color: #fff;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+@layer components {
+  .card {
+    @apply rounded-[var(--radius-card)] border border-line bg-surface;
+    box-shadow: var(--shadow-card);
+  }
+
+  .card-hover {
+    @apply transition duration-200;
+  }
+
+  .card-hover:hover {
+    box-shadow: var(--shadow-lift);
+  }
+
+  .page-title {
+    @apply text-2xl font-semibold tracking-tight text-ink;
+  }
+
+  .page-lead {
+    @apply mt-1 max-w-2xl text-sm text-ink-muted;
+  }
+
+  .eyebrow {
+    @apply text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-faint;
+  }
+
+  .field {
+    @apply w-full rounded-[var(--radius-control)] border border-line-strong bg-surface px-3 py-2 text-sm text-ink placeholder:text-ink-faint;
+    transition: border-color 150ms, box-shadow 150ms;
+  }
+
+  .field:hover:not(:focus) {
+    border-color: #aeb8c4;
+  }
+
+  .field:focus {
+    @apply border-brand outline-none;
+    box-shadow: 0 0 0 3px rgb(15 23 42 / 0.1);
+  }
+
+  .field-label {
+    @apply flex flex-col gap-1.5 text-sm text-ink-soft;
+  }
+
+  .hint {
+    @apply text-xs text-ink-faint;
+  }
+
+  .btn {
+    @apply inline-flex select-none items-center justify-center gap-2 rounded-[var(--radius-control)] border border-transparent px-3.5 py-2 text-sm font-medium transition-colors duration-150;
+  }
+
+  .btn:disabled {
+    @apply cursor-not-allowed opacity-50;
+  }
+
+  .btn-primary {
+    @apply bg-brand text-white hover:bg-brand-hover;
+  }
+
+  .btn-secondary {
+    @apply border-line-strong bg-surface text-ink-soft hover:border-ink-faint hover:text-ink;
+  }
+
+  .btn-ghost {
+    @apply text-ink-soft hover:bg-surface-soft hover:text-ink;
+  }
+
+  .btn-danger {
+    @apply border-danger/25 text-danger hover:bg-danger-soft;
+  }
+
+  .btn-sm {
+    @apply px-3 py-1.5 text-[13px];
+  }
+
+  .badge {
+    @apply inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium;
+  }
+
+  .badge-neutral {
+    @apply bg-surface-soft text-ink-muted ring-1 ring-line;
+  }
+
+  .badge-brand {
+    @apply bg-ink text-white;
+  }
+
+  .badge-positive {
+    @apply bg-positive-soft text-positive ring-1 ring-positive/20;
+  }
+
+  .badge-warning {
+    @apply bg-warning-soft text-warning ring-1 ring-warning/20;
+  }
+
+  .empty {
+    @apply rounded-[var(--radius-card)] border border-dashed border-line-strong bg-surface/70 px-6 py-10 text-center text-sm text-ink-muted;
+  }
+
+  .link {
+    @apply font-medium text-ink underline-offset-4 hover:underline;
+  }
+
+  .form-error {
+    @apply text-sm text-danger;
+  }
+
+  .form-ok {
+    @apply text-sm text-positive;
+  }
+
+  .nav-link {
+    @apply rounded-lg px-3 py-1.5 text-sm text-ink-muted transition-colors hover:bg-surface-soft hover:text-ink;
+  }
+
+  .nav-link-active {
+    @apply bg-surface-soft font-medium text-ink;
+  }
+
+  .table-panel {
+    @apply w-full text-left text-sm;
+  }
+
+  .table-panel th {
+    @apply border-b border-line bg-surface-soft/60 px-5 py-2.5 text-xs font-medium uppercase tracking-wide text-ink-faint;
+  }
+
+  .table-panel td {
+    @apply px-5 py-3 align-middle;
+  }
+
+  .table-panel tbody tr {
+    @apply border-b border-line/70 transition-colors last:border-0 hover:bg-surface-soft/70;
+  }
 }

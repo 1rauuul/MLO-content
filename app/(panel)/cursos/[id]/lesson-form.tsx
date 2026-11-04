@@ -4,8 +4,7 @@ import { useActionState } from "react";
 
 import { createLesson, type ActionResult } from "@/lib/actions/content";
 
-const inputClass =
-  "rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 outline-none focus:border-zinc-900";
+const inputClass = "field";
 
 export function CreateLessonForm({
   courseId,
@@ -17,10 +16,7 @@ export function CreateLessonForm({
   const [state, action, pending] = useActionState<ActionResult, FormData>(createLesson, {});
 
   return (
-    <form
-      action={action}
-      className="mt-4 flex flex-wrap items-start gap-2 border-t border-zinc-100 pt-4"
-    >
+    <form action={action} className="mt-4 flex flex-wrap items-start gap-2 border-t border-line pt-4">
       <input type="hidden" name="courseId" value={courseId} />
       <input type="hidden" name="unitId" value={unitId} />
       <input
@@ -34,16 +30,17 @@ export function CreateLessonForm({
         name="title"
         required
         placeholder="Título de la lección"
+        aria-label="Título de la lección"
         className={`${inputClass} min-w-52 flex-1`}
       />
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
-      >
+      <button type="submit" disabled={pending} className="btn btn-secondary">
         {pending ? "Agregando…" : "Agregar lección"}
       </button>
-      {state.error && <p className="w-full text-sm text-red-600">{state.error}</p>}
+      {state.error && (
+        <p className="form-error w-full" role="alert">
+          {state.error}
+        </p>
+      )}
     </form>
   );
 }

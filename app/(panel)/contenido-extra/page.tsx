@@ -49,18 +49,18 @@ export default async function ContenidoExtraPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-zinc-900">Contenido extra</h1>
-        <p className="mt-1 text-sm text-zinc-500">
+      <header>
+        <h1 className="page-title">Contenido extra</h1>
+        <p className="page-lead">
           Agrega bloques, ejemplos o ejercicios a una lección existente del curso base y
           elige a qué clases se asignan. No se crean lecciones ni subtemas nuevos.
         </p>
-      </div>
+      </header>
 
       {classes.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-zinc-300 bg-white p-6 text-center text-sm text-zinc-500">
+        <p className="empty">
           Primero crea una clase en{" "}
-          <Link href="/clases" className="text-zinc-900 underline">
+          <Link href="/clases" className="link">
             Clases
           </Link>
           .
@@ -77,47 +77,47 @@ export default async function ContenidoExtraPage({
 
       <section className="space-y-3">
         <div>
-          <h2 className="font-medium text-zinc-900">Contenido agregado</h2>
-          <p className="text-sm text-zinc-500">
+          <h2 className="text-sm font-semibold text-ink">Contenido agregado</h2>
+          <p className="text-sm text-ink-muted">
             {extras.length} {extras.length === 1 ? "contenido" : "contenidos"}. Editar uno
             lo actualiza en todas sus clases al volver a publicarlas.
           </p>
         </div>
 
         {extras.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-zinc-300 bg-white p-6 text-center text-sm text-zinc-500">
+          <p className="empty">
             Todavía no has agregado contenido extra.
           </p>
         ) : (
           <ul className="space-y-3">
             {extras.map((extra) => (
-              <li key={extra.id} className="rounded-xl border border-zinc-200 bg-white p-4">
+              <li key={extra.id} className="card p-4">
                 <div className="flex flex-wrap items-start gap-3">
-                  <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600">
+                  <span className="badge badge-neutral">
                     {TYPE_LABEL[extra.type]}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-zinc-900">{extraSummary(extra)}</p>
-                    <p className="text-xs text-zinc-500">
+                    <p className="font-medium text-ink">{extraSummary(extra)}</p>
+                    <p className="text-xs text-ink-muted">
                       Lección <span className="font-mono">{extra.lesson_code}</span> ·{" "}
                       {extra.lesson_title}
                     </p>
-                    <p className="mt-1 text-xs text-zinc-400">
+                    <p className="mt-1 text-xs text-ink-faint">
                       Clases: {extra.class_names.join(", ") || "sin asignar"}
                     </p>
                   </div>
-                  <Link
-                    href={`/contenido-extra?extra=${extra.id}`}
-                    className="text-sm text-zinc-600 underline-offset-2 hover:text-zinc-900 hover:underline"
-                  >
-                    Editar
-                  </Link>
-                  <form action={deleteExtra}>
-                    <input type="hidden" name="extraId" value={extra.id} />
-                    <button className="text-sm text-red-600 underline-offset-2 hover:underline">
-                      Borrar
-                    </button>
-                  </form>
+                  <div className="flex items-center gap-2">
+                    <Link
+                      href={`/contenido-extra?extra=${extra.id}`}
+                      className="btn btn-secondary btn-sm"
+                    >
+                      Editar
+                    </Link>
+                    <form action={deleteExtra}>
+                      <input type="hidden" name="extraId" value={extra.id} />
+                      <button className="btn btn-danger btn-sm">Borrar</button>
+                    </form>
+                  </div>
                 </div>
               </li>
             ))}

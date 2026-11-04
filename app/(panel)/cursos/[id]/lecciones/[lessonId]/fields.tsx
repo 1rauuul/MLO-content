@@ -2,8 +2,7 @@
 
 import type { CrosswordEntry, ExerciseStep, MatchPair } from "@/lib/content/model";
 
-export const fieldClass =
-  "w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 outline-none focus:border-zinc-900";
+export const fieldClass = "field";
 
 export function Field({
   label,
@@ -15,10 +14,10 @@ export function Field({
   children: React.ReactNode;
 }) {
   return (
-    <label className="flex flex-col gap-1.5 text-sm text-zinc-700">
+    <label className="field-label">
       {label}
       {children}
-      {hint && <span className="text-xs text-zinc-400">{hint}</span>}
+      {hint && <span className="hint">{hint}</span>}
     </label>
   );
 }
@@ -28,7 +27,7 @@ function RemoveButton({ onClick }: { onClick: () => void }) {
     <button
       type="button"
       onClick={onClick}
-      className="shrink-0 rounded-lg border border-zinc-200 px-2 py-2 text-xs text-zinc-500 hover:border-red-200 hover:text-red-600"
+      className="btn btn-danger btn-sm shrink-0"
       aria-label="Quitar"
     >
       Quitar
@@ -41,7 +40,7 @@ function AddButton({ onClick, children }: { onClick: () => void; children: strin
     <button
       type="button"
       onClick={onClick}
-      className="rounded-lg border border-dashed border-zinc-300 px-3 py-1.5 text-sm text-zinc-600 hover:border-zinc-500 hover:text-zinc-900"
+      className="w-fit rounded-[var(--radius-control)] border border-dashed border-line-strong px-3 py-1.5 text-sm text-ink-muted transition-colors hover:border-ink-faint hover:text-ink"
     >
       {children}
     </button>
@@ -66,8 +65,8 @@ export function TextList({
 
   return (
     <div className="space-y-2">
-      <p className="text-sm text-zinc-700">{label}</p>
-      {hint && <p className="text-xs text-zinc-400">{hint}</p>}
+      <p className="text-sm text-ink-soft">{label}</p>
+      {hint && <p className="hint">{hint}</p>}
       {values.map((value, index) => (
         <div key={index} className="flex gap-2">
           <input
@@ -100,19 +99,21 @@ export function PairsEditor({
 
   return (
     <div className="space-y-2">
-      <p className="text-sm text-zinc-700">Pares</p>
+      <p className="text-sm text-ink-soft">Pares</p>
       {pairs.map((pair, index) => (
         <div key={index} className="flex flex-wrap gap-2 sm:flex-nowrap">
           <input
             value={pair.left}
             onChange={(event) => update(index, "left", event.target.value)}
             placeholder="Izquierda"
+            aria-label={`Izquierda ${index + 1}`}
             className={fieldClass}
           />
           <input
             value={pair.right}
             onChange={(event) => update(index, "right", event.target.value)}
             placeholder="Derecha"
+            aria-label={`Derecha ${index + 1}`}
             className={fieldClass}
           />
           <RemoveButton onClick={() => onChange(pairs.filter((_, i) => i !== index))} />
@@ -141,14 +142,18 @@ export function StepsEditor({
 
   return (
     <div className="space-y-2">
-      <p className="text-sm text-zinc-700">Pasos del ejemplo</p>
+      <p className="text-sm text-ink-soft">Pasos del ejemplo</p>
       {steps.map((step, index) => (
-        <div key={index} className="space-y-2 rounded-lg border border-zinc-200 p-3">
+        <div
+          key={index}
+          className="space-y-2 rounded-[var(--radius-control)] border border-line bg-surface-soft/40 p-3"
+        >
           <div className="flex items-start gap-2">
             <textarea
               value={step.text}
               onChange={(event) => update(index, "text", event.target.value)}
               placeholder="Qué se hace"
+              aria-label={`Qué se hace en el paso ${index + 1}`}
               rows={2}
               className={fieldClass}
             />
@@ -158,6 +163,7 @@ export function StepsEditor({
             value={step.why}
             onChange={(event) => update(index, "why", event.target.value)}
             placeholder="Por qué se hace así"
+            aria-label={`Por qué se hace así en el paso ${index + 1}`}
             rows={2}
             className={fieldClass}
           />
@@ -190,25 +196,30 @@ export function EntriesEditor({
 
   return (
     <div className="space-y-3">
-      <p className="text-sm text-zinc-700">Entradas del crucigrama</p>
+      <p className="text-sm text-ink-soft">Entradas del crucigrama</p>
       {entries.map((entry, index) => (
-        <div key={index} className="space-y-2 rounded-lg border border-zinc-200 p-3">
+        <div
+          key={index}
+          className="space-y-2 rounded-[var(--radius-control)] border border-line bg-surface-soft/40 p-3"
+        >
           <div className="grid gap-2 sm:grid-cols-2">
             <input
               value={entry.word}
               onChange={(event) => update(index, "word", event.target.value)}
               placeholder="PALABRA"
+              aria-label={`Palabra ${index + 1}`}
               className={`${fieldClass} font-mono uppercase`}
             />
             <input
               value={entry.clue}
               onChange={(event) => update(index, "clue", event.target.value)}
               placeholder="Pista"
+              aria-label={`Pista ${index + 1}`}
               className={fieldClass}
             />
           </div>
           <div className="grid gap-2 sm:grid-cols-4">
-            <label className="flex flex-col gap-1 text-xs text-zinc-500">
+            <label className="field-label text-xs">
               Fila
               <input
                 type="number"
@@ -218,7 +229,7 @@ export function EntriesEditor({
                 className={fieldClass}
               />
             </label>
-            <label className="flex flex-col gap-1 text-xs text-zinc-500">
+            <label className="field-label text-xs">
               Columna
               <input
                 type="number"
@@ -228,7 +239,7 @@ export function EntriesEditor({
                 className={fieldClass}
               />
             </label>
-            <label className="flex flex-col gap-1 text-xs text-zinc-500">
+            <label className="field-label text-xs">
               Dirección
               <select
                 value={entry.direction}
