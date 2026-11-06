@@ -78,7 +78,7 @@ export async function createEvaluation(
     values
       (${scope.course.id}, ${lesson.id}, ${scope.topic.id},
        ${nextId("ev", ids.map((row) => row.content_id))}, ${title}, ${description},
-       1, 1, ${next.position})
+       1, 0, ${next.position})
     returning id`;
 
   refreshTopic(scope.course.id, scope.topic.id);
@@ -135,7 +135,7 @@ export async function updateEvaluation(
          set title = ${title},
              description = ${description},
              lesson_id = ${lesson.id},
-             exercise_count = ${Math.max(1, available.length)}
+             exercise_count = ${available.length}
        where id = ${evaluation.id}`;
     await tx`delete from evaluation_exercises where evaluation_id = ${evaluation.id}`;
     for (const exercise of available) {

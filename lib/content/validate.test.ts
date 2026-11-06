@@ -213,8 +213,26 @@ test("la publicación rechaza preguntas mcq y bloques inválidos", () => {
   assert.throws(() => validateCatalogForPublish(brokenBlock));
 });
 
-test("parseQuestionInput acepta mcq, order, fill, match y crossword", () => {
-  const mcq = parseQuestionInput({
+test("la publicación acepta evaluaciones solo de preguntas", () => {
+  assert.ok(fixture.evaluations.length > 0);
+  const pure: CoreCourse = {
+    ...fixture,
+    evaluations: fixture.evaluations.map((evaluation, index) =>
+      index === 0 ? { ...evaluation, exercise_count: 0 } : evaluation,
+    ),
+  };
+  assert.doesNotThrow(() => validateCatalogForPublish(pure));
+
+  const invalid: CoreCourse = {
+    ...fixture,
+    evaluations: fixture.evaluations.map((evaluation, index) =>
+      index === 0 ? { ...evaluation, exercise_count: -1 } : evaluation,
+    ),
+  };
+  assert.throws(() => validateCatalogForPublish(invalid));
+});
+
+test("parseQuestionInput acepta mcq, order, fill, match y crossword", () => {  const mcq = parseQuestionInput({
     type: "mcq",
     prompt: "¿Cuál?",
     options: ["A", "B"],

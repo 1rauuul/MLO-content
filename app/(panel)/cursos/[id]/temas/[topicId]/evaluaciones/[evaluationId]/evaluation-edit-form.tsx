@@ -55,6 +55,9 @@ export function EvaluationEditForm({
         <legend className="px-1 text-sm font-medium text-ink-soft">
           Ejercicios de esta evaluación
         </legend>
+        <p className="text-xs text-ink-muted">
+          Puedes no marcar ninguno: la evaluación será solo de preguntas.
+        </p>
         {exercises.length === 0 ? (
           <p className="text-sm text-ink-muted">El subtema todavía no tiene ejercicios.</p>
         ) : (

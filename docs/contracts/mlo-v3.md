@@ -231,7 +231,8 @@ de una lección.
 
 Dos evaluaciones del mismo subtema pueden compartir ejercicios. Cada evaluación
 tiene sus propias preguntas. Una evaluación puede ser **solo de preguntas**
-(`exerciseIds: []`) o **mixta** (preguntas + ejercicios del subtema).
+(`exerciseIds: []`, sin mínimo de ejercicios) o **mixta** (preguntas + ejercicios
+del subtema).
 
 ### 3.6 Pregunta
 

@@ -3,7 +3,10 @@ import { buildV3Release } from "./v3";
 import type { ReleaseV3 } from "./contract-v3";
 
 /** Release v3 real de X-03: 1 unidad, 1 subtema, N lecciones y actividades. */
-export function buildX03Fixture(): ReleaseV3 {
+export function buildX03Fixture(
+  options: { pureQuestions?: boolean } = {},
+): ReleaseV3 {
+  const pureQuestions = options.pureQuestions === true;
   const course: CoreCourse = {
     schemaVersion: 2,
     title: "Curso X-03 (demo)",
@@ -134,9 +137,9 @@ export function buildX03Fixture(): ReleaseV3 {
         title: "Evaluación uno",
         description: "",
         question_count: 1,
-        exercise_count: 1,
+        exercise_count: pureQuestions ? 0 : 1,
         position: 0,
-        exercise_content_ids: ["ord1"],
+        exercise_content_ids: pureQuestions ? [] : ["ord1"],
       },
       {
         content_id: "ev2",

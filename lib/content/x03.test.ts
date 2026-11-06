@@ -50,6 +50,25 @@ test("el release x03 tiene jerarquía, N evaluaciones y exerciseIds", () => {
   assert.deepEqual(evaluations[1].questionIds, ["demo-q2"]);
 });
 
+test("una evaluación solo de preguntas publica exerciseIds vacío y sigue siendo válida", () => {
+  const release = buildX03Fixture({ pureQuestions: true });
+  const result = validateRelease(release);
+  if (!result.ok) assert.fail(result.error);
+
+  const evaluations = release.evaluations as {
+    id: string;
+    questionIds: string[];
+    exerciseIds: string[];
+  }[];
+  assert.deepEqual(
+    evaluations.map((evaluation) => evaluation.id),
+    ["demo-ev1", "demo-ev2"],
+  );
+  assert.deepEqual(evaluations[0].exerciseIds, []);
+  assert.deepEqual(evaluations[0].questionIds, ["demo-q1"]);
+  assert.deepEqual(evaluations[1].exerciseIds, ["demo-ord1", "demo-fill1"]);
+});
+
 test("el orden del release sigue position, code e id", () => {
   const release = buildX03Fixture();
   assert.deepEqual(

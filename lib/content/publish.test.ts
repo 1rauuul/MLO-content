@@ -232,6 +232,21 @@ test("el release v3 de publicación es válido, vacío y publicado", () => {
   }
 });
 
+test("v2 compone una evaluación solo de preguntas sin fallar por exercise_count", () => {
+  assert.ok(fixture.evaluations.length > 0);
+  const catalog = composeCatalog("base", {
+    ...fixture,
+    evaluations: fixture.evaluations.map((evaluation, index) =>
+      index === 0 ? { ...evaluation, exercise_count: 0 } : evaluation,
+    ),
+  });
+  const payload = catalog.lessons.find(
+    (lesson) => lesson.evaluation?.id === fixture.evaluations[0].content_id,
+  );
+  assert.equal(payload?.evaluation?.exerciseCount, 0);
+  assert.ok((payload?.questions.length ?? 0) > 0);
+});
+
 test("la versión v3 no retrocede frente a v2 ni a publicaciones v3 vacías", () => {
   assert.equal(nextReleaseVersion(null, null), 1);
   assert.equal(nextReleaseVersion(4, null), 5);

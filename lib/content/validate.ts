@@ -481,7 +481,7 @@ export function validateCatalogForPublish(course: CoreCourse): void {
       !Number.isInteger(evaluation.question_count) ||
       evaluation.question_count <= 0 ||
       !Number.isInteger(evaluation.exercise_count) ||
-      evaluation.exercise_count <= 0
+      evaluation.exercise_count < 0
     ) {
       throw new Error(`Evaluación ${evaluation.content_id}: cantidades inválidas.`);
     }
