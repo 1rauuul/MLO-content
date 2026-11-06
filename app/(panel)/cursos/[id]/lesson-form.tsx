@@ -8,17 +8,17 @@ const inputClass = "field";
 
 export function CreateLessonForm({
   courseId,
-  unitId,
+  topicId,
 }: {
   courseId: string;
-  unitId: string;
+  topicId: string;
 }) {
   const [state, action, pending] = useActionState<ActionResult, FormData>(createLesson, {});
 
   return (
     <form action={action} className="mt-4 flex flex-wrap items-start gap-2 border-t border-line pt-4">
       <input type="hidden" name="courseId" value={courseId} />
-      <input type="hidden" name="unitId" value={unitId} />
+      <input type="hidden" name="topicId" value={topicId} />
       <input
         name="code"
         required

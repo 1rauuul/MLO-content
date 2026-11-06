@@ -9,11 +9,13 @@ export type Course = {
   title: string;
   owner_id: string | null;
   is_base: boolean;
+  uses_base: boolean;
+  status: "draft" | "published" | "unpublished";
 };
 
 export async function getCourseForRead(teacher: Teacher, id: string): Promise<Course> {
   const rows = await db()<Course[]>`
-    select id, key, title, owner_id, is_base
+    select id, key, title, owner_id, is_base, uses_base, status
       from courses
      where id = ${id}
      limit 1`;
@@ -41,6 +43,8 @@ export type EditableLesson = {
   id: string;
   code: string;
   course_id: string;
+  unit_id: string;
+  topic_id: string;
   owner_id: string | null;
   is_base: boolean;
 };
@@ -51,7 +55,7 @@ export async function requireEditableLesson(
   id: string,
 ): Promise<EditableLesson> {
   const rows = await db()<EditableLesson[]>`
-    select l.id, l.code, l.course_id, c.owner_id, c.is_base
+    select l.id, l.code, l.course_id, l.unit_id, l.topic_id, c.owner_id, c.is_base
       from lessons l
       join courses c on c.id = l.course_id
      where l.id = ${id}

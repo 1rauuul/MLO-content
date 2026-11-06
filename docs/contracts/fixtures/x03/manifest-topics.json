@@ -1,0 +1,226 @@
+{
+  "schemaVersion": 3,
+  "kind": "course",
+  "catalogId": "demo",
+  "courseId": "course-x03",
+  "releaseId": "demo-1",
+  "version": 1,
+  "publishedAt": "2026-11-06T00:00:00.000Z",
+  "baseRef": null,
+  "course": {
+    "title": "Curso X-03 (demo)",
+    "description": "Fixture X-03",
+    "visibility": "published"
+  },
+  "units": [
+    {
+      "id": "demo-u1",
+      "number": 1,
+      "title": "Fundamentos",
+      "description": "Unidad de ejemplo.",
+      "difficulty": "Fundamental",
+      "color": "blue",
+      "position": 0
+    }
+  ],
+  "topics": [
+    {
+      "id": "demo-t1",
+      "unitId": "demo-u1",
+      "title": "Subtema con varias actividades",
+      "summary": "Dos lecciones y dos evaluaciones.",
+      "position": 0
+    }
+  ],
+  "lessons": [
+    {
+      "id": "demo-l1.1",
+      "topicId": "demo-t1",
+      "code": "1.1",
+      "title": "Primera lección",
+      "eyebrow": "Módulo 01 · Lección 01",
+      "body": "Contenido de lectura.",
+      "content": [
+        {
+          "type": "p",
+          "text": "Primer párrafo."
+        }
+      ],
+      "position": 0
+    },
+    {
+      "id": "demo-l1.2",
+      "topicId": "demo-t1",
+      "code": "1.2",
+      "title": "Segunda lección",
+      "eyebrow": "Módulo 01 · Lección 02",
+      "body": "Más contenido de lectura.",
+      "content": [
+        {
+          "type": "h",
+          "text": "Subtítulo"
+        }
+      ],
+      "position": 1
+    }
+  ],
+  "evaluations": [
+    {
+      "id": "demo-ev1",
+      "topicId": "demo-t1",
+      "title": "Evaluación uno",
+      "description": "",
+      "position": 0,
+      "questionIds": [
+        "demo-q1"
+      ],
+      "exerciseIds": [
+        "demo-ord1"
+      ]
+    },
+    {
+      "id": "demo-ev2",
+      "topicId": "demo-t1",
+      "title": "Evaluación dos",
+      "description": "",
+      "position": 1,
+      "questionIds": [
+        "demo-q2"
+      ],
+      "exerciseIds": [
+        "demo-ord1",
+        "demo-fill1"
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "id": "demo-q1",
+      "evaluationId": "demo-ev1",
+      "type": "mcq",
+      "prompt": "¿Qué se hace primero?",
+      "options": [
+        "Especificar",
+        "Validar"
+      ],
+      "answer": 0,
+      "config": {},
+      "explanation": "",
+      "position": 0
+    },
+    {
+      "id": "demo-q2",
+      "evaluationId": "demo-ev2",
+      "type": "fill",
+      "prompt": "Completa la frase",
+      "options": [],
+      "answer": 0,
+      "config": {
+        "sentences": [
+          "El {{requisito}} describe una necesidad."
+        ],
+        "bank": [
+          "requisito"
+        ]
+      },
+      "explanation": "",
+      "position": 0
+    }
+  ],
+  "exercises": [
+    {
+      "id": "demo-ord1",
+      "topicId": "demo-t1",
+      "type": "order",
+      "prompt": "Ordena el proceso",
+      "instructions": "",
+      "correctOrder": [
+        "Especificar",
+        "Desarrollar",
+        "Validar"
+      ],
+      "config": {},
+      "explanation": "",
+      "example": null,
+      "position": 0
+    },
+    {
+      "id": "demo-fill1",
+      "topicId": "demo-t1",
+      "type": "fill",
+      "prompt": "Completa la definición",
+      "instructions": "",
+      "correctOrder": [],
+      "config": {
+        "sentences": [
+          "El {{requisito}} describe una necesidad."
+        ],
+        "bank": [
+          "requisito",
+          "diseño"
+        ]
+      },
+      "explanation": "",
+      "example": null,
+      "position": 1
+    }
+  ],
+  "examples": [
+    {
+      "id": "demo-ex1",
+      "topicId": "demo-t1",
+      "type": "match",
+      "title": "Ejemplo de relación",
+      "prompt": "Relaciona conceptos",
+      "config": {
+        "pairs": [
+          {
+            "left": "Requisito",
+            "right": "Necesidad"
+          },
+          {
+            "left": "Diseño",
+            "right": "Solución"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "text": "Leer",
+          "why": "Activa el conocimiento."
+        }
+      ],
+      "hints": [],
+      "explanation": "",
+      "position": 0
+    },
+    {
+      "id": "demo-ex2",
+      "topicId": "demo-t1",
+      "type": "fill",
+      "title": "Ejemplo de completar",
+      "prompt": "Completa la oración",
+      "config": {
+        "sentences": [
+          "El {{requisito}} describe una necesidad."
+        ],
+        "bank": [
+          "requisito",
+          "diseño"
+        ]
+      },
+      "steps": [
+        {
+          "text": "Leer",
+          "why": "Da contexto."
+        }
+      ],
+      "hints": [],
+      "explanation": "",
+      "position": 1
+    }
+  ],
+  "references": [],
+  "notices": [],
+  "hash": "c1e4e8c6a5cb34c2f78486a43ef654caff2dd2c49acb0296e482153de2321d6b"
+}

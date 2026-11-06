@@ -118,7 +118,8 @@ test("el grupo cubre subtema propio y actividades sobre un subtema del curso", (
 test("una evaluación puede ser solo de preguntas", () => {
   const doc = readCourse() as CourseDoc & { hash: string };
   doc.evaluations[1].exerciseIds = [];
-  const { hash: _hash, ...content } = doc;
+  const content: Record<string, unknown> = { ...doc };
+  delete content.hash;
   doc.hash = hashValue(content);
   const result = validateRelease(doc);
   if (!result.ok) assert.fail(result.error);

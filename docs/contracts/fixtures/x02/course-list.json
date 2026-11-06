@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 3,
+  "courses": [
+    {
+      "catalogId": "base",
+      "title": "Ingeniería de Software",
+      "status": "published",
+      "usesBase": false,
+      "version": 7,
+      "hash": "0e07bcbb0fe078f6276e18dc07e4070a1d56886788f5a8bb74a87f3c00af2aeb",
+      "publishedAt": "2026-11-05T00:00:00.000Z",
+      "empty": false
+    },
+    {
+      "catalogId": "demo",
+      "title": "Curso vacío (demo)",
+      "status": "published",
+      "usesBase": false,
+      "version": 1,
+      "hash": "566b149452ed0e3dbfc091ea522906ccb6ec26ed0c9dbc3536b5f094d4e6c86f",
+      "publishedAt": "2026-11-06T00:00:00.000Z",
+      "empty": true
+    }
+  ]
+}

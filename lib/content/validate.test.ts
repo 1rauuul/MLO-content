@@ -7,6 +7,7 @@ import type { CoreCourse } from "./model";
 import {
   parseExampleInput,
   parseExerciseInput,
+  parseQuestionInput,
   validateCatalogForPublish,
 } from "./validate";
 
@@ -210,4 +211,119 @@ test("la publicación rechaza preguntas mcq y bloques inválidos", () => {
     ),
   };
   assert.throws(() => validateCatalogForPublish(brokenBlock));
+});
+
+test("la publicación acepta evaluaciones solo de preguntas", () => {
+  assert.ok(fixture.evaluations.length > 0);
+  const pure: CoreCourse = {
+    ...fixture,
+    evaluations: fixture.evaluations.map((evaluation, index) =>
+      index === 0 ? { ...evaluation, exercise_count: 0 } : evaluation,
+    ),
+  };
+  assert.doesNotThrow(() => validateCatalogForPublish(pure));
+
+  const invalid: CoreCourse = {
+    ...fixture,
+    evaluations: fixture.evaluations.map((evaluation, index) =>
+      index === 0 ? { ...evaluation, exercise_count: -1 } : evaluation,
+    ),
+  };
+  assert.throws(() => validateCatalogForPublish(invalid));
+});
+
+test("parseQuestionInput acepta mcq, order, fill, match y crossword", () => {  const mcq = parseQuestionInput({
+    type: "mcq",
+    prompt: "¿Cuál?",
+    options: ["A", "B"],
+    answer: 1,
+  });
+  assert.ok("value" in mcq);
+  assert.equal(mcq.value.answer, 1);
+
+  const order = parseQuestionInput({
+    type: "order",
+    prompt: "Ordena",
+    options: ["A", "B", "C"],
+    answer: 0,
+  });
+  assert.ok("value" in order);
+
+  const fill = parseQuestionInput({
+    type: "fill",
+    prompt: "Completa",
+    options: [],
+    answer: 0,
+    config: { sentences: ["El {{requisito}} importa."], bank: [] },
+  });
+  assert.ok("value" in fill);
+
+  const match = parseQuestionInput({
+    type: "match",
+    prompt: "Relaciona",
+    options: [],
+    answer: 0,
+    config: {
+      pairs: [
+        { left: "A", right: "1" },
+        { left: "B", right: "2" },
+      ],
+    },
+  });
+  assert.ok("value" in match);
+
+  const crossword = parseQuestionInput({
+    type: "crossword",
+    prompt: "Crucigrama",
+    options: [],
+    answer: 0,
+    config: {
+      crossword: {
+        rows: 3,
+        cols: 3,
+        entries: [{ word: "SOL", clue: "Estrella", row: 0, col: 0, direction: "across" }],
+      },
+    },
+  });
+  assert.ok("value" in crossword);
+});
+
+test("parseQuestionInput bloquea preguntas inválidas", () => {
+  assert.ok("error" in parseQuestionInput({ type: "mcq", prompt: "x", options: ["A"], answer: 0 }));
+  assert.ok(
+    "error" in parseQuestionInput({ type: "mcq", prompt: "x", options: ["A", "A"], answer: 0 }),
+  );
+  assert.ok(
+    "error" in parseQuestionInput({ type: "mcq", prompt: "x", options: ["A", "B"], answer: 2 }),
+  );
+  assert.ok(
+    "error" in parseQuestionInput({ type: "fill", prompt: "x", options: [], answer: 0, config: {} }),
+  );
+  assert.ok(
+    "error" in
+      parseQuestionInput({
+        type: "match",
+        prompt: "x",
+        options: [],
+        answer: 0,
+        config: { pairs: [{ left: "A", right: "1" }] },
+      }),
+  );
+  assert.ok(
+    "error" in
+      parseQuestionInput({
+        type: "crossword",
+        prompt: "x",
+        options: [],
+        answer: 0,
+        config: {
+          crossword: {
+            rows: 1,
+            cols: 1,
+            entries: [{ word: "SOL", clue: "Estrella", row: 0, col: 0, direction: "across" }],
+          },
+        },
+      }),
+  );
+  assert.ok("error" in parseQuestionInput({ type: "nope", prompt: "x" }));
 });

@@ -351,6 +351,60 @@ function validateBlocks(content: unknown, lessonId: string): void {
   }
 }
 
+export type QuestionInput = {
+  type: ActivityType;
+  prompt: string;
+  options: string[];
+  answer: number;
+  config: ExerciseConfig;
+  explanation: string;
+};
+
+export function parseQuestionInput(
+  raw: unknown,
+  opts: Options = {},
+): Parsed<QuestionInput> {
+  if (!isRecord(raw)) return { error: "La pregunta tiene formato inválido." };
+  if (!isActivityType(raw.type)) return { error: "Elige un tipo de pregunta válido." };
+
+  const type = raw.type;
+  const prompt = text(raw.prompt);
+  if (!prompt) return { error: "Escribe el enunciado." };
+
+  const options = opts.strict ? list(raw.options) : list(raw.options).filter(Boolean);
+  const answer = raw.answer === undefined ? 0 : Number(raw.answer);
+  if (!Number.isInteger(answer) || answer < 0) {
+    return { error: "La respuesta debe ser un índice válido." };
+  }
+  const explanation = text(raw.explanation);
+
+  if (type === "mcq") {
+    if (options.length < 2) return { error: "La pregunta necesita al menos 2 opciones." };
+    if (options.some((option) => !option)) return { error: "Hay una opción vacía." };
+    if (new Set(options).size !== options.length) {
+      return { error: "Las opciones no pueden repetirse." };
+    }
+    if (answer >= options.length) return { error: "La respuesta está fuera de rango." };
+    return { value: { type, prompt, options, answer, config: {}, explanation } };
+  }
+
+  if (type === "order") {
+    const orderError = assertOrder(options, "Orden");
+    if (orderError) return { error: orderError };
+    if (answer !== 0) return { error: "La respuesta debe ser 0." };
+    return { value: { type, prompt, options, answer, config: {}, explanation } };
+  }
+
+  if (options.length !== 0) {
+    return { error: `La pregunta ${type} no usa opciones.` };
+  }
+  if (answer !== 0) return { error: `La respuesta de ${type} debe ser 0.` };
+  const config = parseConfig(type, raw.config ?? {}, opts);
+  if ("error" in config) return config;
+
+  return { value: { type, prompt, options, answer, config: config.value, explanation } };
+}
+
 function validateQuestion(question: CoreCourse["questions"][number]): void {
   const where = `Pregunta ${question.content_id}`;
   if (!isActivityType(question.type)) throw new Error(`${where}: tipo inválido.`);
@@ -427,7 +481,7 @@ export function validateCatalogForPublish(course: CoreCourse): void {
       !Number.isInteger(evaluation.question_count) ||
       evaluation.question_count <= 0 ||
       !Number.isInteger(evaluation.exercise_count) ||
-      evaluation.exercise_count <= 0
+      evaluation.exercise_count < 0
     ) {
       throw new Error(`Evaluación ${evaluation.content_id}: cantidades inválidas.`);
     }

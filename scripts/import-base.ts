@@ -74,9 +74,12 @@ async function main() {
   const sql = db();
   await sql.begin(async (tx) => {
     const [course] = await tx<{ id: string }[]>`
-      insert into courses (key, title, is_base)
-      values ('base', ${data.title}, true)
-      on conflict (key) do update set title = excluded.title
+      insert into courses (key, title, is_base, uses_base, status)
+      values ('base', ${data.title}, true, false, 'published')
+      on conflict (key) do update
+        set title = excluded.title,
+            uses_base = false,
+            status = 'published'
       returning id`;
 
     // units → lessons es restrict, así que se borra de hijos a padres.
@@ -86,6 +89,7 @@ async function main() {
     await tx`delete from exercises where course_id = ${course.id}`;
     await tx`delete from evaluations where course_id = ${course.id}`;
     await tx`delete from lessons where course_id = ${course.id}`;
+    await tx`delete from topics where course_id = ${course.id}`;
     await tx`delete from units where course_id = ${course.id}`;
 
     const unitIds = new Map<string, string>();
@@ -101,13 +105,23 @@ async function main() {
     }
 
     const lessonIds = new Map<string, string>();
+    const topicIds = new Map<string, string>();
     for (const lesson of data.lessons) {
+      const unitId = required(unitIds, lesson.unit_content_id, "unidad");
+      const [topic] = await tx<{ id: string }[]>`
+        insert into topics (course_id, unit_id, content_id, title, summary, position)
+        values
+          (${course.id}, ${unitId}, ${`t-${lesson.content_id}`}, ${lesson.title}, '',
+           ${lesson.position})
+        returning id`;
+      topicIds.set(lesson.content_id, topic.id);
+
       const [row] = await tx<{ id: string }[]>`
         insert into lessons
-          (course_id, unit_id, content_id, code, title, eyebrow, body, code_sample,
+          (course_id, unit_id, topic_id, content_id, code, title, eyebrow, body, code_sample,
            context_title, context_body, synthesis, content, position)
         values
-          (${course.id}, ${required(unitIds, lesson.unit_content_id, "unidad")},
+          (${course.id}, ${unitId}, ${topic.id},
            ${lesson.content_id}, ${lesson.code}, ${lesson.title}, ${lesson.eyebrow},
            ${lesson.body}, ${lesson.code_sample}, ${lesson.context_title},
            ${lesson.context_body}, ${tx.json(lesson.synthesis as never)},
@@ -117,22 +131,29 @@ async function main() {
     }
 
     const lessonByEvaluation = new Map<string, string>();
-    for (const evaluation of data.evaluations) {
-      await tx`insert into evaluations
-          (course_id, lesson_id, content_id, title, description, question_count, exercise_count)
+    const evaluationIds = new Map<string, string>();
+    for (const [evaluationIndex, evaluation] of data.evaluations.entries()) {
+      const lessonContentId = required(lessonIds, evaluation.lesson_content_id, "lección");
+      const [row] = await tx<{ id: string }[]>`
+        insert into evaluations
+          (course_id, lesson_id, topic_id, content_id, title, description,
+           question_count, exercise_count, position)
         values
-          (${course.id}, ${required(lessonIds, evaluation.lesson_content_id, "lección")},
+          (${course.id}, ${lessonContentId},
+           ${required(topicIds, evaluation.lesson_content_id, "subtema")},
            ${evaluation.content_id}, ${evaluation.title}, ${evaluation.description},
-           ${evaluation.question_count}, ${evaluation.exercise_count})`;
+           ${evaluation.question_count}, ${evaluation.exercise_count}, ${evaluationIndex})`;
       lessonByEvaluation.set(evaluation.content_id, evaluation.lesson_content_id);
+      evaluationIds.set(evaluation.content_id, row.id);
     }
 
     for (const exercise of data.exercises) {
       await tx`insert into exercises
-          (course_id, lesson_id, content_id, type, prompt, instructions,
+          (course_id, lesson_id, topic_id, content_id, type, prompt, instructions,
            correct_order, config, explanation, example, position)
         values
           (${course.id}, ${required(lessonIds, exercise.lesson_content_id, "lección")},
+           ${required(topicIds, exercise.lesson_content_id, "subtema")},
            ${exercise.content_id}, ${exercise.type}, ${exercise.prompt}, ${exercise.instructions},
            ${tx.json(exercise.correct_order as never)}, ${tx.json(exercise.config as never)},
            ${exercise.explanation},
@@ -141,10 +162,11 @@ async function main() {
 
     for (const example of data.examples) {
       await tx`insert into examples
-          (course_id, lesson_id, content_id, type, title, prompt, config, steps,
+          (course_id, lesson_id, topic_id, content_id, type, title, prompt, config, steps,
            hints, explanation, position)
         values
           (${course.id}, ${required(lessonIds, example.lesson_content_id, "lección")},
+           ${required(topicIds, example.lesson_content_id, "subtema")},
            ${example.content_id}, ${example.type}, ${example.title}, ${example.prompt},
            ${tx.json(example.config as never)}, ${tx.json(example.steps as never)},
            ${tx.json(example.hints as never)}, ${example.explanation}, ${example.position})`;
@@ -157,15 +179,32 @@ async function main() {
         "evaluación",
       );
       await tx`insert into questions
-          (course_id, lesson_id, content_id, type, prompt, options, answer, config,
-           explanation, position)
+          (course_id, lesson_id, evaluation_id, content_id, type, prompt, options,
+           answer, config, explanation, position)
         values
           (${course.id}, ${required(lessonIds, lessonContentId, "lección")},
+           ${required(evaluationIds, question.evaluation_content_id, "evaluación")},
            ${question.content_id}, ${question.type}, ${question.prompt},
            ${tx.json(question.options as never)}, ${question.answer},
            ${tx.json(question.config as never)}, ${question.explanation},
            ${question.position})`;
     }
+
+    await tx`
+      insert into evaluation_exercises (evaluation_id, exercise_id)
+      select e.id, selected.id
+        from evaluations e
+        join lateral (
+          select x.id
+            from exercises x
+           where x.lesson_id = e.lesson_id
+             and x.archived_at is null
+           order by x.position, x.content_id
+           limit e.exercise_count
+        ) selected on true
+       where e.course_id = ${course.id}
+         and e.archived_at is null
+      on conflict do nothing`;
   });
 
   console.log(

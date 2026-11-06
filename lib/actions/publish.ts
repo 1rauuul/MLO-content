@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { requireEditableCourse } from "@/lib/access";
 import { requireTeacher } from "@/lib/auth";
-import { publishCourse } from "@/lib/content/publish";
+import { publishCourse, unpublishCourse } from "@/lib/content/publish";
 
 export type PublishResult = { error?: string; version?: number; hash?: string; lessons?: number };
 
@@ -26,4 +26,15 @@ export async function publish(
       error: error instanceof Error ? error.message : "No se pudo publicar el curso.",
     };
   }
+}
+
+export async function unpublish(formData: FormData): Promise<void> {
+  const teacher = await requireTeacher();
+  const courseId = String(formData.get("courseId") ?? "");
+  const course = await requireEditableCourse(teacher, courseId);
+
+  await unpublishCourse(course.id);
+  revalidatePath(`/cursos/${courseId}/publicar`);
+  revalidatePath(`/cursos/${courseId}`);
+  revalidatePath("/mis-cursos");
 }

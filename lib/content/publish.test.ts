@@ -4,8 +4,10 @@ import { join } from "node:path";
 import test from "node:test";
 
 import { buildManifest, composeCatalog, releaseHash } from "./compose";
+import { validateRelease } from "./contract-v3";
 import { canonicalJson, hashValue } from "./hash";
 import type { CoreCourse, CoreLesson } from "./model";
+import { buildEmptyV3Release, nextReleaseVersion, resolveBaseRef, sourceCourseIds } from "./v3";
 
 const fixture = JSON.parse(
   readFileSync(join(process.cwd(), "scripts/fixtures/base-course.json"), "utf8"),
@@ -169,4 +171,85 @@ test("rechaza ids repetidos y evaluaciones vacías", () => {
       questions: [],
     }),
   );
+});
+
+test("uses_base resuelve baseRef y un curso sin base no lo declara", () => {
+  assert.deepEqual(
+    resolveBaseRef(true, { version: 7, hash: "a".repeat(64) }),
+    { catalogId: "base", version: 7, hash: "a".repeat(64) },
+  );
+  assert.equal(resolveBaseRef(false, { version: 7, hash: "a".repeat(64) }), null);
+  assert.equal(resolveBaseRef(false, null), null);
+});
+
+test("uses_base sin release base falla con un mensaje claro", () => {
+  assert.throws(
+    () => resolveBaseRef(true, null),
+    /El contenido base no tiene una release v2 publicada/,
+  );
+});
+
+test("la composición v2 incluye el base solo si el curso lo declara", () => {
+  assert.deepEqual(sourceCourseIds(true, "base-id", "course-id"), ["base-id", "course-id"]);
+  assert.deepEqual(sourceCourseIds(false, "base-id", "course-id"), ["course-id"]);
+  assert.deepEqual(sourceCourseIds(true, null, "course-id"), ["course-id"]);
+  assert.deepEqual(sourceCourseIds(true, "course-id", "course-id"), ["course-id"]);
+});
+
+test("el release v3 de publicación es válido, vacío y publicado", () => {
+  const release = buildEmptyV3Release({
+    catalogId: "abcde",
+    courseId: "00000000-0000-0000-0000-000000000001",
+    version: 3,
+    publishedAt: "2026-11-06T00:00:00.000Z",
+    title: "Curso de prueba",
+    baseRef: { catalogId: "base", version: 7, hash: "b".repeat(64) },
+  });
+
+  const checked = validateRelease(release);
+  if (!checked.ok) assert.fail(checked.error);
+
+  assert.equal(release.releaseId, "abcde-3");
+  assert.equal((release.course as { visibility: string }).visibility, "published");
+  assert.deepEqual(release.baseRef, {
+    catalogId: "base",
+    version: 7,
+    hash: "b".repeat(64),
+  });
+  assert.equal(release.hash, hashValue({ ...release, hash: undefined }));
+  for (const collection of [
+    release.units,
+    release.topics,
+    release.lessons,
+    release.evaluations,
+    release.questions,
+    release.exercises,
+    release.examples,
+    release.references,
+    release.notices,
+  ]) {
+    assert.deepEqual(collection, []);
+  }
+});
+
+test("v2 compone una evaluación solo de preguntas sin fallar por exercise_count", () => {
+  assert.ok(fixture.evaluations.length > 0);
+  const catalog = composeCatalog("base", {
+    ...fixture,
+    evaluations: fixture.evaluations.map((evaluation, index) =>
+      index === 0 ? { ...evaluation, exercise_count: 0 } : evaluation,
+    ),
+  });
+  const payload = catalog.lessons.find(
+    (lesson) => lesson.evaluation?.id === fixture.evaluations[0].content_id,
+  );
+  assert.equal(payload?.evaluation?.exerciseCount, 0);
+  assert.ok((payload?.questions.length ?? 0) > 0);
+});
+
+test("la versión v3 no retrocede frente a v2 ni a publicaciones v3 vacías", () => {
+  assert.equal(nextReleaseVersion(null, null), 1);
+  assert.equal(nextReleaseVersion(4, null), 5);
+  assert.equal(nextReleaseVersion(4, 5), 6);
+  assert.equal(nextReleaseVersion(null, 3), 4);
 });
