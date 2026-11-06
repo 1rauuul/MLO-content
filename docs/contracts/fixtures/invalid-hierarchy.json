@@ -1,0 +1,285 @@
+{
+  "schemaVersion": 3,
+  "kind": "course",
+  "catalogId": "demo",
+  "courseId": "course-demo",
+  "releaseId": "demo-2026-11-06",
+  "version": 2,
+  "publishedAt": "2026-11-06T00:00:00.000Z",
+  "hash": "2da1f95e7ce0ec75c798fb51e4340c41c266c7a033b6035bfc1caae2f257606e",
+  "baseRef": {
+    "catalogId": "base",
+    "version": 7,
+    "hash": "0dd107f18a53cc73a5a9f834150462c30050e0b63110689b20711613042d323d"
+  },
+  "course": {
+    "title": "Ingeniería de Software (demo)",
+    "description": "Curso de ejemplo que referencia el contenido base.",
+    "visibility": "published"
+  },
+  "units": [
+    {
+      "id": "u1",
+      "number": 1,
+      "title": "Fundamentos",
+      "description": "Conceptos iniciales del curso.",
+      "difficulty": "Fundamental",
+      "color": "blue",
+      "position": 0
+    },
+    {
+      "id": "u2",
+      "number": 2,
+      "title": "Prácticas",
+      "description": "",
+      "difficulty": "Intermedio",
+      "color": "violet",
+      "position": 1
+    }
+  ],
+  "topics": [
+    {
+      "id": "t1",
+      "unitId": "u1",
+      "title": "Conceptos",
+      "summary": "Qué es el software y cómo se construye.",
+      "position": 0
+    },
+    {
+      "id": "t2",
+      "unitId": "u2",
+      "title": "Ejercicios guiados",
+      "summary": "",
+      "position": 0
+    }
+  ],
+  "lessons": [
+    {
+      "id": "l1.1",
+      "topicId": "t-missing",
+      "code": "1.1",
+      "title": "Desarrollo de software",
+      "eyebrow": "Módulo 01 · Lección 01",
+      "body": "El software se construye en equipo y deja evidencia.",
+      "content": [
+        {
+          "type": "p",
+          "text": "El desarrollo de software organiza actividades y productos."
+        },
+        {
+          "type": "h",
+          "text": "Actividades del proceso"
+        },
+        {
+          "type": "bullets",
+          "items": [
+            "Especificación",
+            "Desarrollo",
+            "Validación"
+          ]
+        },
+        {
+          "type": "numbers",
+          "items": [
+            "Definir el problema",
+            "Construir",
+            "Verificar"
+          ]
+        },
+        {
+          "type": "table",
+          "header": [
+            "Concepto",
+            "Definición"
+          ],
+          "rows": [
+            [
+              "Requisito",
+              "Necesidad que el sistema debe satisfacer"
+            ]
+          ]
+        }
+      ],
+      "position": 0,
+      "hash": "1d9949dee91493c65b9431606f69849172ed16dc788b56260b83ad30309f36dd",
+      "referenceIds": [
+        "ref-apa-1"
+      ]
+    },
+    {
+      "id": "l1.2",
+      "topicId": "t2",
+      "code": "1.2",
+      "title": "Trabajo coordinado",
+      "eyebrow": "Módulo 01 · Lección 02",
+      "body": "Requisitos, versiones y pruebas dejan evidencia.",
+      "content": [
+        {
+          "type": "p",
+          "text": "El trabajo coordinado requiere trazabilidad."
+        }
+      ],
+      "position": 0,
+      "hash": "5fba7286ace4ddbe0526f3da36678d6283efdaec5f3060e0a48ae18a4e315975"
+    }
+  ],
+  "evaluations": [
+    {
+      "id": "ev1.2",
+      "lessonId": "l1.2",
+      "title": "Evaluación: Trabajo coordinado",
+      "description": "Proceso y calidad.",
+      "position": 0,
+      "questionIds": [
+        "q1.2-1",
+        "q1.2-2"
+      ],
+      "exerciseIds": [
+        "ord1.2"
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "id": "q1.2-1",
+      "evaluationId": "ev1.2",
+      "type": "mcq",
+      "prompt": "¿Qué se hace primero?",
+      "options": [
+        "Especificar",
+        "Validar"
+      ],
+      "answer": 0,
+      "config": {},
+      "explanation": "Primero se especifica.",
+      "position": 0
+    },
+    {
+      "id": "q1.2-2",
+      "evaluationId": "ev1.2",
+      "type": "fill",
+      "prompt": "Completa la frase",
+      "options": [],
+      "answer": 0,
+      "config": {
+        "sentences": [
+          "El {{requisito}} describe una necesidad."
+        ],
+        "bank": [
+          "requisito",
+          "diseño"
+        ]
+      },
+      "explanation": "El requisito describe la necesidad.",
+      "position": 1
+    }
+  ],
+  "exercises": [
+    {
+      "id": "ord1.2",
+      "lessonId": "l1.2",
+      "type": "order",
+      "prompt": "Ordena las actividades del proceso",
+      "instructions": "Usa las flechas para ordenar.",
+      "correctOrder": [
+        "Especificar",
+        "Desarrollar",
+        "Validar"
+      ],
+      "config": {},
+      "explanation": "El proceso va de especificación a validación.",
+      "example": {
+        "title": "Actividades del proceso",
+        "steps": [
+          {
+            "text": "Especificar el problema",
+            "why": "Fija el alcance."
+          },
+          {
+            "text": "Validar lo construido",
+            "why": "Confirma lo acordado."
+          }
+        ],
+        "hints": [
+          "Piensa qué ocurre antes de escribir código."
+        ]
+      },
+      "position": 0
+    },
+    {
+      "id": "fill1.1",
+      "lessonId": "l1.1",
+      "type": "fill",
+      "prompt": "Completa la definición",
+      "instructions": "Toca un espacio y elige una palabra.",
+      "correctOrder": [],
+      "config": {
+        "sentences": [
+          "El {{requisito}} describe una necesidad."
+        ],
+        "bank": [
+          "requisito",
+          "diseño"
+        ]
+      },
+      "explanation": "El requisito describe la necesidad.",
+      "example": null,
+      "position": 0
+    }
+  ],
+  "examples": [
+    {
+      "id": "ex1.1",
+      "lessonId": "l1.1",
+      "type": "match",
+      "title": "Atributos del buen software",
+      "prompt": "Enlaza cada atributo con su descripción",
+      "config": {
+        "pairs": [
+          {
+            "left": "Mantenimiento",
+            "right": "Puede evolucionar"
+          },
+          {
+            "left": "Eficiencia",
+            "right": "No desperdicia recursos"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "text": "Leer el atributo",
+          "why": "Identifica la propiedad."
+        },
+        {
+          "text": "Buscar su definición",
+          "why": "Cada atributo tiene una consecuencia."
+        }
+      ],
+      "hints": [
+        "Concéntrate en la consecuencia, no en el nombre."
+      ],
+      "explanation": "Cada atributo describe una propiedad distinta.",
+      "position": 0,
+      "referenceIds": [
+        "ref-apa-1"
+      ]
+    }
+  ],
+  "references": [
+    {
+      "id": "ref-apa-1",
+      "text": "Sommerville, I. (2016). Software Engineering (10.ª ed.). Pearson.",
+      "url": "https://example.org/sommerville"
+    }
+  ],
+  "notices": [
+    {
+      "id": "n1",
+      "title": "Bienvenida",
+      "body": "Revisa el orden de las unidades antes de comenzar.",
+      "publishedAt": "2026-11-05T12:00:00.000Z",
+      "active": true
+    }
+  ]
+}

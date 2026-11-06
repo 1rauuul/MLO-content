@@ -1,0 +1,217 @@
+{
+  "schemaVersion": 3,
+  "kind": "group",
+  "catalogId": "demo",
+  "groupId": "grp-demo-a",
+  "releaseId": "grp-demo-a-1",
+  "version": 1,
+  "publishedAt": "2026-11-06T00:00:00.000Z",
+  "hash": "b7e0a2efa2eb687680cce63a5e5a302bd8ba5aac77aa4386550d8eee13f83a7d",
+  "courseRef": {
+    "version": 2,
+    "hash": "bd89dab55669cc943120ed13ef087a6bdf8e1bbd661083f7b50bdc79c05638a6"
+  },
+  "group": {
+    "name": "Grupo A",
+    "visibility": "published"
+  },
+  "units": [
+    {
+      "id": "g-u1",
+      "number": 1,
+      "title": "Unidad propia del grupo",
+      "description": "Contenido creado para este grupo.",
+      "difficulty": "Fundamental",
+      "color": "green",
+      "position": 0
+    }
+  ],
+  "topics": [
+    {
+      "id": "g-t1",
+      "unitId": "g-u1",
+      "title": "Subtema propio",
+      "summary": "Contenido exclusivo del grupo.",
+      "position": 0
+    },
+    {
+      "id": "g-t2",
+      "unitId": "u1",
+      "title": "Subtema sobre una unidad del curso",
+      "summary": "",
+      "position": 1
+    }
+  ],
+  "lessons": [
+    {
+      "id": "g-l1",
+      "topicId": "g-t1",
+      "code": "G1.1",
+      "title": "Lección propia del grupo",
+      "eyebrow": "Grupo A · Lección 01",
+      "body": "Contenido adicional para el grupo.",
+      "content": [
+        {
+          "type": "p",
+          "text": "Esta lección solo existe en el release del grupo."
+        },
+        {
+          "type": "bullets",
+          "items": [
+            "Acuerdo del grupo",
+            "Fecha de entrega"
+          ]
+        }
+      ],
+      "position": 0,
+      "hash": "46d8b107e90dfb91a51aee6f9a55f7776995ddce2da4c223c0cddc4deb16d0f3",
+      "referenceIds": [
+        "gref-1"
+      ]
+    },
+    {
+      "id": "g-l2",
+      "topicId": "t1",
+      "code": "G1.2",
+      "title": "Lección del grupo sobre un subtema del curso",
+      "eyebrow": "Grupo A · Lección 02",
+      "body": "",
+      "content": [],
+      "position": 0,
+      "hash": "0537a3a6710c7fcbf3fbbfcfd45a795d8cd60399ee3c323950d3d59343ff6155"
+    }
+  ],
+  "evaluations": [
+    {
+      "id": "g-ev1",
+      "lessonId": "g-l1",
+      "title": "Evaluación de la lección del grupo",
+      "description": "",
+      "position": 0,
+      "questionIds": [
+        "g-q1"
+      ],
+      "exerciseIds": [
+        "g-ord1"
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "id": "g-q1",
+      "evaluationId": "g-ev1",
+      "type": "mcq",
+      "prompt": "¿Qué contiene esta evaluación?",
+      "options": [
+        "Preguntas del grupo",
+        "Preguntas del curso"
+      ],
+      "answer": 0,
+      "config": {},
+      "explanation": "",
+      "position": 0
+    }
+  ],
+  "exercises": [
+    {
+      "id": "g-ord1",
+      "lessonId": "g-l1",
+      "type": "order",
+      "prompt": "Ordena los pasos de la revisión",
+      "instructions": "",
+      "correctOrder": [
+        "Revisar",
+        "Corregir",
+        "Publicar"
+      ],
+      "config": {},
+      "explanation": "",
+      "example": {
+        "title": "Pasos de la revisión",
+        "steps": [
+          {
+            "text": "Revisar el contenido",
+            "why": "Detecta errores antes de publicar."
+          }
+        ],
+        "hints": []
+      },
+      "position": 0
+    },
+    {
+      "id": "g-course-ex",
+      "lessonId": "l1.1",
+      "type": "fill",
+      "prompt": "Completa la frase del curso",
+      "instructions": "",
+      "correctOrder": [],
+      "config": {
+        "sentences": [
+          "El {{requisito}} describe una necesidad."
+        ],
+        "bank": [
+          "requisito",
+          "diseño"
+        ]
+      },
+      "explanation": "",
+      "example": null,
+      "position": 1
+    }
+  ],
+  "examples": [
+    {
+      "id": "g-ex1",
+      "lessonId": "g-l1",
+      "type": "match",
+      "title": "Conceptos del grupo",
+      "prompt": "Relaciona cada concepto con su definición",
+      "config": {
+        "pairs": [
+          {
+            "left": "Requisito",
+            "right": "Necesidad"
+          },
+          {
+            "left": "Diseño",
+            "right": "Solución"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "text": "Leer el concepto",
+          "why": "Activa el conocimiento previo."
+        }
+      ],
+      "hints": [],
+      "explanation": "",
+      "position": 0
+    }
+  ],
+  "additions": [
+    {
+      "lessonId": "l1.1",
+      "blocks": [
+        {
+          "type": "p",
+          "text": "Contenido adicional para una lección del curso."
+        }
+      ]
+    }
+  ],
+  "references": [
+    {
+      "id": "gref-1",
+      "text": "Pressman, R. (2020). Ingeniería del software: un enfoque práctico."
+    }
+  ],
+  "notices": [
+    {
+      "id": "gnotice-1",
+      "title": "Aviso del grupo",
+      "body": "La entrega se revisa en la sesión del grupo.",
+      "active": true
+    }
+  ]
+}
