@@ -6,10 +6,10 @@
   "releaseId": "grp-demo-a-1",
   "version": 1,
   "publishedAt": "2026-11-06T00:00:00.000Z",
-  "hash": "b7e0a2efa2eb687680cce63a5e5a302bd8ba5aac77aa4386550d8eee13f83a7d",
+  "hash": "2e998dd17ee5a3f68e6621dca424bcb55bf783d8ce61e714d2d0dbdf7454c57d",
   "courseRef": {
     "version": 2,
-    "hash": "bd89dab55669cc943120ed13ef087a6bdf8e1bbd661083f7b50bdc79c05638a6"
+    "hash": "186fcf122eb4f90ca8173fd1c54113159be299c309f6c2c0d9d35e647ec5d012"
   },
   "group": {
     "name": "Grupo A",
@@ -33,13 +33,6 @@
       "title": "Subtema propio",
       "summary": "Contenido exclusivo del grupo.",
       "position": 0
-    },
-    {
-      "id": "g-t2",
-      "unitId": "u1",
-      "title": "Subtema sobre una unidad del curso",
-      "summary": "",
-      "position": 1
     }
   ],
   "lessons": [
@@ -54,17 +47,9 @@
         {
           "type": "p",
           "text": "Esta lección solo existe en el release del grupo."
-        },
-        {
-          "type": "bullets",
-          "items": [
-            "Acuerdo del grupo",
-            "Fecha de entrega"
-          ]
         }
       ],
       "position": 0,
-      "hash": "46d8b107e90dfb91a51aee6f9a55f7776995ddce2da4c223c0cddc4deb16d0f3",
       "referenceIds": [
         "gref-1"
       ]
@@ -77,15 +62,14 @@
       "eyebrow": "Grupo A · Lección 02",
       "body": "",
       "content": [],
-      "position": 0,
-      "hash": "0537a3a6710c7fcbf3fbbfcfd45a795d8cd60399ee3c323950d3d59343ff6155"
+      "position": 1
     }
   ],
   "evaluations": [
     {
       "id": "g-ev1",
-      "lessonId": "g-l1",
-      "title": "Evaluación de la lección del grupo",
+      "topicId": "g-t1",
+      "title": "Evaluación del subtema propio",
       "description": "",
       "position": 0,
       "questionIds": [
@@ -93,6 +77,19 @@
       ],
       "exerciseIds": [
         "g-ord1"
+      ]
+    },
+    {
+      "id": "g-course-ev",
+      "topicId": "t1",
+      "title": "Evaluación sobre el subtema del curso",
+      "description": "",
+      "position": 1,
+      "questionIds": [
+        "g-course-q1"
+      ],
+      "exerciseIds": [
+        "g-course-ord1"
       ]
     }
   ],
@@ -110,12 +107,27 @@
       "config": {},
       "explanation": "",
       "position": 0
+    },
+    {
+      "id": "g-course-q1",
+      "evaluationId": "g-course-ev",
+      "type": "order",
+      "prompt": "Ordena la revisión",
+      "options": [
+        "Revisar",
+        "Corregir",
+        "Publicar"
+      ],
+      "answer": 0,
+      "config": {},
+      "explanation": "",
+      "position": 1
     }
   ],
   "exercises": [
     {
       "id": "g-ord1",
-      "lessonId": "g-l1",
+      "topicId": "g-t1",
       "type": "order",
       "prompt": "Ordena los pasos de la revisión",
       "instructions": "",
@@ -139,8 +151,8 @@
       "position": 0
     },
     {
-      "id": "g-course-ex",
-      "lessonId": "l1.1",
+      "id": "g-course-ord1",
+      "topicId": "t1",
       "type": "fill",
       "prompt": "Completa la frase del curso",
       "instructions": "",
@@ -162,7 +174,7 @@
   "examples": [
     {
       "id": "g-ex1",
-      "lessonId": "g-l1",
+      "topicId": "g-t1",
       "type": "match",
       "title": "Conceptos del grupo",
       "prompt": "Relaciona cada concepto con su definición",
@@ -187,6 +199,31 @@
       "hints": [],
       "explanation": "",
       "position": 0
+    },
+    {
+      "id": "g-course-ex1",
+      "topicId": "t1",
+      "type": "fill",
+      "title": "Ejemplo sobre el subtema del curso",
+      "prompt": "Completa la oración",
+      "config": {
+        "sentences": [
+          "El {{diseño}} propone una solución."
+        ],
+        "bank": [
+          "diseño",
+          "requisito"
+        ]
+      },
+      "steps": [
+        {
+          "text": "Leer la oración",
+          "why": "El contexto da la pista."
+        }
+      ],
+      "hints": [],
+      "explanation": "",
+      "position": 1
     }
   ],
   "additions": [

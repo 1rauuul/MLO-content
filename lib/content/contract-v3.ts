@@ -337,20 +337,30 @@ function validateQuestion(
 
 type EvaluationInfo = {
   id: string;
-  lessonId: string;
+  topicId: string;
   questionIds: string[];
   exerciseIds: string[];
-  raw: Record<string, unknown>;
+};
+
+type ExerciseInfo = {
+  id: string;
+  topicId: string;
 };
 
 type Scope = "course" | "group";
+
+const FORBIDDEN_LESSON_FIELDS = ["exercises", "examples", "evaluations", "hash"] as const;
+
+function rejectField(item: Record<string, unknown>, field: string, where: string): void {
+  if (field in item) fail(`${where} no admite ${field}; cuelga del subtema.`);
+}
 
 function parseResources(
   doc: Record<string, unknown>,
   ids: Set<string>,
   referenceIds: Set<string>,
   scope: Scope,
-): Set<string> {
+): { lessonIds: Set<string> } {
   // En grupo se aceptan referencias a recursos del curso; el servidor las
   // resuelve en X-02. En curso toda referencia es interna al release.
   const external = scope === "group";
@@ -391,29 +401,31 @@ function parseResources(
     if (!topicIds.has(topicId) && !external) {
       fail(`La lección ${id} apunta a un subtema inexistente: ${topicId}.`);
     }
+    for (const field of FORBIDDEN_LESSON_FIELDS) {
+      if (field in lesson) {
+        fail(
+          `La lección ${id} no puede incluir ${field}; las actividades y evaluaciones cuelgan del subtema.`,
+        );
+      }
+    }
     optionalText(lesson.code, `Lección ${id}.code`);
     text(lesson.title, `Lección ${id}.title`);
     optionalText(lesson.eyebrow, `Lección ${id}.eyebrow`);
     optionalText(lesson.body, `Lección ${id}.body`);
     parseBlocks(lesson.content, `Lección ${id}.content`);
     integer(lesson.position, `Lección ${id}.position`, 0);
-    sha256(lesson.hash, `Lección ${id}.hash`);
     parseReferenceIds(lesson.referenceIds, `Lección ${id}.referenceIds`, referenceIds);
   });
 
   const evaluations = records(doc.evaluations, "evaluations");
-  const evaluationIds = new Set<string>();
-  const evaluationsByLesson = new Map<string, EvaluationInfo>();
+  const evaluationsById = new Map<string, EvaluationInfo>();
   evaluations.forEach((evaluation, index) => {
     const id = addId(ids, evaluation.id, `evaluations[${index}].id`);
-    evaluationIds.add(id);
-    const lessonId = text(evaluation.lessonId, `Evaluación ${id}.lessonId`);
-    if (!lessonIds.has(lessonId) && !external) {
-      fail(`La evaluación ${id} apunta a una lección inexistente: ${lessonId}.`);
+    const topicId = text(evaluation.topicId, `Evaluación ${id}.topicId`);
+    if (!topicIds.has(topicId) && !external) {
+      fail(`La evaluación ${id} apunta a un subtema inexistente: ${topicId}.`);
     }
-    if (evaluationsByLesson.has(lessonId)) {
-      fail(`La lección ${lessonId} tiene más de una evaluación.`);
-    }
+    rejectField(evaluation, "lessonId", `La evaluación ${id}`);
     text(evaluation.title, `Evaluación ${id}.title`);
     optionalText(evaluation.description, `Evaluación ${id}.description`);
     integer(evaluation.position, `Evaluación ${id}.position`, 0);
@@ -423,7 +435,7 @@ function parseResources(
     const exerciseIds = textList(evaluation.exerciseIds, `Evaluación ${id}.exerciseIds`);
     unique(exerciseIds, `Evaluación ${id}.exerciseIds`);
     parseReferenceIds(evaluation.referenceIds, `Evaluación ${id}.referenceIds`, referenceIds);
-    evaluationsByLesson.set(lessonId, { id, lessonId, questionIds, exerciseIds, raw: evaluation });
+    evaluationsById.set(id, { id, topicId, questionIds, exerciseIds });
   });
 
   const questions = records(doc.questions, "questions");
@@ -431,7 +443,7 @@ function parseResources(
   questions.forEach((question, index) => {
     const id = addId(ids, question.id, `questions[${index}].id`);
     const evaluationId = text(question.evaluationId, `Pregunta ${id}.evaluationId`);
-    if (!evaluationIds.has(evaluationId)) {
+    if (!evaluationsById.has(evaluationId)) {
       fail(`La pregunta ${id} apunta a una evaluación inexistente: ${evaluationId}.`);
     }
     validateQuestion(question, `Pregunta ${id}`);
@@ -442,71 +454,53 @@ function parseResources(
   });
 
   const exercises = records(doc.exercises, "exercises");
-  const exerciseIds = new Set<string>();
+  const exercisesById = new Map<string, ExerciseInfo>();
   exercises.forEach((exercise, index) => {
     const id = addId(ids, exercise.id, `exercises[${index}].id`);
-    exerciseIds.add(id);
-    const lessonId = text(exercise.lessonId, `Ejercicio ${id}.lessonId`);
-    if (!lessonIds.has(lessonId) && !external) {
-      fail(`El ejercicio ${id} apunta a una lección inexistente: ${lessonId}.`);
+    const topicId = text(exercise.topicId, `Ejercicio ${id}.topicId`);
+    if (!topicIds.has(topicId) && !external) {
+      fail(`El ejercicio ${id} apunta a un subtema inexistente: ${topicId}.`);
     }
+    rejectField(exercise, "lessonId", `El ejercicio ${id}`);
     parseExercise(exercise, `Ejercicio ${id}`);
     integer(exercise.position, `Ejercicio ${id}.position`, 0);
     parseReferenceIds(exercise.referenceIds, `Ejercicio ${id}.referenceIds`, referenceIds);
+    exercisesById.set(id, { id, topicId });
   });
 
   const examples = records(doc.examples, "examples");
   examples.forEach((example, index) => {
     const id = addId(ids, example.id, `examples[${index}].id`);
-    const lessonId = text(example.lessonId, `Ejemplo ${id}.lessonId`);
-    if (!lessonIds.has(lessonId) && !external) {
-      fail(`El ejemplo ${id} apunta a una lección inexistente: ${lessonId}.`);
+    const topicId = text(example.topicId, `Ejemplo ${id}.topicId`);
+    if (!topicIds.has(topicId) && !external) {
+      fail(`El ejemplo ${id} apunta a un subtema inexistente: ${topicId}.`);
     }
+    rejectField(example, "lessonId", `El ejemplo ${id}`);
     parseExample(example, `Ejemplo ${id}`);
     integer(example.position, `Ejemplo ${id}.position`, 0);
     parseReferenceIds(example.referenceIds, `Ejemplo ${id}.referenceIds`, referenceIds);
   });
 
-  for (const [, info] of evaluationsByLesson) {
-    const evaluationId = info.id;
-    const published = questionsByEvaluation.get(evaluationId) ?? [];
+  for (const info of evaluationsById.values()) {
+    const published = questionsByEvaluation.get(info.id) ?? [];
     if (published.length !== info.questionIds.length) {
-      fail(`Evaluación ${evaluationId}: questionIds no coincide con las preguntas publicadas.`);
+      fail(`Evaluación ${info.id}: questionIds no coincide con las preguntas publicadas.`);
     }
     for (const question of published) {
       if (!info.questionIds.includes(String(question.id))) {
-        fail(`Evaluación ${evaluationId}: falta la pregunta ${String(question.id)} en questionIds.`);
+        fail(`Evaluación ${info.id}: falta la pregunta ${String(question.id)} en questionIds.`);
       }
     }
     for (const exerciseId of info.exerciseIds) {
-      if (!exerciseIds.has(exerciseId)) {
-        fail(`Evaluación ${evaluationId}: el ejercicio ${exerciseId} no existe.`);
-      }
-      const exercise = exercises.find((item) => item.id === exerciseId);
-      if (exercise && exercise.lessonId !== info.lessonId) {
-        fail(`Evaluación ${evaluationId}: el ejercicio ${exerciseId} pertenece a otra lección.`);
+      const exercise = exercisesById.get(exerciseId);
+      if (!exercise) fail(`Evaluación ${info.id}: el ejercicio ${exerciseId} no existe.`);
+      if (exercise.topicId !== info.topicId) {
+        fail(`Evaluación ${info.id}: el ejercicio ${exerciseId} pertenece a otro subtema.`);
       }
     }
   }
 
-  for (const lesson of lessons) {
-    const id = String(lesson.id);
-    const { hash: declared, ...rest } = lesson;
-    const evaluation = evaluationsByLesson.get(id) ?? null;
-    const payload = {
-      lesson: rest,
-      evaluation: evaluation ? evaluation.raw : null,
-      questions: evaluation ? questionsByEvaluation.get(evaluation.id) ?? [] : [],
-      exercises: exercises.filter((item) => item.lessonId === id),
-      examples: examples.filter((item) => item.lessonId === id),
-    };
-    const actual = hashValue(payload);
-    if (actual !== declared) {
-      fail(`Lección ${id}: hash no coincide (declarado ${String(declared)}, calculado ${actual}).`);
-    }
-  }
-
-  return lessonIds;
+  return { lessonIds };
 }
 
 function parseCourse(
@@ -541,7 +535,7 @@ function parseGroup(
   integer(courseRef.version, "courseRef.version", 1);
   sha256(courseRef.hash, "courseRef.hash");
 
-  const groupLessonIds = parseResources(doc, ids, referenceIds, "group");
+  const { lessonIds: groupLessonIds } = parseResources(doc, ids, referenceIds, "group");
 
   const additions = records(doc.additions, "additions");
   const additionLessons = new Set<string>();

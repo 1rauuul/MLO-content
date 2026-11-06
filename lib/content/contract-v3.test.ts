@@ -51,49 +51,116 @@ test("los fixtures inválidos fallan por el motivo esperado", () => {
   }
 });
 
-test("rechaza un hash de lección alterado", () => {
-  const doc = readJson("valid-course-base-ref.json") as { lessons: { hash: string }[] };
-  doc.lessons[0].hash = "0".repeat(64);
-  const result = validateRelease(doc);
-  if (result.ok) assert.fail("el hash de lección alterado debía fallar.");
-  assert.match(result.error, /Lección l1\.1: hash no coincide/);
-});
+type CourseDoc = {
+  schemaVersion: number;
+  lessons: {
+    id: string;
+    topicId: string;
+    exercises?: unknown;
+    examples?: unknown;
+    evaluations?: unknown;
+    hash?: string;
+  }[];
+  topics: { id: string; unitId: string; title: string; summary: string; position: number }[];
+  evaluations: { id: string; topicId: string; questionIds: string[]; exerciseIds: string[] }[];
+  questions: { evaluationId: string }[];
+  exercises: { id: string; topicId: string; lessonId?: string; example?: unknown }[];
+  examples: { id: string; topicId: string; lessonId?: string }[];
+};
+
+const readCourse = (): CourseDoc =>
+  JSON.parse(readText("valid-course-base-ref.json")) as CourseDoc;
 
 type GroupDoc = {
-  lessons: { id: string; hash: string }[];
+  lessons: { id: string; topicId: string }[];
+  topics: { id: string; unitId: string }[];
   questions: { evaluationId: string }[];
-  exercises: { lessonId: string; example?: unknown }[];
+  exercises: { id: string; topicId: string; example?: unknown }[];
+  examples: { id: string; topicId: string }[];
+  evaluations: { id: string; topicId: string }[];
   additions: { lessonId: string; exercises?: unknown; examples?: unknown }[];
   units: unknown[];
-  topics: unknown[];
-  evaluations: unknown[];
-  examples: unknown[];
 };
 
 const readGroup = (): GroupDoc =>
   JSON.parse(readText("valid-group-content.json")) as GroupDoc;
 
-test("el fixture de grupo cubre el alcance ampliado", () => {
-  const doc = readGroup();
-  for (const collection of [
-    doc.units,
-    doc.topics,
-    doc.lessons,
-    doc.evaluations,
-    doc.questions,
-    doc.exercises,
-    doc.examples,
-    doc.additions,
+test("el curso tiene N lecciones, ejemplos, ejercicios y evaluaciones por subtema", () => {
+  const doc = readCourse();
+  assert.ok(doc.lessons.length >= 2);
+  assert.ok(doc.examples.length >= 2);
+  assert.ok(doc.exercises.length >= 2);
+  assert.ok(doc.evaluations.length >= 2);
+  assert.ok(doc.questions.length >= 2);
+  for (const item of [
+    ...doc.lessons,
+    ...doc.examples,
+    ...doc.exercises,
+    ...doc.evaluations,
   ]) {
-    assert.ok(collection.length > 0);
+    assert.equal(item.topicId, "t1");
+  }
+});
+
+test("el grupo cubre subtema propio y actividades sobre un subtema del curso", () => {
+  const doc = readGroup();
+  assert.ok(doc.units.length > 0);
+  assert.ok(doc.topics.some((topic) => topic.id === "g-t1" && topic.unitId === "g-u1"));
+  assert.ok(doc.lessons.some((lesson) => lesson.topicId === "g-t1"));
+  assert.ok(doc.lessons.some((lesson) => lesson.topicId === "t1"));
+  for (const collection of [doc.examples, doc.exercises, doc.evaluations]) {
+    assert.ok(collection.some((item) => item.topicId === "g-t1"));
+    assert.ok(collection.some((item) => item.topicId === "t1"));
   }
   assert.ok(doc.additions.some((addition) => addition.lessonId === "l1.1"));
-  assert.ok(doc.exercises.some((exercise) => exercise.lessonId === "l1.1"));
+});
+
+test("rechaza una lección con actividades", () => {
+  const doc = readCourse();
+  doc.lessons[0].exercises = [];
+  const result = validateRelease(doc);
+  if (result.ok) assert.fail("la lección con actividades debía fallar.");
+  assert.match(result.error, /no puede incluir exercises/);
+});
+
+test("rechaza lessonId en una actividad", () => {
+  const doc = readCourse();
+  doc.exercises[0].lessonId = "l1.1";
+  const result = validateRelease(doc);
+  if (result.ok) assert.fail("la actividad con lessonId debía fallar.");
+  assert.match(result.error, /no admite lessonId/);
+});
+
+test("rechaza una evaluación con ejercicios de otro subtema", () => {
+  const doc = readCourse();
+  doc.topics.push({ id: "t2", unitId: "u1", title: "Otro", summary: "", position: 1 });
+  doc.exercises[0].topicId = "t2";
+  const result = validateRelease(doc);
+  if (result.ok) assert.fail("la evaluación con ejercicios de otro subtema debía fallar.");
+  assert.match(result.error, /pertenece a otro subtema/);
+});
+
+test("rechaza versiones v2 y v4", () => {
+  for (const version of [2, 4]) {
+    const doc = readCourse();
+    doc.schemaVersion = version;
+    const result = validateRelease(doc);
+    if (result.ok) assert.fail(`schemaVersion ${version} debía fallar.`);
+    assert.match(result.error, /schemaVersion incompatible/);
+  }
+});
+
+test("rechaza un hash de release alterado", () => {
+  const doc = readCourse() as CourseDoc & { hash: string };
+  doc.hash = "0".repeat(64);
+  const result = validateRelease(doc);
+  if (result.ok) assert.fail("el hash de release alterado debía fallar.");
+  assert.match(result.error, /hash del release no coincide/);
 });
 
 test("rechaza una pregunta de grupo sobre una evaluación del curso", () => {
   const doc = readGroup();
-  doc.questions[0].evaluationId = "ev1.2";
+  doc.questions[0].evaluationId = "ev2";
   const result = validateRelease(doc);
   if (result.ok) assert.fail("la pregunta debía rechazarse.");
   assert.match(result.error, /evaluación inexistente/);
@@ -123,14 +190,6 @@ test("rechaza un ejercicio sin example", () => {
   const result = validateRelease(doc);
   if (result.ok) assert.fail("el ejercicio sin example debía fallar.");
   assert.match(result.error, /example: es obligatorio/);
-});
-
-test("rechaza un hash de lección de grupo alterado", () => {
-  const doc = readGroup();
-  doc.lessons[0].hash = "0".repeat(64);
-  const result = validateRelease(doc);
-  if (result.ok) assert.fail("el hash de lección del grupo debía fallar.");
-  assert.match(result.error, /Lección g-l1: hash no coincide/);
 });
 
 test("los fixtures usan LF, no llevan BOM y coinciden con fixtures.sha256.json", () => {

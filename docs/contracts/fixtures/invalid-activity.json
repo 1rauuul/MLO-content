@@ -6,7 +6,7 @@
   "releaseId": "demo-2026-11-06",
   "version": 2,
   "publishedAt": "2026-11-06T00:00:00.000Z",
-  "hash": "68634712d98657c302fea079404304bb656515d0b97b0d8e76fff287912759c6",
+  "hash": "3b3f6a603a4f21c71c70eedfc09038a43791004511fb2cf7f2e30715ad0f0b39",
   "baseRef": {
     "catalogId": "base",
     "version": 7,
@@ -26,30 +26,14 @@
       "difficulty": "Fundamental",
       "color": "blue",
       "position": 0
-    },
-    {
-      "id": "u2",
-      "number": 2,
-      "title": "Prácticas",
-      "description": "",
-      "difficulty": "Intermedio",
-      "color": "violet",
-      "position": 1
     }
   ],
   "topics": [
     {
       "id": "t1",
       "unitId": "u1",
-      "title": "Conceptos",
-      "summary": "Qué es el software y cómo se construye.",
-      "position": 0
-    },
-    {
-      "id": "t2",
-      "unitId": "u2",
-      "title": "Ejercicios guiados",
-      "summary": "",
+      "title": "Conceptos y prácticas",
+      "summary": "Lecturas, actividades y evaluaciones del subtema.",
       "position": 0
     }
   ],
@@ -101,14 +85,13 @@
         }
       ],
       "position": 0,
-      "hash": "7f82d12ca319c84a13cc35099d995c5adc77297567ef871e8b05f3bca91a86a6",
       "referenceIds": [
         "ref-apa-1"
       ]
     },
     {
       "id": "l1.2",
-      "topicId": "t2",
+      "topicId": "t1",
       "code": "1.2",
       "title": "Trabajo coordinado",
       "eyebrow": "Módulo 01 · Lección 02",
@@ -119,30 +102,42 @@
           "text": "El trabajo coordinado requiere trazabilidad."
         }
       ],
-      "position": 0,
-      "hash": "6b140f3bedad52f966c226a99e986fa0689fc1cb27c6cc6d96b7ee4944bf33e7"
+      "position": 1
     }
   ],
   "evaluations": [
     {
-      "id": "ev1.2",
-      "lessonId": "l1.2",
-      "title": "Evaluación: Trabajo coordinado",
+      "id": "ev1",
+      "topicId": "t1",
+      "title": "Evaluación: conceptos iniciales",
       "description": "Proceso y calidad.",
       "position": 0,
       "questionIds": [
-        "q1.2-1",
-        "q1.2-2"
+        "q1"
       ],
       "exerciseIds": [
-        "ord1.2"
+        "ord1"
+      ]
+    },
+    {
+      "id": "ev2",
+      "topicId": "t1",
+      "title": "Evaluación: práctica del subtema",
+      "description": "Orden y completar.",
+      "position": 1,
+      "questionIds": [
+        "q2"
+      ],
+      "exerciseIds": [
+        "ord1",
+        "fill1"
       ]
     }
   ],
   "questions": [
     {
-      "id": "q1.2-1",
-      "evaluationId": "ev1.2",
+      "id": "q1",
+      "evaluationId": "ev1",
       "type": "mcq",
       "prompt": "¿Qué se hace primero?",
       "options": [
@@ -155,8 +150,8 @@
       "position": 0
     },
     {
-      "id": "q1.2-2",
-      "evaluationId": "ev1.2",
+      "id": "q2",
+      "evaluationId": "ev2",
       "type": "fill",
       "prompt": "Completa la frase",
       "options": [],
@@ -171,13 +166,13 @@
         ]
       },
       "explanation": "El requisito describe la necesidad.",
-      "position": 1
+      "position": 0
     }
   ],
   "exercises": [
     {
-      "id": "ord1.2",
-      "lessonId": "l1.2",
+      "id": "ord1",
+      "topicId": "t1",
       "type": "order",
       "prompt": "Ordena las actividades del proceso",
       "instructions": "Usa las flechas para ordenar.",
@@ -207,8 +202,8 @@
       "position": 0
     },
     {
-      "id": "fill1.1",
-      "lessonId": "l1.1",
+      "id": "fill1",
+      "topicId": "t1",
       "type": "fill",
       "prompt": "Completa la definición",
       "instructions": "Toca un espacio y elige una palabra.",
@@ -224,13 +219,13 @@
       },
       "explanation": "El requisito describe la necesidad.",
       "example": null,
-      "position": 0
+      "position": 1
     }
   ],
   "examples": [
     {
-      "id": "ex1.1",
-      "lessonId": "l1.1",
+      "id": "ex1",
+      "topicId": "t1",
       "type": "match",
       "title": "Atributos del buen software",
       "prompt": "Enlaza cada atributo con su descripción",
@@ -264,6 +259,31 @@
       "referenceIds": [
         "ref-apa-1"
       ]
+    },
+    {
+      "id": "ex2",
+      "topicId": "t1",
+      "type": "fill",
+      "title": "Completar la definición",
+      "prompt": "Completa la oración",
+      "config": {
+        "sentences": [
+          "El {{requisito}} describe una necesidad."
+        ],
+        "bank": [
+          "requisito",
+          "diseño"
+        ]
+      },
+      "steps": [
+        {
+          "text": "Leer la oración",
+          "why": "El contexto da la pista."
+        }
+      ],
+      "hints": [],
+      "explanation": "El requisito describe la necesidad.",
+      "position": 1
     }
   ],
   "references": [
