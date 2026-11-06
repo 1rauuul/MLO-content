@@ -7,6 +7,7 @@ import { validateRelease } from "./contract-v3";
 import { buildX03Fixture } from "./x03-fixtures";
 import {
   backfillTopics,
+  editorCourseIds,
   reorderNeighbor,
   selectPrimaryEvaluations,
   topicContentId,
@@ -115,6 +116,18 @@ test("v2 elige una evaluación primaria por lección", () => {
     primary.map((evaluation) => evaluation.content_id),
     ["ev-a", "ev-c"],
   );
+});
+
+test("el editor de un grupo no compone con el curso base", () => {
+  assert.deepEqual(editorCourseIds(true, "group-course", "base-id"), [
+    "group-course",
+  ]);
+  assert.deepEqual(editorCourseIds(false, "course", "base-id"), [
+    "base-id",
+    "course",
+  ]);
+  assert.deepEqual(editorCourseIds(false, "course", null), ["course"]);
+  assert.deepEqual(editorCourseIds(false, "course", "course"), ["course"]);
 });
 
 test("reordenar devuelve el vecino correcto y no inventa filas", () => {

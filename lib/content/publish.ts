@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import { buildManifest, composeCatalog } from "./compose";
 import { validateRelease } from "./contract-v3";
 import { validateCatalogForPublish } from "./validate";
-import { buildV3Release, nextReleaseVersion, resolveBaseRef, sourceCourseIds } from "./v3";
+import { buildV3Release, nextReleaseVersion, resolveBaseRef, sourceCourseIds, assertPublishableCourse } from "./v3";
 import { selectPrimaryEvaluations } from "./x03";
 import type {
   CoreCourse,
@@ -32,9 +32,10 @@ export type PublishOutcome = {
 export async function publishCourse(teacher: Teacher, course: Course): Promise<PublishOutcome> {
   return db().begin(async (tx) => {
     const [current] = await tx<
-      { key: string; title: string; uses_base: boolean; is_base: boolean }[]
-    >`select key, title, uses_base, is_base from courses where id = ${course.id} for update`;
+      { key: string; title: string; uses_base: boolean; is_base: boolean; is_group: boolean }[]
+    >`select key, title, uses_base, is_base, is_group from courses where id = ${course.id} for update`;
     if (!current) throw new Error("El curso no existe.");
+    assertPublishableCourse(current);
 
     const usesBase = current.uses_base && !current.is_base;
 

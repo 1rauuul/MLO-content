@@ -22,7 +22,8 @@ export default async function MisCursosPage() {
          from lessons l
         where l.course_id = c.id and l.archived_at is null) as lesson_count
       from courses c
-     where c.is_base or c.owner_id = ${teacher.id} or ${teacher.role} = 'admin'
+     where not c.is_group
+       and (c.is_base or c.owner_id = ${teacher.id} or ${teacher.role} = 'admin')
      order by c.is_base desc, c.created_at`;
 
   return (

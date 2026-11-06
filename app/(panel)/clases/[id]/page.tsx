@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { archiveClass, createClassContent, restoreClass } from "@/lib/actions/classes";
 import { requireTeacher } from "@/lib/auth";
 import {
   draftClassHash,
@@ -9,6 +10,7 @@ import {
   listClassExtras,
   listClassStudents,
 } from "@/lib/classes";
+import { db } from "@/lib/db";
 
 import { PublishClassForm } from "./publish-class-form";
 
@@ -35,6 +37,12 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
 
   const draftHash = draftClassHash(klass, extras);
   const pending = last ? draftHash !== last.content_hash : extras.length > 0;
+  const [v3] = await db()<{ version: number; content_hash: string }[]>`
+    select version, content_hash
+      from class_releases_v3
+     where class_id = ${klass.id}
+     order by version desc
+     limit 1`;
 
   return (
     <div className="space-y-6">
@@ -50,18 +58,56 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
           {teacher.role === "admin" && (
             <span className="text-xs text-ink-faint">Docente: {klass.teacher_name}</span>
           )}
+          <span className="badge badge-neutral">Curso: {klass.course_title}</span>
+          <span className="badge badge-neutral">
+            {klass.capacity === null ? "Sin cupo" : `Cupo ${klass.capacity}`}
+          </span>
+          {klass.archived_at && <span className="badge badge-warning">Archivado</span>}
+          <form
+            action={klass.archived_at ? restoreClass : archiveClass}
+            className="ml-auto"
+          >
+            <input type="hidden" name="classId" value={klass.id} />
+            <button type="submit" className="btn btn-secondary btn-sm">
+              {klass.archived_at ? "Restaurar" : "Archivar"}
+            </button>
+          </form>
         </div>
         <p className="page-lead">
           Comparte el código para que los alumnos se unan. Los cambios se ven cuando publicas.
         </p>
       </header>
 
+      <section className="card flex flex-wrap items-center justify-between gap-3 p-5">
+        <div>
+          <h2 className="text-sm font-semibold text-ink">Contenido del grupo</h2>
+          <p className="mt-1 text-sm text-ink-muted">
+            Unidades, subtemas, lecciones y actividades propias del grupo.
+          </p>
+        </div>
+        {klass.content_course_id ? (
+          <Link
+            href={`/cursos/${klass.content_course_id}`}
+            className="btn btn-primary btn-sm"
+          >
+            Editar contenido
+          </Link>
+        ) : (
+          <form action={createClassContent}>
+            <input type="hidden" name="classId" value={klass.id} />
+            <button type="submit" className="btn btn-primary btn-sm">
+              Crear contenido
+            </button>
+          </form>
+        )}
+      </section>
+
       <section className="card flex flex-wrap items-start justify-between gap-4 p-5">
         <div>
           <h2 className="text-sm font-semibold text-ink">Publicación</h2>
           {last ? (
             <p className="mt-1 text-sm text-ink-muted">
-              Versión <strong className="text-ink-soft">{last.version}</strong> ·{" "}
+              Versión v2 <strong className="text-ink-soft">{last.version}</strong> ·{" "}
               {formatDate(last.published_at)} · hash{" "}
               <span className="font-mono text-xs">{last.content_hash.slice(0, 12)}</span>
             </p>
@@ -70,6 +116,11 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
               Todavía no hay una versión publicada.
             </p>
           )}
+          <p className="mt-1 text-sm text-ink-muted">
+            {v3
+              ? `Release v3 de grupo: versión ${v3.version} · hash ${v3.content_hash.slice(0, 12)}.`
+              : "Release v3 de grupo: pendiente de publicar."}
+          </p>
           <p className="mt-2">
             {pending ? (
               <span className="badge badge-warning">Hay cambios sin publicar</span>
@@ -78,7 +129,11 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
             ) : null}
           </p>
         </div>
-        <PublishClassForm classId={klass.id} />
+        {!klass.archived_at ? (
+          <PublishClassForm classId={klass.id} />
+        ) : (
+          <p className="text-sm text-ink-muted">Restaura el grupo para publicar.</p>
+        )}
       </section>
 
       <section className="card p-5">

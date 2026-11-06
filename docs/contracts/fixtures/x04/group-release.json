@@ -1,0 +1,146 @@
+{
+  "schemaVersion": 3,
+  "kind": "group",
+  "catalogId": "demo",
+  "groupId": "class-demo",
+  "releaseId": "class-demo-1",
+  "version": 1,
+  "publishedAt": "2026-11-06T00:00:00.000Z",
+  "courseRef": {
+    "version": 1,
+    "hash": "ca9e38f5e21b262b74bbdd573811fe31cfc758c70bcafb10ac2211afcf72697e"
+  },
+  "group": {
+    "name": "Grupo A",
+    "visibility": "published"
+  },
+  "units": [
+    {
+      "id": "g-class-demo-gu1",
+      "number": 1,
+      "title": "Unidad del grupo",
+      "description": "",
+      "difficulty": "Fundamental",
+      "color": "green",
+      "position": 0
+    }
+  ],
+  "topics": [
+    {
+      "id": "g-class-demo-gt1",
+      "unitId": "g-class-demo-gu1",
+      "title": "Subtema del grupo",
+      "summary": "",
+      "position": 0
+    }
+  ],
+  "lessons": [
+    {
+      "id": "g-class-demo-gl1",
+      "topicId": "g-class-demo-gt1",
+      "code": "G1.1",
+      "title": "Lección del grupo",
+      "eyebrow": "",
+      "body": "",
+      "content": [
+        {
+          "type": "p",
+          "text": "Contenido propio del grupo."
+        }
+      ],
+      "position": 0
+    }
+  ],
+  "evaluations": [
+    {
+      "id": "g-class-demo-gev1",
+      "topicId": "g-class-demo-gt1",
+      "title": "Evaluación del grupo",
+      "description": "",
+      "position": 0,
+      "questionIds": [
+        "g-class-demo-gq1"
+      ],
+      "exerciseIds": [
+        "g-class-demo-gord1"
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "id": "g-class-demo-gq1",
+      "evaluationId": "g-class-demo-gev1",
+      "type": "mcq",
+      "prompt": "¿Cuál?",
+      "options": [
+        "A",
+        "B"
+      ],
+      "answer": 0,
+      "config": {},
+      "explanation": "",
+      "position": 0
+    }
+  ],
+  "exercises": [
+    {
+      "id": "g-class-demo-gord1",
+      "topicId": "g-class-demo-gt1",
+      "type": "order",
+      "prompt": "Ordena",
+      "instructions": "",
+      "correctOrder": [
+        "A",
+        "B"
+      ],
+      "config": {},
+      "explanation": "",
+      "example": null,
+      "position": 0
+    }
+  ],
+  "examples": [
+    {
+      "id": "g-class-demo-gex1",
+      "topicId": "g-class-demo-gt1",
+      "type": "match",
+      "title": "Ejemplo del grupo",
+      "prompt": "Relaciona",
+      "config": {
+        "pairs": [
+          {
+            "left": "A",
+            "right": "1"
+          },
+          {
+            "left": "B",
+            "right": "2"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "text": "Leer",
+          "why": "Da contexto."
+        }
+      ],
+      "hints": [],
+      "explanation": "",
+      "position": 0
+    }
+  ],
+  "additions": [
+    {
+      "lessonId": "demo-l1.1",
+      "blocks": [
+        {
+          "type": "p",
+          "text": "Bloque adicional del grupo."
+        }
+      ]
+    }
+  ],
+  "references": [],
+  "notices": [],
+  "hash": "d43b424cc358ee1665a88d2d4bfb71d0f99a76816a7017a969dfc1c238e2cac3"
+}

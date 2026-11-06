@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { getBaseCourseId, requireEditableCourse } from "@/lib/access";
 import { requireTeacher } from "@/lib/auth";
 import { parseBlocks } from "@/lib/content";
+import { editorCourseIds } from "@/lib/content/x03";
 import { db } from "@/lib/db";
 import { newCourseKey } from "@/lib/ids";
 
@@ -65,11 +66,15 @@ export async function createUnit(
     return { error: "Elige un color válido." };
   }
 
-  const coreId = (await getBaseCourseId()) ?? course.id;
+  const scope = editorCourseIds(
+    course.is_group,
+    course.id,
+    await getBaseCourseId(),
+  );
   const rows = await db()<{ number: number }[]>`
     select coalesce(max(number), 0) + 1 as number
       from units
-     where course_id in (${course.id}, ${coreId})`;
+     where course_id in ${db()(scope)}`;
 
   const number = rows[0].number;
 
@@ -117,13 +122,17 @@ export async function createLesson(
 
   if (!topic[0]) return { error: "El subtema no existe en este curso." };
 
-  const coreId = (await getBaseCourseId()) ?? course.id;
+  const scope = editorCourseIds(
+    course.is_group,
+    course.id,
+    await getBaseCourseId(),
+  );
 
   const contentId = `l${code}`;
   const clash = await db()<{ id: string }[]>`
     select id
       from lessons
-     where course_id in (${course.id}, ${coreId})
+     where course_id in ${db()(scope)}
        and content_id = ${contentId}
      limit 1`;
 
@@ -215,11 +224,15 @@ export async function createTopic(
   const summary = String(formData.get("summary") ?? "").trim();
   if (title.length < 3) return { error: "Escribe el título del subtema." };
 
-  const coreId = (await getBaseCourseId()) ?? course.id;
+  const scope = editorCourseIds(
+    course.is_group,
+    course.id,
+    await getBaseCourseId(),
+  );
   const unit = await db()<{ id: string }[]>`
     select id from units
      where id = ${unitId}
-       and course_id in (${course.id}, ${coreId})
+       and course_id in ${db()(scope)}
        and archived_at is null
      limit 1`;
   if (!unit[0]) return { error: "La unidad no existe en este curso." };
@@ -230,7 +243,7 @@ export async function createTopic(
     select coalesce(max(position), -1) + 1 as position
       from topics
      where unit_id = ${unitId}
-       and course_id in (${course.id}, ${coreId})`;
+       and course_id in ${db()(scope)}`;
 
   await db()`insert into topics
       (course_id, unit_id, content_id, title, summary, position)
