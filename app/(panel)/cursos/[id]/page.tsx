@@ -1,9 +1,13 @@
 import Link from "next/link";
 
+import { revokeCourseAccess } from "@/lib/actions/access";
+import { unpublish } from "@/lib/actions/publish";
 import { canEditCourse, getBaseCourseId, getCourseForRead } from "@/lib/access";
 import { requireTeacher } from "@/lib/auth";
+import { listCourseAccess } from "@/lib/course-access";
 import { db } from "@/lib/db";
 
+import { GrantAccessForm } from "./access-form";
 import { CreateLessonForm } from "./lesson-form";
 import { CreateUnitForm } from "./unit-form";
 
@@ -32,6 +36,19 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
   const course = await getCourseForRead(teacher, id);
   const canEdit = canEditCourse(teacher, course);
   const coreId = (await getBaseCourseId()) ?? course.id;
+  const access = canEdit ? await listCourseAccess(course.id) : [];
+  const statusLabel =
+    course.status === "published"
+      ? "Publicado"
+      : course.status === "unpublished"
+        ? "Despublicado"
+        : "Borrador";
+  const statusClass =
+    course.status === "published"
+      ? "badge badge-positive"
+      : course.status === "unpublished"
+        ? "badge badge-warning"
+        : "badge badge-neutral";
 
   const units = await db()<UnitRow[]>`
     select id, course_id, number, title, description, difficulty, color
@@ -57,9 +74,24 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
           <h1 className="page-title">{course.title}</h1>
           <span className="font-mono text-xs text-ink-faint">{course.key}</span>
           {course.is_base && <span className="badge badge-neutral">Core</span>}
+          <span className={statusClass}>{statusLabel}</span>
+          <span className="badge badge-neutral">
+            {course.uses_base ? "Con contenido base" : "Sin contenido base"}
+          </span>
           {!canEdit && <span className="badge badge-warning">Solo lectura</span>}
+          {canEdit && course.status === "published" && (
+            <form action={unpublish} className="ml-auto">
+              <input type="hidden" name="courseId" value={course.id} />
+              <button type="submit" className="btn btn-secondary btn-sm">
+                Despublicar
+              </button>
+            </form>
+          )}
           {canEdit && (
-            <Link href={`/cursos/${course.id}/publicar`} className="btn btn-primary btn-sm ml-auto">
+            <Link
+              href={`/cursos/${course.id}/publicar`}
+              className={`btn btn-primary btn-sm ${course.status === "published" ? "" : "ml-auto"}`}
+            >
               Publicar
             </Link>
           )}
@@ -132,6 +164,45 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
       )}
 
       {canEdit && <CreateUnitForm courseId={course.id} />}
+
+      {canEdit && (
+        <section className="card p-5">
+          <h2 className="text-sm font-semibold text-ink">Acceso</h2>
+          <p className="mt-1 text-sm text-ink-muted">
+            Solo los alumnos con acceso pueden descubrir y descargar este curso
+            cuando está publicado. El curso base conserva su regla de piloto.
+          </p>
+
+          {access.length === 0 ? (
+            <p className="empty mt-3">Todavía no hay alumnos con acceso.</p>
+          ) : (
+            <ul className="mt-3 divide-y divide-line border-t border-line">
+              {access.map((student) => (
+                <li
+                  key={student.student_id}
+                  className="flex flex-wrap items-center justify-between gap-2 py-2.5 text-sm"
+                >
+                  <span className="text-ink-soft">
+                    {student.name}
+                    <span className="ml-2 font-mono text-[11px] text-ink-faint">
+                      {student.external_key}
+                    </span>
+                  </span>
+                  <form action={revokeCourseAccess}>
+                    <input type="hidden" name="courseId" value={course.id} />
+                    <input type="hidden" name="studentId" value={student.student_id} />
+                    <button type="submit" className="btn btn-ghost btn-sm">
+                      Revocar
+                    </button>
+                  </form>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <GrantAccessForm courseId={course.id} />
+        </section>
+      )}
     </div>
   );
 }

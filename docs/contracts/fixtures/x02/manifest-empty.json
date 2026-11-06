@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 3,
+  "kind": "course",
+  "catalogId": "demo",
+  "courseId": "course-empty",
+  "releaseId": "demo-1",
+  "version": 1,
+  "publishedAt": "2026-11-06T00:00:00.000Z",
+  "baseRef": null,
+  "course": {
+    "title": "Curso vacío (demo)",
+    "description": "",
+    "visibility": "published"
+  },
+  "units": [],
+  "topics": [],
+  "lessons": [],
+  "evaluations": [],
+  "questions": [],
+  "exercises": [],
+  "examples": [],
+  "references": [],
+  "notices": [],
+  "hash": "566b149452ed0e3dbfc091ea522906ccb6ec26ed0c9dbc3536b5f094d4e6c86f"
+}

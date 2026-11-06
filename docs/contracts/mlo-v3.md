@@ -756,14 +756,126 @@ ef7ef257fa0b898c5c8d54d161426780aa4e80b7036c544ed3befbfb0d85ce8b
 
 ## 12. Pendientes fuera de X-01
 
-- **X-02:** endpoints `/api/mlo/v3/**`, resolución de `baseRef` / `courseRef`,
-  referencias externas del grupo, autorización de servidor, comprobación de id
-  con contenido distinto entre releases y versión monotónica. Si necesita
-  sincronización incremental, evaluar el `topic.hash` opcional aditivo.
-- **DEC-05:** acceso controlado en producción.
+- **X-02:** implementado en X-02 para descubrimiento y acceso (sección 13). La
+  resolución de referencias externas de grupo y la composición profunda siguen
+  en X-04. Si hace falta sincronización incremental, evaluar el `topic.hash`
+  opcional aditivo.
+- **DEC-05:** implementada en X-02 (sección 13).
 - **DEC-07:** alcance de referencias y deduplicación.
 - **DEC-09:** transporte de avisos.
 - **X-03:** migración de datos con sub-temas, re-parentado de actividades y
   evaluación por subtema.
 - **X-04:** composición ampliada de grupos en producción (jerarquía propia,
   actividades sobre subtemas del curso y autorización).
+
+## 13. Descubrimiento y acceso v3 (X-02)
+
+X-02 publica releases v3 **metadata-completos y vacíos**: `units`, `topics`,
+`lessons`, `evaluations`, `questions`, `exercises`, `examples`, `references` y
+`notices` van en `[]` hasta que X-03 migre la jerarquía real. El `hash` cubre
+igual todo el documento.
+
+### 13.1 Identidad del alumno
+
+Toda petición a la API v3 lleva la cabecera:
+
+```
+X-MLO-Student-Key: <uuid de accounts.external_key>
+```
+
+- Si falta o no es un UUID válido: `400` con `{ error: "invalid" }`.
+- No se acepta identidad por query string, body ni UI.
+- CORS permite `Content-Type, X-MLO-Student-Key`; `OPTIONS` responde `204`.
+
+### 13.2 Lista de cursos
+
+`GET /api/mlo/v3/courses` devuelve solo cursos `published` a los que el alumno
+tiene acceso:
+
+```json
+{
+  "schemaVersion": 3,
+  "courses": [
+    {
+      "catalogId": "base",
+      "title": "Ingeniería de Software",
+      "status": "published",
+      "usesBase": false,
+      "version": 7,
+      "hash": "…",
+      "publishedAt": "2026-11-05T00:00:00.000Z",
+      "empty": false
+    }
+  ]
+}
+```
+
+- `version` y `hash` salen de la última `releases_v3`.
+- Para el base sin v3 se usan los metadatos de su última release v2.
+- `empty` es `true` si el curso no tiene lecciones activas propias y, cuando
+  `usesBase` es `true`, tampoco hay lecciones activas del base. El base se mide
+  solo con sus propias lecciones.
+- Un curso adicional sin release v3 no aparece hasta publicarse.
+
+### 13.3 Manifiesto
+
+`GET /api/mlo/v3/catalogs/{catalogId}/manifest` devuelve el `snapshot.release`
+de la última `releases_v3` del curso. No hay composición en servidor ni
+payloads v2 mezclados.
+
+Devuelve `404` con `{ error: "not_found" }` si el curso no existe, no está
+publicado, no tiene release v3 o el alumno no tiene acceso. El mismo 404 evita
+filtrar la existencia de cursos restringidos.
+
+### 13.4 Regla de acceso (DEC-05)
+
+| Curso | Regla |
+|---|---|
+| Adicional (`is_base = false`) | Siempre exige fila en `course_access`. |
+| Base con `MLO_ACCESS_CONTROL === "on"` | Exige fila en `course_access` del base. |
+| Base con el flag apagado o ausente | Permite el base empaquetado. |
+
+El flag es solo un bypass de piloto para el base; nunca autoriza cursos
+adicionales. `draft` y `unpublished` no se exponen aunque exista concesión.
+La UI del panel no es fuente de autorización.
+
+### 13.5 `uses_base` y `baseRef`
+
+Cada curso declara `uses_base` (por defecto `true` al crearlo; el base lo tiene
+en `false`). Al publicar:
+
+- si `uses_base` es `true`, `baseRef` se resuelve con la última release v2 del
+  curso base (`catalogId: "base"`, versión y hash);
+- si no existe esa release, la publicación falla;
+- si `uses_base` es `false`, `baseRef` es `null` y la composición v2 no incluye
+  lecciones del base.
+
+El release v3 fija la referencia; no se recalcula al consumir.
+
+### 13.6 Estados
+
+`courses.status` es `draft`, `published` o `unpublished`.
+
+- Crear un curso lo deja en `draft`.
+- Publicar crea el release v3 (y el v2 si hay lecciones) y marca `published`.
+- Republicar un curso despublicado lo devuelve a `published`.
+- Despublicar solo cambia el estado; no borra releases.
+
+La numeración es única entre v2 y v3. Un curso sin lecciones publicables crea
+solo el release v3 vacío; cuando más adelante tenga lecciones, el v2 y el v3
+comparten el siguiente número de versión.
+
+Fixtures de productor: [`fixtures/x02/`](./fixtures/x02/README.md).
+
+### 13.7 Rutas v2 y acceso
+
+- `catalogId === "base"` sigue público, sin cabecera y con la misma respuesta y
+  caché que antes.
+- Para cualquier otro catálogo, `GET /api/mlo/v2/catalogs/{catalogId}/manifest`
+  y `.../lessons/{lessonId}` exigen `X-MLO-Student-Key` válido, curso
+  `published` y fila en `course_access`. Si no, responden el mismo `404` que un
+  curso inexistente.
+- Las respuestas v2 autorizadas de cursos no-base no se marcan como caché
+  pública. El contenido y la forma del payload v2 autorizado no cambian.
+- Las rutas de clases v2 no cambian.
+

@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { unpublish } from "@/lib/actions/publish";
 import { requireEditableCourse } from "@/lib/access";
 import { requireTeacher } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -39,6 +40,32 @@ export default async function PublishPage({ params }: { params: Promise<{ id: st
           <h1 className="page-title">Publicar</h1>
           <span className="font-mono text-xs text-ink-faint">{course.key}</span>
           {course.is_base && <span className="badge badge-neutral">Core</span>}
+          <span
+            className={
+              course.status === "published"
+                ? "badge badge-positive"
+                : course.status === "unpublished"
+                  ? "badge badge-warning"
+                  : "badge badge-neutral"
+            }
+          >
+            {course.status === "published"
+              ? "Publicado"
+              : course.status === "unpublished"
+                ? "Despublicado"
+                : "Borrador"}
+          </span>
+          <span className="badge badge-neutral">
+            {course.uses_base ? "Con contenido base" : "Sin contenido base"}
+          </span>
+          {course.status === "published" && (
+            <form action={unpublish} className="ml-auto">
+              <input type="hidden" name="courseId" value={course.id} />
+              <button type="submit" className="btn btn-secondary btn-sm">
+                Despublicar
+              </button>
+            </form>
+          )}
         </div>
         <p className="page-lead">
           Cada publicación guarda un snapshot inmutable con core + adiciones.

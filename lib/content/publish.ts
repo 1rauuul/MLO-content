@@ -3,7 +3,9 @@ import type { Teacher } from "@/lib/auth";
 import { db } from "@/lib/db";
 
 import { buildManifest, composeCatalog } from "./compose";
+import { validateRelease } from "./contract-v3";
 import { validateCatalogForPublish } from "./validate";
+import { buildEmptyV3Release, nextReleaseVersion, resolveBaseRef, sourceCourseIds } from "./v3";
 import type {
   CoreCourse,
   CoreEvaluation,
@@ -27,13 +29,29 @@ export type PublishOutcome = {
  */
 export async function publishCourse(teacher: Teacher, course: Course): Promise<PublishOutcome> {
   return db().begin(async (tx) => {
-    const [current] = await tx<{ key: string; title: string }[]>`
-      select key, title from courses where id = ${course.id} for update`;
+    const [current] = await tx<
+      { key: string; title: string; uses_base: boolean; is_base: boolean }[]
+    >`select key, title, uses_base, is_base from courses where id = ${course.id} for update`;
     if (!current) throw new Error("El curso no existe.");
+
+    const usesBase = current.uses_base && !current.is_base;
+
+    let latestBase: { version: number; hash: string } | null = null;
+    if (usesBase) {
+      const [row] = await tx<{ version: number; content_hash: string }[]>`
+        select r.version, r.content_hash
+          from releases r
+          join courses c on c.id = r.course_id
+         where c.is_base
+         order by r.version desc
+         limit 1`;
+      latestBase = row ? { version: row.version, hash: row.content_hash } : null;
+    }
+    const baseRef = resolveBaseRef(usesBase, latestBase);
 
     const [base] = await tx<{ id: string }[]>`
       select id from courses where is_base limit 1`;
-    const sourceIds = base && base.id !== course.id ? [base.id, course.id] : [course.id];
+    const sourceIds = sourceCourseIds(usesBase, base?.id ?? null, course.id);
 
     const units = await tx<CoreUnit[]>`
       select content_id, number, title, description, difficulty, color, position
@@ -113,26 +131,64 @@ export async function publishCourse(teacher: Teacher, course: Course): Promise<P
       questions,
     };
 
-    validateCatalogForPublish(source);
-    const catalog = composeCatalog(current.key, source);
-    const [next] = await tx<{ version: number }[]>`
-      select coalesce(max(version), 0) + 1 as version
+    // Una sola secuencia de versiones para v2 y v3; así el release v3 puede
+    // nacer vacío y el siguiente release v2 no colisiona.
+    const [v2Latest] = await tx<{ version: number }[]>`
+      select coalesce(max(version), 0) as version
         from releases
        where course_id = ${course.id}`;
-    const version = next.version;
+    const [v3Latest] = await tx<{ version: number }[]>`
+      select coalesce(max(version), 0) as version
+        from releases_v3
+       where course_id = ${course.id}`;
+    const version = nextReleaseVersion(v2Latest.version, v3Latest.version);
     const publishedAt = new Date().toISOString();
-    const manifest = buildManifest(catalog, version, publishedAt);
-    const snapshot = {
-      manifest,
-      lessons: Object.fromEntries(catalog.lessons.map((lesson) => [lesson.lessonId, lesson])),
-    };
 
-    await tx`insert into releases
-        (course_id, version, schema_version, content_hash, published_at, published_by, snapshot)
+    // v2 se mantiene intacto: solo se crea cuando hay lecciones publicables.
+    let v2Hash: string | null = null;
+    if (lessons.length > 0) {
+      validateCatalogForPublish(source);
+      const catalog = composeCatalog(current.key, source);
+      const manifest = buildManifest(catalog, version, publishedAt);
+      const snapshot = {
+        manifest,
+        lessons: Object.fromEntries(catalog.lessons.map((lesson) => [lesson.lessonId, lesson])),
+      };
+
+      await tx`insert into releases
+          (course_id, version, schema_version, content_hash, published_at, published_by, snapshot)
+        values
+          (${course.id}, ${version}, 2, ${manifest.hash}, ${publishedAt}, ${teacher.id},
+           ${tx.json(snapshot as never)})`;
+      v2Hash = manifest.hash;
+    }
+
+    const release = buildEmptyV3Release({
+      catalogId: current.key,
+      courseId: course.id,
+      version,
+      publishedAt,
+      title: current.title,
+      baseRef,
+    });
+    const checked = validateRelease(release);
+    if (!checked.ok) {
+      throw new Error(`El release v3 no es válido: ${checked.error}`);
+    }
+
+    await tx`insert into releases_v3
+        (course_id, version, content_hash, published_at, published_by, snapshot)
       values
-        (${course.id}, ${version}, 2, ${manifest.hash}, ${publishedAt}, ${teacher.id},
-         ${tx.json(snapshot as never)})`;
+        (${course.id}, ${version}, ${release.hash}, ${publishedAt}, ${teacher.id},
+         ${tx.json({ release } as never)})`;
 
-    return { version, hash: manifest.hash, lessons: catalog.lessons.length };
+    await tx`update courses set status = 'published' where id = ${course.id}`;
+
+    return { version, hash: v2Hash ?? release.hash, lessons: lessons.length };
   });
+}
+
+/** Despublica sin borrar releases ni tocar v2. */
+export async function unpublishCourse(courseId: string): Promise<void> {
+  await db()`update courses set status = 'unpublished' where id = ${courseId}`;
 }

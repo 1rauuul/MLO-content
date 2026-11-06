@@ -9,11 +9,13 @@ export type Course = {
   title: string;
   owner_id: string | null;
   is_base: boolean;
+  uses_base: boolean;
+  status: "draft" | "published" | "unpublished";
 };
 
 export async function getCourseForRead(teacher: Teacher, id: string): Promise<Course> {
   const rows = await db()<Course[]>`
-    select id, key, title, owner_id, is_base
+    select id, key, title, owner_id, is_base, uses_base, status
       from courses
      where id = ${id}
      limit 1`;

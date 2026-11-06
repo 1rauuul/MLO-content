@@ -18,6 +18,7 @@ export async function createCourse(
 ): Promise<ActionResult> {
   const teacher = await requireTeacher();
   const title = String(formData.get("title") ?? "").trim();
+  const usesBase = formData.get("usesBase") === "on";
 
   if (title.length < 3) return { error: "Escribe un título de al menos 3 caracteres." };
   if (title.length > 80) return { error: "El título no puede pasar de 80 caracteres." };
@@ -26,8 +27,8 @@ export async function createCourse(
   for (let attempt = 0; attempt < 5 && !courseId; attempt += 1) {
     try {
       const rows = await db()<{ id: string }[]>`
-        insert into courses (key, title, owner_id)
-        values (${newCourseKey()}, ${title}, ${teacher.id})
+        insert into courses (key, title, owner_id, uses_base, status)
+        values (${newCourseKey()}, ${title}, ${teacher.id}, ${usesBase}, 'draft')
         returning id`;
       courseId = rows[0].id;
     } catch (error) {

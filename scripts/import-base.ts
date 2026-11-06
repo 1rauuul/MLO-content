@@ -74,9 +74,12 @@ async function main() {
   const sql = db();
   await sql.begin(async (tx) => {
     const [course] = await tx<{ id: string }[]>`
-      insert into courses (key, title, is_base)
-      values ('base', ${data.title}, true)
-      on conflict (key) do update set title = excluded.title
+      insert into courses (key, title, is_base, uses_base, status)
+      values ('base', ${data.title}, true, false, 'published')
+      on conflict (key) do update
+        set title = excluded.title,
+            uses_base = false,
+            status = 'published'
       returning id`;
 
     // units → lessons es restrict, así que se borra de hijos a padres.

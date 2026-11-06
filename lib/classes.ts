@@ -340,6 +340,16 @@ export async function joinClassByCode(
       insert into class_members (class_id, student_id)
       values (${klass.id}, ${student.id})
       on conflict (class_id, student_id) do nothing`;
+
+    // DEC-05: unirse a una clase concede acceso al curso base.
+    const [base] = await tx<{ id: string }[]>`
+      select id from courses where is_base limit 1`;
+    if (base) {
+      await tx`
+        insert into course_access (course_id, student_id)
+        values (${base.id}, ${student.id})
+        on conflict (course_id, student_id) do nothing`;
+    }
   });
 
   return klass;

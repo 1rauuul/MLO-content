@@ -16,6 +16,10 @@ export function CreateCourseForm() {
         aria-label="Título del curso nuevo"
         className="field min-w-60 flex-1"
       />
+      <label className="flex items-center gap-2 text-sm text-ink-muted">
+        <input type="checkbox" name="usesBase" defaultChecked className="size-4" />
+        Usar contenido base
+      </label>
       <button type="submit" disabled={pending} className="btn btn-primary">
         {pending ? "Creando…" : "Crear curso"}
       </button>
