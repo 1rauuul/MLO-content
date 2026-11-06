@@ -7,10 +7,27 @@ import { requireTeacher } from "@/lib/auth";
 import { publishClassRelease, requireEditableClass } from "@/lib/classes";
 import { isExtraType, parseExtraPayload } from "@/lib/content/classes";
 import { db } from "@/lib/db";
+import { normalizeInvitationEmail } from "@/lib/invitations/core";
+import { sendInvitationEmail } from "@/lib/invitations/delivery";
+import {
+  createInvitation,
+  revokeInvitation,
+} from "@/lib/invitations/invitations";
 import { newCourseKey, newJoinCode } from "@/lib/ids";
 
 export type ClassResult = { error?: string };
 export type ExtraResult = { error?: string; ok?: boolean };
+export type InvitationResult = {
+  error?: string;
+  ok?: boolean;
+  invitation?: {
+    id: string;
+    email: string;
+    expiresAt: string;
+    link: string;
+    delivery: "not_configured";
+  };
+};
 export type PublishClassResult = {
   error?: string;
   ok?: boolean;
@@ -236,6 +253,62 @@ export async function deleteExtra(formData: FormData): Promise<void> {
   revalidatePath("/contenido-extra");
   revalidatePath("/clases");
   for (const row of classIds) revalidatePath(`/clases/${row.class_id}`);
+}
+
+export async function createClassInvitation(
+  _prev: InvitationResult,
+  formData: FormData,
+): Promise<InvitationResult> {
+  const teacher = await requireTeacher();
+  const classId = String(formData.get("classId") ?? "");
+  const email = normalizeInvitationEmail(String(formData.get("email") ?? ""));
+  if (!email) {
+    return { error: "Escribe un correo válido. Se acepta cualquier dominio." };
+  }
+
+  const klass = await requireEditableClass(teacher, classId);
+  if (klass.archived_at) {
+    return { error: "Restaura el grupo antes de invitar." };
+  }
+
+  const created = await createInvitation({
+    classId: klass.id,
+    email,
+    createdBy: teacher.id,
+  });
+  if (!created.ok) return { error: "No se pudo crear la invitación." };
+
+  // DEC-10: la entrega queda desactivada y el enlace solo se muestra ahora.
+  const delivery = sendInvitationEmail({
+    to: created.invitation.email,
+    link: created.invitation.link,
+  });
+
+  revalidatePath(`/clases/${klass.id}`);
+
+  return {
+    ok: true,
+    invitation: {
+      id: created.invitation.id,
+      email: created.invitation.email,
+      expiresAt: created.invitation.expiresAt.toISOString(),
+      link: created.invitation.link,
+      delivery: delivery.reason,
+    },
+  };
+}
+
+export async function revokeClassInvitation(formData: FormData): Promise<void> {
+  const teacher = await requireTeacher();
+  const invitationId = String(formData.get("invitationId") ?? "");
+  if (!invitationId) return;
+
+  const klass = await requireEditableClass(
+    teacher,
+    String(formData.get("classId") ?? ""),
+  );
+  await revokeInvitation(klass.id, invitationId);
+  revalidatePath(`/clases/${klass.id}`);
 }
 
 export async function publishClass(

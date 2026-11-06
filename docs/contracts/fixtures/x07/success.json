@@ -1,0 +1,18 @@
+{
+  "ok": true,
+  "membership": {
+    "studentId": "3f2a7c10-4d1e-4b8a-9f60-2e5c8d7b1a44",
+    "classId": "8b1d4e20-6c3f-4a92-b7d5-0e9f2a6c8b13",
+    "classCode": "A7K2M9",
+    "className": "Grupo A · 2026",
+    "teacherName": "Ana Torres",
+    "courseId": "c4e2a9d0-7b5f-4c31-8e6a-1d0f3b2a9c57",
+    "courseCatalogId": "base",
+    "joinedAt": "2026-11-06T18:30:00.000Z"
+  },
+  "published": {
+    "version": 3,
+    "hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "publishedAt": "2026-11-05T20:00:00.000Z"
+  }
+}

@@ -11,7 +11,9 @@ import {
   listClassStudents,
 } from "@/lib/classes";
 import { db } from "@/lib/db";
+import { listInvitations } from "@/lib/invitations/invitations";
 
+import { InvitationPanel } from "./invitation-panel";
 import { PublishClassForm } from "./publish-class-form";
 
 const TYPE_LABEL = {
@@ -29,10 +31,11 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
   const { id } = await params;
 
   const klass = await getClassForRead(teacher, id);
-  const [last, students, extras] = await Promise.all([
+  const [last, students, extras, invitations] = await Promise.all([
     getLatestClassRelease(klass.id),
     listClassStudents(klass.id),
     listClassExtras(klass.id),
+    listInvitations(klass.id),
   ]);
 
   const draftHash = draftClassHash(klass, extras);
@@ -210,6 +213,17 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
           </table>
         )}
       </section>
+
+      <InvitationPanel
+        classId={klass.id}
+        disabled={Boolean(klass.archived_at)}
+        invitations={invitations.map((invitation) => ({
+          id: invitation.id,
+          email: invitation.email,
+          expiresAt: invitation.expires_at.toISOString(),
+          status: invitation.status,
+        }))}
+      />
     </div>
   );
 }
