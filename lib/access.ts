@@ -9,19 +9,31 @@ export type Course = {
   title: string;
   owner_id: string | null;
   is_base: boolean;
+  is_group: boolean;
   uses_base: boolean;
   status: "draft" | "published" | "unpublished";
 };
 
 export async function getCourseForRead(teacher: Teacher, id: string): Promise<Course> {
   const rows = await db()<Course[]>`
-    select id, key, title, owner_id, is_base, uses_base, status
+    select id, key, title, owner_id, is_base, is_group, uses_base, status
       from courses
      where id = ${id}
      limit 1`;
 
   const course = rows[0];
   if (!course) notFound();
+
+  if (course.is_group) {
+    const [access] = await db()<{ allowed: boolean }[]>`
+      select exists(
+        select 1 from classes c
+         where c.content_course_id = ${course.id}
+           and (c.teacher_id = ${teacher.id} or ${teacher.role} = 'admin')
+      ) as allowed`;
+    if (!access?.allowed) notFound();
+    return course;
+  }
 
   const allowed = course.is_base || course.owner_id === teacher.id || teacher.role === "admin";
   if (!allowed) notFound();

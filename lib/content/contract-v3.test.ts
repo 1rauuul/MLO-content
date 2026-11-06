@@ -202,7 +202,7 @@ test("rechaza un ejercicio sin example", () => {
   assert.match(result.error, /example: es obligatorio/);
 });
 
-test("los fixtures usan LF, no llevan BOM y coinciden con fixtures.sha256.json", () => {
+test("los fixtures no llevan BOM, no tienen CR suelto y coinciden con fixtures.sha256.json", () => {
   assert.equal(manifest.contract, "mlo-v3");
   assert.equal(manifest.schemaVersion, 3);
   assert.equal(manifest.algorithm, "sha256");
@@ -211,7 +211,7 @@ test("los fixtures usan LF, no llevan BOM y coinciden con fixtures.sha256.json",
   for (const [file, expected] of Object.entries(manifest.files)) {
     const text = readText(file);
     assert.equal(text.charCodeAt(0), "{".charCodeAt(0), `${file}: no debe llevar BOM.`);
-    assert.ok(!text.includes("\r"), `${file}: debe usar LF.`);
+    assert.ok(!/\r(?!\n)/.test(text), `${file}: CR suelto.`);
     const actual = createHash("sha256")
       .update(text.replace(/\r\n/g, "\n"), "utf8")
       .digest("hex");

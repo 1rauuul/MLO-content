@@ -2,12 +2,18 @@ import Link from "next/link";
 
 import { requireTeacher } from "@/lib/auth";
 import { listClasses } from "@/lib/classes";
+import { db } from "@/lib/db";
 
 import { CreateClassForm } from "./create-class-form";
 
 export default async function ClasesPage() {
   const teacher = await requireTeacher();
   const classes = await listClasses(teacher);
+  const parentCourses = await db()<{ id: string; title: string }[]>`
+    select id, title from courses
+     where not is_group
+       and (is_base or owner_id = ${teacher.id} or ${teacher.role} = 'admin')
+     order by is_base desc, title`;
 
   return (
     <div className="space-y-6">
@@ -19,7 +25,7 @@ export default async function ClasesPage() {
         </p>
       </header>
 
-      <CreateClassForm />
+      <CreateClassForm courses={parentCourses} />
 
       {classes.length === 0 ? (
         <p className="empty">

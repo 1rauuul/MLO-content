@@ -1,5 +1,24 @@
 import type { CoreTopic } from "./model";
 
+/** Alcance del editor: el curso interno de un grupo nunca compone con el base. */
+export function editorCourseIds(
+  isGroup: boolean,
+  courseId: string,
+  baseId: string | null,
+): string[] {
+  if (isGroup || !baseId || baseId === courseId) return [courseId];
+  return [baseId, courseId];
+}
+
+/** Errores de unicidad de PostgreSQL (incluye el índice de membresía activa). */
+export function isUniqueViolation(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    (error as { code?: string }).code === "23505"
+  );
+}
+
 /** DEC-03: id determinista del subtema creado desde una lección v2. */
 export function topicContentId(lessonContentId: string): string {
   return `t-${lessonContentId}`;

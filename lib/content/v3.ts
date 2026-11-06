@@ -49,6 +49,13 @@ export function sourceCourseIds(
   return usesBase && baseId && baseId !== courseId ? [baseId, courseId] : [courseId];
 }
 
+/** El curso interno de un grupo no se publica como curso. */
+export function assertPublishableCourse(input: { is_group: boolean }): void {
+  if (input.is_group) {
+    throw new Error("El contenido interno de un grupo no se publica como curso.");
+  }
+}
+
 export type EmptyReleaseInput = {
   catalogId: string;
   courseId: string;

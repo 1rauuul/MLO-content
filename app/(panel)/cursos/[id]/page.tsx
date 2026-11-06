@@ -5,6 +5,7 @@ import { moveTopic, moveUnit } from "@/lib/actions/content";
 import { unpublish } from "@/lib/actions/publish";
 import { canEditCourse, getBaseCourseId, getCourseForRead } from "@/lib/access";
 import { requireTeacher } from "@/lib/auth";
+import { editorCourseIds } from "@/lib/content/x03";
 import { listCourseAccess } from "@/lib/course-access";
 import { db } from "@/lib/db";
 
@@ -61,7 +62,11 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
 
   const course = await getCourseForRead(teacher, id);
   const canEdit = canEditCourse(teacher, course);
-  const coreId = (await getBaseCourseId()) ?? course.id;
+  const [coreId] = editorCourseIds(
+    course.is_group,
+    course.id,
+    await getBaseCourseId(),
+  );
   const access = canEdit ? await listCourseAccess(course.id) : [];
   const statusLabel =
     course.status === "published"
@@ -108,12 +113,13 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
           <h1 className="page-title">{course.title}</h1>
           <span className="font-mono text-xs text-ink-faint">{course.key}</span>
           {course.is_base && <span className="badge badge-neutral">Core</span>}
+          {course.is_group && <span className="badge badge-neutral">Grupo</span>}
           <span className={statusClass}>{statusLabel}</span>
           <span className="badge badge-neutral">
             {course.uses_base ? "Con contenido base" : "Sin contenido base"}
           </span>
           {!canEdit && <span className="badge badge-warning">Solo lectura</span>}
-          {canEdit && course.status === "published" && (
+          {canEdit && !course.is_group && course.status === "published" && (
             <form action={unpublish} className="ml-auto">
               <input type="hidden" name="courseId" value={course.id} />
               <button type="submit" className="btn btn-secondary btn-sm">
@@ -121,7 +127,7 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
               </button>
             </form>
           )}
-          {canEdit && (
+          {canEdit && !course.is_group && (
             <Link
               href={`/cursos/${course.id}/publicar`}
               className={`btn btn-primary btn-sm ${course.status === "published" ? "" : "ml-auto"}`}
@@ -207,7 +213,7 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
 
       {canEdit && <CreateUnitForm courseId={course.id} />}
 
-      {canEdit && (
+      {canEdit && !course.is_group && (
         <section className="card p-5">
           <h2 className="text-sm font-semibold text-ink">Acceso</h2>
           <p className="mt-1 text-sm text-ink-muted">

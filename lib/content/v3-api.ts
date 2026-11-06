@@ -78,6 +78,7 @@ export async function listAuthorizedCourses(
          limit 1
       ) v2 on true
      where c.status = 'published'
+       and not c.is_group
      order by c.is_base desc, c.title`;
 
   const candidates: CourseCandidate[] = rows.map((row) => {
@@ -149,6 +150,7 @@ export async function getAuthorizedManifest(
            ) as snapshot
       from courses c
      where c.key = ${catalogId}
+       and not c.is_group
      limit 1`;
 
   const row = rows[0];
@@ -195,6 +197,7 @@ export async function hasV2CatalogAccess(
            ) as has_grant
       from courses c
      where c.key = ${catalogId}
+       and not c.is_group
      limit 1`;
 
   if (!row) return false;

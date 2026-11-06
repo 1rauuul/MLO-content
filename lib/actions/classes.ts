@@ -7,7 +7,7 @@ import { requireTeacher } from "@/lib/auth";
 import { publishClassRelease, requireEditableClass } from "@/lib/classes";
 import { isExtraType, parseExtraPayload } from "@/lib/content/classes";
 import { db } from "@/lib/db";
-import { newJoinCode } from "@/lib/ids";
+import { newCourseKey, newJoinCode } from "@/lib/ids";
 
 export type ClassResult = { error?: string };
 export type ExtraResult = { error?: string; ok?: boolean };
@@ -17,6 +17,8 @@ export type PublishClassResult = {
   version?: number;
   hash?: string;
   extras?: number;
+  v3Version?: number;
+  v3Hash?: string;
 };
 
 function parseJson(value: FormDataEntryValue | null): unknown {
@@ -33,18 +35,46 @@ export async function createClass(
 ): Promise<ClassResult> {
   const teacher = await requireTeacher();
   const name = String(formData.get("name") ?? "").trim();
+  const courseId = String(formData.get("courseId") ?? "");
+  const capacityRaw = String(formData.get("capacity") ?? "").trim();
+  const capacity = capacityRaw === "" ? null : Number(capacityRaw);
 
   if (name.length < 3) return { error: "Escribe un nombre de al menos 3 caracteres." };
   if (name.length > 80) return { error: "El nombre no puede pasar de 80 caracteres." };
+  if (!courseId) return { error: "Elige el curso padre del grupo." };
+  if (capacity !== null && (!Number.isInteger(capacity) || capacity < 1)) {
+    return { error: "El cupo debe ser un entero positivo o quedar vacío." };
+  }
+
+  const [course] = await db()<{ id: string; is_base: boolean; owner_id: string | null }[]>`
+    select id, is_base, owner_id from courses
+     where id = ${courseId} and not is_group
+     limit 1`;
+  if (!course) return { error: "El curso padre no existe." };
+  if (teacher.role !== "admin" && !course.is_base && course.owner_id !== teacher.id) {
+    return { error: "No puedes crear grupos en ese curso." };
+  }
 
   let classId: string | null = null;
   for (let attempt = 0; attempt < 5 && !classId; attempt += 1) {
     try {
-      const rows = await db()<{ id: string }[]>`
-        insert into classes (teacher_id, name, join_code)
-        values (${teacher.id}, ${name}, ${newJoinCode()})
-        returning id`;
-      classId = rows[0].id;
+      classId = await db().begin(async (tx) => {
+        const [contentCourse] = await tx<{ id: string }[]>`
+          insert into courses
+            (key, title, owner_id, is_base, uses_base, status, is_group)
+          values
+            (${newCourseKey()}, ${`${name} · contenido`}, ${teacher.id},
+             false, false, 'draft', true)
+          returning id`;
+        const [created] = await tx<{ id: string }[]>`
+          insert into classes
+            (teacher_id, name, join_code, course_id, content_course_id, capacity)
+          values
+            (${teacher.id}, ${name}, ${newJoinCode()}, ${course.id},
+             ${contentCourse.id}, ${capacity})
+          returning id`;
+        return created.id;
+      });
     } catch (error) {
       if ((error as { code?: string }).code !== "23505") throw error;
     }
@@ -56,6 +86,46 @@ export async function createClass(
 
   revalidatePath("/clases");
   redirect(`/clases/${classId}`);
+}
+
+export async function createClassContent(formData: FormData): Promise<void> {
+  const teacher = await requireTeacher();
+  const klass = await requireEditableClass(teacher, String(formData.get("classId") ?? ""));
+  if (klass.content_course_id) redirect(`/cursos/${klass.content_course_id}`);
+
+  const courseId = await db().begin(async (tx) => {
+    const [contentCourse] = await tx<{ id: string }[]>`
+      insert into courses
+        (key, title, owner_id, is_base, uses_base, status, is_group)
+      values
+        (${newCourseKey()}, ${`${klass.name} · contenido`}, ${teacher.id},
+         false, false, 'draft', true)
+      returning id`;
+    await tx`
+      update classes
+         set content_course_id = ${contentCourse.id}
+       where id = ${klass.id}`;
+    return contentCourse.id;
+  });
+
+  revalidatePath(`/clases/${klass.id}`);
+  redirect(`/cursos/${courseId}`);
+}
+
+export async function archiveClass(formData: FormData): Promise<void> {
+  const teacher = await requireTeacher();
+  const klass = await requireEditableClass(teacher, String(formData.get("classId") ?? ""));
+  await db()`update classes set archived_at = now() where id = ${klass.id}`;
+  revalidatePath("/clases");
+  revalidatePath(`/clases/${klass.id}`);
+}
+
+export async function restoreClass(formData: FormData): Promise<void> {
+  const teacher = await requireTeacher();
+  const klass = await requireEditableClass(teacher, String(formData.get("classId") ?? ""));
+  await db()`update classes set archived_at = null where id = ${klass.id}`;
+  revalidatePath("/clases");
+  revalidatePath(`/clases/${klass.id}`);
 }
 
 export async function saveExtra(
