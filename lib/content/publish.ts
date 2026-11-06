@@ -5,7 +5,8 @@ import { db } from "@/lib/db";
 import { buildManifest, composeCatalog } from "./compose";
 import { validateRelease } from "./contract-v3";
 import { validateCatalogForPublish } from "./validate";
-import { buildEmptyV3Release, nextReleaseVersion, resolveBaseRef, sourceCourseIds } from "./v3";
+import { buildV3Release, nextReleaseVersion, resolveBaseRef, sourceCourseIds } from "./v3";
+import { selectPrimaryEvaluations } from "./x03";
 import type {
   CoreCourse,
   CoreEvaluation,
@@ -13,6 +14,7 @@ import type {
   CoreExercise,
   CoreLesson,
   CoreQuestion,
+  CoreTopic,
   CoreUnit,
 } from "./model";
 
@@ -58,45 +60,68 @@ export async function publishCourse(teacher: Teacher, course: Course): Promise<P
         from units
        where course_id in ${tx(sourceIds)} and archived_at is null
        order by number, position`;
-    const lessons = await tx<CoreLesson[]>`
-      select content_id, unit_id as unit_content_id, code, title, eyebrow, body,
+    const topics = await tx<(CoreTopic & { unit_id: string })[]>`
+      select content_id, unit_id, title, summary, position
+        from topics
+       where course_id in ${tx(sourceIds)} and archived_at is null
+       order by position, content_id`;
+    const lessons = await tx<(CoreLesson & { topic_id: string })[]>`
+      select content_id, unit_id as unit_content_id, topic_id, code, title, eyebrow, body,
              code_sample, context_title, context_body, synthesis, content, position
         from lessons
        where course_id in ${tx(sourceIds)} and archived_at is null
        order by position, code`;
-    const evaluations = await tx<CoreEvaluation[]>`
-      select content_id, lesson_id as lesson_content_id, title, description,
-             question_count, exercise_count
+    const evaluations = await tx<(CoreEvaluation & { topic_id: string })[]>`
+      select content_id, lesson_id as lesson_content_id, topic_id, title, description,
+             question_count, exercise_count, position
         from evaluations
-       where course_id in ${tx(sourceIds)} and archived_at is null`;
-    const exercises = await tx<CoreExercise[]>`
-      select content_id, lesson_id as lesson_content_id, type, prompt, instructions,
+       where course_id in ${tx(sourceIds)} and archived_at is null
+       order by lesson_id, position, content_id`;
+    const exercises = await tx<(CoreExercise & { topic_id: string })[]>`
+      select content_id, lesson_id as lesson_content_id, topic_id, type, prompt, instructions,
              correct_order, config, explanation, example, position
         from exercises
        where course_id in ${tx(sourceIds)} and archived_at is null
        order by position, content_id`;
-    const examples = await tx<CoreExample[]>`
-      select content_id, lesson_id as lesson_content_id, type, title, prompt,
+    const examples = await tx<(CoreExample & { topic_id: string })[]>`
+      select content_id, lesson_id as lesson_content_id, topic_id, type, title, prompt,
              config, steps, hints, explanation, position
         from examples
        where course_id in ${tx(sourceIds)} and archived_at is null
        order by position, content_id`;
-    // La pregunta se liga a la evaluación por la lección (una por lección).
     const questions = await tx<CoreQuestion[]>`
       select q.content_id, e.content_id as evaluation_content_id, q.type, q.prompt,
              q.options, q.answer, q.config, q.explanation, q.position
         from questions q
-        join evaluations e on e.lesson_id = q.lesson_id
+        join evaluations e on e.id = q.evaluation_id
        where q.course_id in ${tx(sourceIds)}
          and q.archived_at is null
          and e.archived_at is null
-       order by q.position, q.content_id`;
+       order by e.content_id, q.position, q.content_id`;
+    const evaluationExercises = await tx<
+      { evaluation_content_id: string; exercise_content_id: string }[]
+    >`
+      select e.content_id as evaluation_content_id, x.content_id as exercise_content_id
+        from evaluation_exercises ee
+        join evaluations e on e.id = ee.evaluation_id
+        join exercises x on x.id = ee.exercise_id
+       where e.course_id in ${tx(sourceIds)}
+         and e.archived_at is null
+         and x.archived_at is null
+       order by e.content_id, x.position, x.content_id`;
 
     // Las columnas de referencia guardan UUID; la composición usa content_id.
     const unitKeyById = new Map(
       (
         await tx<{ id: string; content_id: string }[]>`
           select id, content_id from units
+           where course_id in ${tx(sourceIds)}`
+      ).map((row) => [row.id, row.content_id]),
+    );
+    const topicKeyById = new Map(
+      (
+        await tx<{ id: string; content_id: string }[]>`
+          select id, content_id from topics
            where course_id in ${tx(sourceIds)}`
       ).map((row) => [row.id, row.content_id]),
     );
@@ -107,27 +132,97 @@ export async function publishCourse(teacher: Teacher, course: Course): Promise<P
            where course_id in ${tx(sourceIds)}`
       ).map((row) => [row.id, row.content_id]),
     );
+    const exercisesByEvaluation = new Map<string, string[]>();
+    for (const row of evaluationExercises) {
+      const list = exercisesByEvaluation.get(row.evaluation_content_id) ?? [];
+      list.push(row.exercise_content_id);
+      exercisesByEvaluation.set(row.evaluation_content_id, list);
+    }
+
+    const mappedTopics: CoreTopic[] = topics.map((topic) => ({
+      content_id: topic.content_id,
+      unit_content_id: unitKeyById.get(topic.unit_id) ?? topic.unit_id,
+      title: topic.title,
+      summary: topic.summary,
+      position: topic.position,
+    }));
+    const mappedLessons: CoreLesson[] = lessons.map((lesson) => ({
+      content_id: lesson.content_id,
+      unit_content_id:
+        unitKeyById.get(lesson.unit_content_id) ?? lesson.unit_content_id,
+      topic_content_id: topicKeyById.get(lesson.topic_id) ?? lesson.topic_id,
+      code: lesson.code,
+      title: lesson.title,
+      eyebrow: lesson.eyebrow,
+      body: lesson.body,
+      code_sample: lesson.code_sample,
+      context_title: lesson.context_title,
+      context_body: lesson.context_body,
+      synthesis: lesson.synthesis,
+      content: lesson.content,
+      position: lesson.position,
+    }));
+    const mappedEvaluations: CoreEvaluation[] = evaluations.map((evaluation) => ({
+      content_id: evaluation.content_id,
+      lesson_content_id:
+        lessonKeyById.get(evaluation.lesson_content_id) ?? evaluation.lesson_content_id,
+      topic_content_id: topicKeyById.get(evaluation.topic_id) ?? evaluation.topic_id,
+      title: evaluation.title,
+      description: evaluation.description,
+      question_count: evaluation.question_count,
+      exercise_count: evaluation.exercise_count,
+      position: evaluation.position ?? 0,
+      exercise_content_ids: exercisesByEvaluation.get(evaluation.content_id) ?? [],
+    }));
+    const mappedExercises: CoreExercise[] = exercises.map((exercise) => ({
+      content_id: exercise.content_id,
+      lesson_content_id:
+        lessonKeyById.get(exercise.lesson_content_id) ?? exercise.lesson_content_id,
+      topic_content_id: topicKeyById.get(exercise.topic_id) ?? exercise.topic_id,
+      type: exercise.type,
+      prompt: exercise.prompt,
+      instructions: exercise.instructions,
+      correct_order: exercise.correct_order,
+      config: exercise.config,
+      explanation: exercise.explanation,
+      example: exercise.example,
+      position: exercise.position,
+    }));
+    const mappedExamples: CoreExample[] = examples.map((example) => ({
+      content_id: example.content_id,
+      lesson_content_id:
+        lessonKeyById.get(example.lesson_content_id) ?? example.lesson_content_id,
+      topic_content_id: topicKeyById.get(example.topic_id) ?? example.topic_id,
+      type: example.type,
+      title: example.title,
+      prompt: example.prompt,
+      config: example.config,
+      steps: example.steps,
+      hints: example.hints,
+      explanation: example.explanation,
+      position: example.position,
+    }));
+
+    // v2 mantiene una evaluación primaria por lección (menor position, luego id).
+    const v2Evaluations = selectPrimaryEvaluations(mappedEvaluations);
+    const v2EvaluationIds = new Set(v2Evaluations.map((evaluation) => evaluation.content_id));
+
     const source: CoreCourse = {
       schemaVersion: 2,
       title: current.title,
       units,
-      lessons: lessons.map((row) => ({
-        ...row,
-        unit_content_id: unitKeyById.get(row.unit_content_id) ?? row.unit_content_id,
-      })),
-      evaluations: evaluations.map((row) => ({
-        ...row,
-        lesson_content_id:
-          lessonKeyById.get(row.lesson_content_id) ?? row.lesson_content_id,
-      })),
-      exercises: exercises.map((row) => ({
-        ...row,
-        lesson_content_id: lessonKeyById.get(row.lesson_content_id) ?? row.lesson_content_id,
-      })),
-      examples: examples.map((row) => ({
-        ...row,
-        lesson_content_id: lessonKeyById.get(row.lesson_content_id) ?? row.lesson_content_id,
-      })),
+      topics: mappedTopics,
+      lessons: mappedLessons,
+      evaluations: v2Evaluations,
+      exercises: mappedExercises,
+      examples: mappedExamples,
+      questions: questions.filter((question) =>
+        v2EvaluationIds.has(question.evaluation_content_id),
+      ),
+    };
+    const v3Source: CoreCourse = {
+      ...source,
+      evaluations: mappedEvaluations,
       questions,
     };
 
@@ -163,13 +258,15 @@ export async function publishCourse(teacher: Teacher, course: Course): Promise<P
       v2Hash = manifest.hash;
     }
 
-    const release = buildEmptyV3Release({
+    const release = buildV3Release({
       catalogId: current.key,
       courseId: course.id,
       version,
       publishedAt,
       title: current.title,
+      description: "",
       baseRef,
+      course: v3Source,
     });
     const checked = validateRelease(release);
     if (!checked.ok) {

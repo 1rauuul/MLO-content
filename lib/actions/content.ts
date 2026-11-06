@@ -9,7 +9,7 @@ import { parseBlocks } from "@/lib/content";
 import { db } from "@/lib/db";
 import { newCourseKey } from "@/lib/ids";
 
-export type ActionResult = { error?: string };
+export type ActionResult = { error?: string; ok?: boolean };
 export type LessonResult = { error?: string; ok?: boolean };
 
 export async function createCourse(
@@ -96,7 +96,7 @@ export async function createLesson(
 ): Promise<ActionResult> {
   const teacher = await requireTeacher();
   const courseId = String(formData.get("courseId") ?? "");
-  const unitId = String(formData.get("unitId") ?? "");
+  const topicId = String(formData.get("topicId") ?? "");
   const course = await requireEditableCourse(teacher, courseId);
 
   const title = String(formData.get("title") ?? "").trim();
@@ -107,17 +107,17 @@ export async function createLesson(
     return { error: "Usa un código como 1.5 o 6." };
   }
 
-  const coreId = (await getBaseCourseId()) ?? course.id;
-
-  const unit = await db()<{ id: string }[]>`
-    select id
-      from units
-     where id = ${unitId}
-       and course_id in (${course.id}, ${coreId})
+  const topic = await db()<{ id: string; unit_id: string }[]>`
+    select id, unit_id
+      from topics
+     where id = ${topicId}
+       and course_id = ${course.id}
        and archived_at is null
      limit 1`;
 
-  if (!unit[0]) return { error: "La unidad no existe en este curso." };
+  if (!topic[0]) return { error: "El subtema no existe en este curso." };
+
+  const coreId = (await getBaseCourseId()) ?? course.id;
 
   const contentId = `l${code}`;
   const clash = await db()<{ id: string }[]>`
@@ -132,14 +132,16 @@ export async function createLesson(
   const positions = await db()<{ position: number }[]>`
     select coalesce(max(position), -1) + 1 as position
       from lessons
-     where unit_id = ${unitId}`;
+     where topic_id = ${topic[0].id}`;
 
   await db()`insert into lessons
-      (course_id, unit_id, content_id, code, title, position)
+      (course_id, unit_id, topic_id, content_id, code, title, position)
     values
-      (${course.id}, ${unitId}, ${contentId}, ${code}, ${title}, ${positions[0].position})`;
+      (${course.id}, ${topic[0].unit_id}, ${topic[0].id}, ${contentId}, ${code},
+       ${title}, ${positions[0].position})`;
 
   revalidatePath(`/cursos/${courseId}`);
+  revalidatePath(`/cursos/${courseId}/temas/${topicId}`);
   return {};
 }
 
@@ -189,4 +191,162 @@ export async function updateLesson(
   revalidatePath(`/cursos/${lesson.course_id}`);
   revalidatePath(`/cursos/${lesson.course_id}/lecciones/${lessonId}`);
   return { ok: true };
+}
+
+function nextTopicContentId(ids: string[]): string {
+  let next = 1;
+  for (const id of ids) {
+    const match = /^t-(\d+)$/.exec(id);
+    if (match) next = Math.max(next, Number(match[1]) + 1);
+  }
+  return `t-${next}`;
+}
+
+export async function createTopic(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
+  const teacher = await requireTeacher();
+  const courseId = String(formData.get("courseId") ?? "");
+  const unitId = String(formData.get("unitId") ?? "");
+  const course = await requireEditableCourse(teacher, courseId);
+
+  const title = String(formData.get("title") ?? "").trim();
+  const summary = String(formData.get("summary") ?? "").trim();
+  if (title.length < 3) return { error: "Escribe el título del subtema." };
+
+  const coreId = (await getBaseCourseId()) ?? course.id;
+  const unit = await db()<{ id: string }[]>`
+    select id from units
+     where id = ${unitId}
+       and course_id in (${course.id}, ${coreId})
+       and archived_at is null
+     limit 1`;
+  if (!unit[0]) return { error: "La unidad no existe en este curso." };
+
+  const ids = await db()<{ content_id: string }[]>`
+    select content_id from topics where course_id = ${course.id}`;
+  const [next] = await db()<{ position: number }[]>`
+    select coalesce(max(position), -1) + 1 as position
+      from topics
+     where unit_id = ${unitId}
+       and course_id in (${course.id}, ${coreId})`;
+
+  await db()`insert into topics
+      (course_id, unit_id, content_id, title, summary, position)
+    values
+      (${course.id}, ${unitId}, ${nextTopicContentId(ids.map((row) => row.content_id))},
+       ${title}, ${summary}, ${next.position})`;
+
+  revalidatePath(`/cursos/${courseId}`);
+  return {};
+}
+
+export async function updateTopic(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
+  const teacher = await requireTeacher();
+  const courseId = String(formData.get("courseId") ?? "");
+  const topicId = String(formData.get("topicId") ?? "");
+  const course = await requireEditableCourse(teacher, courseId);
+
+  const title = String(formData.get("title") ?? "").trim();
+  const summary = String(formData.get("summary") ?? "").trim();
+  if (title.length < 3) return { error: "Escribe el título del subtema." };
+
+  const existing = await db()<{ id: string }[]>`
+    select id from topics
+     where id = ${topicId} and course_id = ${course.id}
+     limit 1`;
+  if (!existing[0]) return { error: "El subtema no existe en este curso." };
+
+  await db()`
+    update topics
+       set title = ${title}, summary = ${summary}
+     where id = ${topicId}`;
+
+  revalidatePath(`/cursos/${courseId}`);
+  revalidatePath(`/cursos/${courseId}/temas/${topicId}`);
+  return {};
+}
+
+export async function moveUnit(formData: FormData): Promise<void> {
+  const teacher = await requireTeacher();
+  const courseId = String(formData.get("courseId") ?? "");
+  const unitId = String(formData.get("unitId") ?? "");
+  const direction = String(formData.get("direction") ?? "up");
+  const course = await requireEditableCourse(teacher, courseId);
+
+  const rows = await db()<{ id: string; number: number }[]>`
+    select id, number from units
+     where course_id = ${course.id} and archived_at is null
+     order by number, position, id`;
+  const index = rows.findIndex((row) => row.id === unitId);
+  const target = index + (direction === "down" ? 1 : -1);
+  if (index < 0 || target < 0 || target >= rows.length) return;
+
+  await db().begin(async (tx) => {
+    await tx`update units set number = ${rows[target].number} where id = ${rows[index].id}`;
+    await tx`update units set number = ${rows[index].number} where id = ${rows[target].id}`;
+  });
+  revalidatePath(`/cursos/${courseId}`);
+}
+
+export async function moveTopic(formData: FormData): Promise<void> {
+  const teacher = await requireTeacher();
+  const courseId = String(formData.get("courseId") ?? "");
+  const topicId = String(formData.get("topicId") ?? "");
+  const course = await requireEditableCourse(teacher, courseId);
+
+  const [topic] = await db()<{ unit_id: string }[]>`
+    select unit_id from topics
+     where id = ${topicId} and course_id = ${course.id}
+     limit 1`;
+  if (!topic) return;
+
+  const rows = await db()<{ id: string; position: number }[]>`
+    select id, position from topics
+     where course_id = ${course.id} and unit_id = ${topic.unit_id}
+       and archived_at is null
+     order by position, id`;
+  const index = rows.findIndex((row) => row.id === topicId);
+  const direction = String(formData.get("direction") ?? "up");
+  const target = index + (direction === "down" ? 1 : -1);
+  if (index < 0 || target < 0 || target >= rows.length) return;
+
+  await db().begin(async (tx) => {
+    await tx`update topics set position = ${rows[target].position} where id = ${rows[index].id}`;
+    await tx`update topics set position = ${rows[index].position} where id = ${rows[target].id}`;
+  });
+  revalidatePath(`/cursos/${courseId}`);
+}
+
+export async function moveLesson(formData: FormData): Promise<void> {
+  const teacher = await requireTeacher();
+  const courseId = String(formData.get("courseId") ?? "");
+  const lessonId = String(formData.get("lessonId") ?? "");
+  const course = await requireEditableCourse(teacher, courseId);
+
+  const [lesson] = await db()<{ topic_id: string }[]>`
+    select topic_id from lessons
+     where id = ${lessonId} and course_id = ${course.id}
+     limit 1`;
+  if (!lesson) return;
+
+  const rows = await db()<{ id: string; position: number }[]>`
+    select id, position from lessons
+     where topic_id = ${lesson.topic_id} and archived_at is null
+     order by position, code, id`;
+  const index = rows.findIndex((row) => row.id === lessonId);
+  const direction = String(formData.get("direction") ?? "up");
+  const target = index + (direction === "down" ? 1 : -1);
+  if (index < 0 || target < 0 || target >= rows.length) return;
+
+  await db().begin(async (tx) => {
+    await tx`update lessons set position = ${rows[target].position} where id = ${rows[index].id}`;
+    await tx`update lessons set position = ${rows[index].position} where id = ${rows[target].id}`;
+  });
+  revalidatePath(`/cursos/${courseId}`);
+  revalidatePath(`/cursos/${courseId}/temas/${lesson.topic_id}`);
 }

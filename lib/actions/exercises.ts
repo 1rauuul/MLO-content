@@ -85,13 +85,14 @@ export async function saveExercise(
        where lesson_id = ${lesson.id}`;
 
     await sql`insert into exercises
-        (course_id, lesson_id, content_id, type, prompt, instructions,
+        (course_id, lesson_id, topic_id, content_id, type, prompt, instructions,
          correct_order, config, explanation, example, position)
       values
-        (${lesson.course_id}, ${lesson.id}, ${contentId}, ${input.type},
-         ${input.prompt}, ${input.instructions}, ${sql.json(input.correctOrder)},
-         ${sql.json(input.config)}, ${input.explanation},
-         ${input.example ? sql.json(input.example) : null}, ${next.position})`;
+        (${lesson.course_id}, ${lesson.id}, ${lesson.topic_id}, ${contentId},
+         ${input.type}, ${input.prompt}, ${input.instructions},
+         ${sql.json(input.correctOrder)}, ${sql.json(input.config)},
+         ${input.explanation}, ${input.example ? sql.json(input.example) : null},
+         ${next.position})`;
   }
 
   refresh(lesson.course_id, lesson.id);
@@ -151,11 +152,11 @@ export async function saveExample(
        where lesson_id = ${lesson.id}`;
 
     await sql`insert into examples
-        (course_id, lesson_id, content_id, type, title, prompt, config, steps,
-         hints, explanation, position)
+        (course_id, lesson_id, topic_id, content_id, type, title, prompt, config,
+         steps, hints, explanation, position)
       values
-        (${lesson.course_id}, ${lesson.id}, ${contentId}, ${input.type},
-         ${input.title}, ${input.prompt}, ${sql.json(input.config)},
+        (${lesson.course_id}, ${lesson.id}, ${lesson.topic_id}, ${contentId},
+         ${input.type}, ${input.title}, ${input.prompt}, ${sql.json(input.config)},
          ${sql.json(input.steps)}, ${sql.json(input.hints)}, ${input.explanation},
          ${next.position})`;
   }

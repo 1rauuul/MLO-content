@@ -770,10 +770,10 @@ ef7ef257fa0b898c5c8d54d161426780aa4e80b7036c544ed3befbfb0d85ce8b
 
 ## 13. Descubrimiento y acceso v3 (X-02)
 
-X-02 publica releases v3 **metadata-completos y vacíos**: `units`, `topics`,
-`lessons`, `evaluations`, `questions`, `exercises`, `examples`, `references` y
-`notices` van en `[]` hasta que X-03 migre la jerarquía real. El `hash` cubre
-igual todo el documento.
+X-02 introdujo releases v3 metadata-completos; X-03 publica ya la jerarquía
+real (`units`, `topics`, `lessons`, `evaluations`, `questions`, `exercises`,
+`examples`). Un curso sin contenido sigue siendo válido con las colecciones en
+`[]`. El `hash` cubre todo el documento.
 
 ### 13.1 Identidad del alumno
 

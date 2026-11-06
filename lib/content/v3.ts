@@ -1,5 +1,7 @@
 import type { ReleaseV3 } from "./contract-v3";
 import { hashValue } from "./hash";
+import type { CoreCourse, CoreQuestion, CoreTopic } from "./model";
+import { publishedId } from "./serialize";
 
 export type CourseStatus = "draft" | "published" | "unpublished";
 
@@ -56,11 +58,88 @@ export type EmptyReleaseInput = {
   baseRef: BaseRef | null;
 };
 
+export type V3ReleaseInput = {
+  catalogId: string;
+  courseId: string;
+  version: number;
+  publishedAt: string;
+  title: string;
+  description?: string;
+  baseRef: BaseRef | null;
+  course: CoreCourse;
+};
+
 /**
- * X-02 publica metadatos v3 sin jerarquía real: las colecciones van vacías
- * hasta X-03. El hash cubre el documento completo con la canonicalización v3.
+ * Construye el release v3 real desde las filas editoriales. Los ids se
+ * publican con `publishedId`; las evaluaciones incluyen sus preguntas y los
+ * ejercicios seleccionados en `evaluation_exercises`.
  */
-export function buildEmptyV3Release(input: EmptyReleaseInput): ReleaseV3 {
+export function buildV3Release(input: V3ReleaseInput): ReleaseV3 {
+  const itemId = (contentId: string) => publishedId(input.catalogId, contentId);
+  const course = input.course;
+
+  const units = [...course.units].sort(
+    (left, right) =>
+      left.number - right.number ||
+      left.position - right.position ||
+      left.content_id.localeCompare(right.content_id),
+  );
+  const unitOrder = new Map(units.map((unit, order) => [unit.content_id, order]));
+
+  const topics = [...(course.topics ?? [])].sort(
+    (left, right) =>
+      (unitOrder.get(left.unit_content_id) ?? -1) -
+        (unitOrder.get(right.unit_content_id) ?? -1) ||
+      left.position - right.position ||
+      left.content_id.localeCompare(right.content_id),
+  );
+  const topicOrder = new Map(topics.map((topic, order) => [topic.content_id, order]));
+  const rank = (topicId: string | undefined) =>
+    topicId === undefined ? Number.MAX_SAFE_INTEGER : topicOrder.get(topicId) ?? Number.MAX_SAFE_INTEGER;
+
+  const lessons = [...course.lessons].sort(
+    (left, right) =>
+      rank(left.topic_content_id) - rank(right.topic_content_id) ||
+      left.position - right.position ||
+      left.code.localeCompare(right.code) ||
+      left.content_id.localeCompare(right.content_id),
+  );
+  const examples = [...course.examples].sort(
+    (left, right) =>
+      rank(left.topic_content_id) - rank(right.topic_content_id) ||
+      left.position - right.position ||
+      left.content_id.localeCompare(right.content_id),
+  );
+  const exercises = [...course.exercises].sort(
+    (left, right) =>
+      rank(left.topic_content_id) - rank(right.topic_content_id) ||
+      left.position - right.position ||
+      left.content_id.localeCompare(right.content_id),
+  );
+  const evaluations = [...course.evaluations].sort(
+    (left, right) =>
+      rank(left.topic_content_id) - rank(right.topic_content_id) ||
+      (left.position ?? 0) - (right.position ?? 0) ||
+      left.content_id.localeCompare(right.content_id),
+  );
+  const evaluationOrder = new Map(
+    evaluations.map((evaluation, order) => [evaluation.content_id, order]),
+  );
+
+  const questions = [...course.questions].sort(
+    (left, right) =>
+      (evaluationOrder.get(left.evaluation_content_id) ?? Number.MAX_SAFE_INTEGER) -
+        (evaluationOrder.get(right.evaluation_content_id) ?? Number.MAX_SAFE_INTEGER) ||
+      left.position - right.position ||
+      left.content_id.localeCompare(right.content_id),
+  );
+  const questionsByEvaluation = new Map<string, CoreQuestion[]>();
+  for (const question of questions) {
+    const bucket = questionsByEvaluation.get(question.evaluation_content_id) ?? [];
+    bucket.push(question);
+    questionsByEvaluation.set(question.evaluation_content_id, bucket);
+  }
+
   const content = {
     schemaVersion: 3 as const,
     kind: "course" as const,
@@ -72,21 +151,107 @@ export function buildEmptyV3Release(input: EmptyReleaseInput): ReleaseV3 {
     baseRef: input.baseRef,
     course: {
       title: input.title,
-      description: "",
+      description: input.description ?? "",
       visibility: "published" as const,
     },
-    units: [],
-    topics: [],
-    lessons: [],
-    evaluations: [],
-    questions: [],
-    exercises: [],
-    examples: [],
+    units: units.map((unit) => ({
+      id: itemId(unit.content_id),
+      number: unit.number,
+      title: unit.title,
+      description: unit.description,
+      difficulty: unit.difficulty,
+      color: unit.color,
+      position: unit.position,
+    })),
+    topics: topics.map((topic: CoreTopic) => ({
+      id: itemId(topic.content_id),
+      unitId: itemId(topic.unit_content_id),
+      title: topic.title,
+      summary: topic.summary,
+      position: topic.position,
+    })),
+    lessons: lessons.map((lesson) => ({
+      id: itemId(lesson.content_id),
+      topicId: itemId(lesson.topic_content_id ?? ""),
+      code: lesson.code,
+      title: lesson.title,
+      eyebrow: lesson.eyebrow,
+      body: lesson.body,
+      content: lesson.content,
+      position: lesson.position,
+    })),
+    evaluations: evaluations.map((evaluation) => ({
+      id: itemId(evaluation.content_id),
+      topicId: itemId(evaluation.topic_content_id ?? ""),
+      title: evaluation.title,
+      description: evaluation.description,
+      position: evaluation.position ?? 0,
+      questionIds: (questionsByEvaluation.get(evaluation.content_id) ?? []).map((question) =>
+        itemId(question.content_id),
+      ),
+      exerciseIds: (evaluation.exercise_content_ids ?? []).map(itemId),
+    })),
+    questions: questions.map((question) => ({
+      id: itemId(question.content_id),
+      evaluationId: itemId(question.evaluation_content_id),
+      type: question.type,
+      prompt: question.prompt,
+      options: question.options,
+      answer: question.answer,
+      config: question.config,
+      explanation: question.explanation,
+      position: question.position,
+    })),
+    exercises: exercises.map((exercise) => ({
+      id: itemId(exercise.content_id),
+      topicId: itemId(exercise.topic_content_id ?? ""),
+      type: exercise.type,
+      prompt: exercise.prompt,
+      instructions: exercise.instructions,
+      correctOrder: exercise.correct_order,
+      config: exercise.config,
+      explanation: exercise.explanation,
+      example: exercise.example ?? null,
+      position: exercise.position,
+    })),
+    examples: examples.map((example) => ({
+      id: itemId(example.content_id),
+      topicId: itemId(example.topic_content_id ?? ""),
+      type: example.type,
+      title: example.title,
+      prompt: example.prompt,
+      config: example.config,
+      steps: example.steps,
+      hints: example.hints,
+      explanation: example.explanation,
+      position: example.position,
+    })),
     references: [],
     notices: [],
   };
 
   return { ...content, hash: hashValue(content) };
+}
+
+/**
+ * Release metadata vacío. Se conserva para X-02 y para cursos sin jerarquía.
+ */
+export function buildEmptyV3Release(input: EmptyReleaseInput): ReleaseV3 {
+  return buildV3Release({
+    ...input,
+    description: "",
+    course: {
+      schemaVersion: 2,
+      title: input.title,
+      units: [],
+      topics: [],
+      lessons: [],
+      evaluations: [],
+      exercises: [],
+      examples: [],
+      questions: [],
+    },
+  });
 }
 
 export type CourseListEntry = {

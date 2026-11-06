@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { revokeCourseAccess } from "@/lib/actions/access";
+import { moveTopic, moveUnit } from "@/lib/actions/content";
 import { unpublish } from "@/lib/actions/publish";
 import { canEditCourse, getBaseCourseId, getCourseForRead } from "@/lib/access";
 import { requireTeacher } from "@/lib/auth";
@@ -8,7 +9,7 @@ import { listCourseAccess } from "@/lib/course-access";
 import { db } from "@/lib/db";
 
 import { GrantAccessForm } from "./access-form";
-import { CreateLessonForm } from "./lesson-form";
+import { CreateTopicForm } from "./create-topic-form";
 import { CreateUnitForm } from "./unit-form";
 
 type UnitRow = {
@@ -21,13 +22,38 @@ type UnitRow = {
   color: string;
 };
 
-type LessonRow = {
+type TopicRow = {
   id: string;
   course_id: string;
   unit_id: string;
-  code: string;
   title: string;
+  summary: string;
+  position: number;
 };
+
+function MoveButtons({
+  action,
+  fields,
+}: {
+  action: (formData: FormData) => Promise<void>;
+  fields: Record<string, string>;
+}) {
+  return (
+    <span className="flex items-center gap-1">
+      {(["up", "down"] as const).map((direction) => (
+        <form action={action} key={direction}>
+          {Object.entries(fields).map(([name, value]) => (
+            <input key={name} type="hidden" name={name} value={value} />
+          ))}
+          <input type="hidden" name="direction" value={direction} />
+          <button type="submit" className="btn btn-ghost btn-sm" aria-label={`Mover ${direction}`}>
+            {direction === "up" ? "↑" : "↓"}
+          </button>
+        </form>
+      ))}
+    </span>
+  );
+}
 
 export default async function CoursePage({ params }: { params: Promise<{ id: string }> }) {
   const teacher = await requireTeacher();
@@ -55,14 +81,22 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
       from units
      where course_id in (${course.id}, ${coreId})
        and archived_at is null
-     order by number, position`;
-
-  const lessons = await db()<LessonRow[]>`
-    select id, course_id, unit_id, code, title
-      from lessons
+     order by number, position, id`;
+  const topics = await db()<TopicRow[]>`
+    select id, course_id, unit_id, title, summary, position
+      from topics
      where course_id in (${course.id}, ${coreId})
        and archived_at is null
-     order by position, code`;
+     order by position, id`;
+  const lessons = await db()<{ topic_id: string }[]>`
+    select topic_id
+      from lessons
+     where course_id in (${course.id}, ${coreId})
+       and archived_at is null`;
+  const lessonCount = new Map<string, number>();
+  for (const lesson of lessons) {
+    lessonCount.set(lesson.topic_id, (lessonCount.get(lesson.topic_id) ?? 0) + 1);
+  }
 
   return (
     <div className="space-y-6">
@@ -103,7 +137,7 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
       ) : (
         <div className="space-y-4">
           {units.map((unit) => {
-            const unitLessons = lessons.filter((lesson) => lesson.unit_id === unit.id);
+            const unitTopics = topics.filter((topic) => topic.unit_id === unit.id);
             const isCore = unit.course_id !== course.id;
 
             return (
@@ -117,38 +151,46 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
                     {unit.difficulty} · {unit.color}
                   </span>
                   {isCore && <span className="badge badge-neutral">Core</span>}
+                  {canEdit && !isCore && (
+                    <span className="ml-auto">
+                      <MoveButtons
+                        action={moveUnit}
+                        fields={{ courseId: course.id, unitId: unit.id }}
+                      />
+                    </span>
+                  )}
                 </div>
 
                 {unit.description && (
                   <p className="mt-2 text-sm text-ink-muted">{unit.description}</p>
                 )}
 
-                {unitLessons.length > 0 && (
+                {unitTopics.length > 0 && (
                   <ul className="mt-4 divide-y divide-line border-t border-line">
-                    {unitLessons.map((lesson) => {
-                      const own = lesson.course_id === course.id;
-
+                    {unitTopics.map((topic) => {
+                      const own = topic.course_id === course.id;
                       return (
                         <li
-                          key={lesson.id}
+                          key={topic.id}
                           className="flex flex-wrap items-center justify-between gap-2 py-2.5 text-sm"
                         >
                           <span className="text-ink-soft">
-                            <span className="mr-2 font-mono text-xs text-ink-faint">
-                              {lesson.code}
-                            </span>
-                            {lesson.title}
-                          </span>
-
-                          {own && canEdit ? (
                             <Link
-                              href={`/cursos/${course.id}/lecciones/${lesson.id}`}
-                              className="text-sm text-ink-muted underline-offset-4 hover:text-ink hover:underline"
+                              href={`/cursos/${course.id}/temas/${topic.id}`}
+                              className="underline-offset-4 hover:underline"
                             >
-                              Editar
+                              {topic.title}
                             </Link>
-                          ) : (
-                            <span className="text-xs text-ink-faint">Core</span>
+                            <span className="ml-2 text-xs text-ink-faint">
+                              {lessonCount.get(topic.id) ?? 0} lecciones
+                            </span>
+                            {!own && <span className="badge badge-neutral ml-2">Core</span>}
+                          </span>
+                          {canEdit && own && (
+                            <MoveButtons
+                              action={moveTopic}
+                              fields={{ courseId: course.id, topicId: topic.id }}
+                            />
                           )}
                         </li>
                       );
@@ -156,7 +198,7 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
                   </ul>
                 )}
 
-                {canEdit && <CreateLessonForm courseId={course.id} unitId={unit.id} />}
+                {canEdit && <CreateTopicForm courseId={course.id} unitId={unit.id} />}
               </section>
             );
           })}

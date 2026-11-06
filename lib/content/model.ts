@@ -41,9 +41,18 @@ export type CoreUnit = {
   position: number;
 };
 
+export type CoreTopic = {
+  content_id: string;
+  unit_content_id: string;
+  title: string;
+  summary: string;
+  position: number;
+};
+
 export type CoreLesson = {
   content_id: string;
   unit_content_id: string;
+  topic_content_id?: string;
   code: string;
   title: string;
   eyebrow: string;
@@ -59,15 +68,19 @@ export type CoreLesson = {
 export type CoreEvaluation = {
   content_id: string;
   lesson_content_id: string;
+  topic_content_id?: string;
   title: string;
   description: string;
   question_count: number;
   exercise_count: number;
+  position?: number;
+  exercise_content_ids?: string[];
 };
 
 export type CoreExercise = {
   content_id: string;
   lesson_content_id: string;
+  topic_content_id?: string;
   type: ExerciseType;
   prompt: string;
   instructions: string;
@@ -81,6 +94,7 @@ export type CoreExercise = {
 export type CoreExample = {
   content_id: string;
   lesson_content_id: string;
+  topic_content_id?: string;
   type: ExerciseType;
   title: string;
   prompt: string;
@@ -108,6 +122,7 @@ export type CoreCourse = {
   schemaVersion: 2;
   title: string;
   units: CoreUnit[];
+  topics?: CoreTopic[];
   lessons: CoreLesson[];
   evaluations: CoreEvaluation[];
   exercises: CoreExercise[];
