@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { BLOCK_LABELS, emptyBlock, type BlockType, type ContentBlock } from "@/lib/content";
 
@@ -11,11 +11,17 @@ const textareaClass = "field";
 export function BlockEditor({
   initial,
   label = "Contenido de la lección",
+  onChange,
 }: {
   initial: ContentBlock[];
   label?: string;
+  onChange?: (blocks: ContentBlock[]) => void;
 }) {
   const [blocks, setBlocks] = useState<ContentBlock[]>(initial);
+
+  useEffect(() => {
+    onChange?.(blocks);
+  }, [blocks, onChange]);
 
   function replace(index: number, block: ContentBlock) {
     setBlocks((current) => current.map((item, i) => (i === index ? block : item)));
