@@ -8,7 +8,9 @@ import type {
   ExerciseExample,
   ExerciseType,
 } from "@/lib/content/model";
+import { parseExerciseInput } from "@/lib/content/validate";
 import { saveExercise, type EditorResult } from "@/lib/actions/exercises";
+import { PreviewFrame } from "@/app/(panel)/preview-frame";
 
 import { EntriesEditor, Field, PairsEditor, StepsEditor, TextList, fieldClass } from "./fields";
 import { ExercisePreview } from "./preview";
@@ -96,6 +98,20 @@ export function ExerciseForm({
         ? draft.example ?? { title: "", steps: [{ text: "", why: "" }], hints: [] }
         : null,
     });
+
+  const validation = parseExerciseInput(
+    {
+      type: draft.type,
+      prompt: draft.prompt,
+      instructions: draft.instructions,
+      correctOrder: draft.correctOrder,
+      config: draft.config,
+      explanation: draft.explanation,
+      example: draft.example,
+    },
+    { normalize: true },
+  );
+  const previewError = "error" in validation ? validation.error : null;
 
   return (
     <form action={action} className="card space-y-5 border-line-strong p-5">
@@ -290,15 +306,19 @@ export function ExerciseForm({
 
       <div className="space-y-2">
         <p className="eyebrow">Vista previa</p>
-        <ExercisePreview
-          type={draft.type}
-          prompt={draft.prompt}
-          instructions={draft.instructions}
-          correctOrder={draft.correctOrder}
-          config={draft.config}
-          explanation={draft.explanation}
-          example={draft.example}
-        />
+        <PreviewFrame label="MLO · Ejercicio">
+          <ExercisePreview
+            key={`${draft.type}-${JSON.stringify(draft.config)}-${draft.correctOrder.join("|")}`}
+            type={draft.type}
+            prompt={draft.prompt}
+            instructions={draft.instructions}
+            correctOrder={draft.correctOrder}
+            config={draft.config}
+            explanation={draft.explanation}
+            example={draft.example}
+            error={previewError}
+          />
+        </PreviewFrame>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">

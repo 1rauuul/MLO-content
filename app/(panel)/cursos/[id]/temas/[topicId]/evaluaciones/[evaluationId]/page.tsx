@@ -127,6 +127,7 @@ export default async function EvaluationPage({
                 title: exercise.prompt,
               }))}
               selected={selected.map((row) => row.exercise_content_id)}
+              questionCount={questions.length}
             />
           </div>
         </section>

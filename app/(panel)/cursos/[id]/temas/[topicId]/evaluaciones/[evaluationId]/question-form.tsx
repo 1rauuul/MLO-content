@@ -3,7 +3,11 @@
 import { useActionState, useState } from "react";
 
 import type { CoreQuestion, ExerciseConfig } from "@/lib/content/model";
+import { parseQuestionInput } from "@/lib/content/validate";
 import { saveQuestion, type TopicResult } from "@/lib/actions/topics";
+import { PreviewFrame } from "@/app/(panel)/preview-frame";
+
+import { QuestionPreview } from "../../../../lecciones/[lessonId]/preview";
 
 type Draft = {
   type: CoreQuestion["type"];
@@ -72,6 +76,8 @@ export function QuestionForm({
     config: parseConfig(draft.configText),
     explanation: draft.explanation,
   };
+  const validation = parseQuestionInput(data, { normalize: true });
+  const previewError = "error" in validation ? validation.error : null;
 
   return (
     <form action={action} className="card space-y-4 border-line-strong p-5">
@@ -145,6 +151,19 @@ export function QuestionForm({
           />
         </label>
       </div>
+
+      <PreviewFrame label="MLO · Pregunta">
+        <QuestionPreview
+          key={`${draft.type}-${JSON.stringify(data.config)}-${options.join("|")}-${draft.answer}`}
+          type={draft.type}
+          prompt={draft.prompt}
+          options={options}
+          answer={draft.answer}
+          config={data.config}
+          explanation={draft.explanation}
+          error={previewError}
+        />
+      </PreviewFrame>
 
       <div className="flex flex-wrap items-center gap-3">
         <button type="submit" disabled={pending} className="btn btn-primary btn-sm">

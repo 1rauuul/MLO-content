@@ -3,7 +3,9 @@
 import { useActionState, useEffect, useState } from "react";
 
 import type { CoreExample, ExerciseConfig, ExerciseStep, ExerciseType } from "@/lib/content/model";
+import { parseExampleInput } from "@/lib/content/validate";
 import { saveExample, type EditorResult } from "@/lib/actions/exercises";
+import { PreviewFrame } from "@/app/(panel)/preview-frame";
 
 import { EntriesEditor, Field, PairsEditor, StepsEditor, TextList, fieldClass } from "./fields";
 import { ExamplePreview } from "./preview";
@@ -80,6 +82,20 @@ export function ExampleForm({
 
   const changeType = (type: ExerciseType) =>
     patch({ type, config: emptyConfig(type) });
+
+  const validation = parseExampleInput(
+    {
+      type: draft.type,
+      title: draft.title,
+      prompt: draft.prompt,
+      config: draft.config,
+      steps: draft.steps,
+      hints: draft.hints,
+      explanation: draft.explanation,
+    },
+    { normalize: true },
+  );
+  const previewError = "error" in validation ? validation.error : null;
 
   return (
     <form action={action} className="card space-y-5 border-line-strong p-5">
@@ -232,15 +248,19 @@ export function ExampleForm({
 
       <div className="space-y-2">
         <p className="eyebrow">Vista previa</p>
-        <ExamplePreview
-          type={draft.type}
-          title={draft.title}
-          prompt={draft.prompt}
-          config={draft.config}
-          steps={draft.steps}
-          hints={draft.hints}
-          explanation={draft.explanation}
-        />
+        <PreviewFrame label="MLO · Ejemplo">
+          <ExamplePreview
+            key={`${draft.type}-${JSON.stringify(draft.config)}`}
+            type={draft.type}
+            title={draft.title}
+            prompt={draft.prompt}
+            config={draft.config}
+            steps={draft.steps}
+            hints={draft.hints}
+            explanation={draft.explanation}
+            error={previewError}
+          />
+        </PreviewFrame>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
