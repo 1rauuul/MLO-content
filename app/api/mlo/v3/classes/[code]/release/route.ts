@@ -1,13 +1,10 @@
 import { corsPreflight, CORS_HEADERS } from "@/lib/api/cors";
 import { isStudentKey, normalizeJoinCode } from "@/lib/classes";
+import { publishedGroupRelease } from "@/lib/content/group-release";
+import type { ReleaseV3 } from "@/lib/content/contract-v3";
 import { db } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
-
-type GroupRelease = {
-  kind?: string;
-  group?: { visibility?: string };
-};
 
 function notFound() {
   return Response.json(
@@ -33,7 +30,7 @@ export async function GET(
   }
 
   const { code } = await params;
-  const [row] = await db()<{ snapshot: { release?: GroupRelease } | null }[]>`
+  const [row] = await db()<{ snapshot: { release?: ReleaseV3 } | null }[]>`
     select r.snapshot
       from class_releases_v3 r
       join classes c on c.id = r.class_id
@@ -45,9 +42,8 @@ export async function GET(
      order by r.version desc
      limit 1`;
 
-  const release = row?.snapshot?.release;
-  if (!release || release.kind !== "group") return notFound();
-  if (release.group?.visibility !== "published") return notFound();
+  const release = publishedGroupRelease(row?.snapshot ?? null);
+  if (!release) return notFound();
 
   return Response.json(release, {
     headers: { ...CORS_HEADERS, "Cache-Control": "private, max-age=0, no-store" },

@@ -104,6 +104,20 @@ export function buildGroupRelease(input: GroupReleaseInput): ReleaseV3 {
   return { ...content, hash: hashValue(content) };
 }
 
+/**
+ * El release de grupo solo se sirve si es de grupo y está publicado. Cualquier
+ * otro caso (inexistente, otro tipo, no publicado) responde el mismo 404.
+ */
+export function publishedGroupRelease(
+  snapshot: { release?: ReleaseV3 } | null,
+): ReleaseV3 | null {
+  const release = snapshot?.release;
+  if (!release || release.kind !== "group") return null;
+  const group = release.group;
+  if (typeof group !== "object" || group === null) return null;
+  return (group as { visibility?: unknown }).visibility === "published" ? release : null;
+}
+
 export type JoinCheckInput = {
   archived: boolean;
   capacity: number | null;

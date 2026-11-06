@@ -8,9 +8,11 @@ import {
   buildGroupRelease,
   canJoinGroup,
   groupVisibility,
+  publishedGroupRelease,
   type GroupReleaseInput,
 } from "./group-release";
 import { hashText } from "./hash";
+import { buildX02Fixtures } from "./x02-fixtures";
 import { assertPublishableCourse } from "./v3";
 import { isUniqueViolation } from "./x03";
 import { buildX04Fixture } from "./x04-fixtures";
@@ -134,6 +136,23 @@ test("la violación del índice de membresía se reconoce como rechazo controlad
   assert.equal(isUniqueViolation({ code: "23503" }), false);
   assert.equal(isUniqueViolation(null), false);
   assert.equal(isUniqueViolation("23505"), false);
+});
+
+test("solo se sirve un release de grupo publicado", () => {
+  const published = buildX04Fixture();
+  const served = publishedGroupRelease({ release: published });
+  assert.equal(served?.version, 1);
+  assert.match(String(served?.hash), /^[0-9a-f]{64}$/);
+
+  assert.equal(publishedGroupRelease(null), null);
+  assert.equal(publishedGroupRelease({}), null);
+  assert.equal(publishedGroupRelease({ release: buildX02Fixtures().manifest }), null);
+
+  const hidden = {
+    ...published,
+    group: { name: "Grupo A", visibility: "unpublished" },
+  };
+  assert.equal(publishedGroupRelease({ release: hidden }), null);
 });
 
 test("el curso interno de un grupo no se publica como curso", () => {
