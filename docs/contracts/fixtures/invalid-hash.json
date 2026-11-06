@@ -1,0 +1,305 @@
+{
+  "schemaVersion": 3,
+  "kind": "course",
+  "catalogId": "demo",
+  "courseId": "course-demo",
+  "releaseId": "demo-2026-11-06",
+  "version": 2,
+  "publishedAt": "2026-11-06T00:00:00.000Z",
+  "hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+  "baseRef": {
+    "catalogId": "base",
+    "version": 7,
+    "hash": "0dd107f18a53cc73a5a9f834150462c30050e0b63110689b20711613042d323d"
+  },
+  "course": {
+    "title": "Ingeniería de Software (demo)",
+    "description": "Curso de ejemplo que referencia el contenido base.",
+    "visibility": "published"
+  },
+  "units": [
+    {
+      "id": "u1",
+      "number": 1,
+      "title": "Fundamentos",
+      "description": "Conceptos iniciales del curso.",
+      "difficulty": "Fundamental",
+      "color": "blue",
+      "position": 0
+    }
+  ],
+  "topics": [
+    {
+      "id": "t1",
+      "unitId": "u1",
+      "title": "Conceptos y prácticas",
+      "summary": "Lecturas, actividades y evaluaciones del subtema.",
+      "position": 0
+    }
+  ],
+  "lessons": [
+    {
+      "id": "l1.1",
+      "topicId": "t1",
+      "code": "1.1",
+      "title": "Desarrollo de software",
+      "eyebrow": "Módulo 01 · Lección 01",
+      "body": "El software se construye en equipo y deja evidencia.",
+      "content": [
+        {
+          "type": "p",
+          "text": "El desarrollo de software organiza actividades y productos."
+        },
+        {
+          "type": "h",
+          "text": "Actividades del proceso"
+        },
+        {
+          "type": "bullets",
+          "items": [
+            "Especificación",
+            "Desarrollo",
+            "Validación"
+          ]
+        },
+        {
+          "type": "numbers",
+          "items": [
+            "Definir el problema",
+            "Construir",
+            "Verificar"
+          ]
+        },
+        {
+          "type": "table",
+          "header": [
+            "Concepto",
+            "Definición"
+          ],
+          "rows": [
+            [
+              "Requisito",
+              "Necesidad que el sistema debe satisfacer"
+            ]
+          ]
+        }
+      ],
+      "position": 0,
+      "referenceIds": [
+        "ref-apa-1"
+      ]
+    },
+    {
+      "id": "l1.2",
+      "topicId": "t1",
+      "code": "1.2",
+      "title": "Trabajo coordinado",
+      "eyebrow": "Módulo 01 · Lección 02",
+      "body": "Requisitos, versiones y pruebas dejan evidencia.",
+      "content": [
+        {
+          "type": "p",
+          "text": "El trabajo coordinado requiere trazabilidad."
+        }
+      ],
+      "position": 1
+    }
+  ],
+  "evaluations": [
+    {
+      "id": "ev1",
+      "topicId": "t1",
+      "title": "Evaluación: conceptos iniciales",
+      "description": "Proceso y calidad.",
+      "position": 0,
+      "questionIds": [
+        "q1"
+      ],
+      "exerciseIds": [
+        "ord1"
+      ]
+    },
+    {
+      "id": "ev2",
+      "topicId": "t1",
+      "title": "Evaluación: práctica del subtema",
+      "description": "Orden y completar.",
+      "position": 1,
+      "questionIds": [
+        "q2"
+      ],
+      "exerciseIds": [
+        "ord1",
+        "fill1"
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "id": "q1",
+      "evaluationId": "ev1",
+      "type": "mcq",
+      "prompt": "¿Qué se hace primero?",
+      "options": [
+        "Especificar",
+        "Validar"
+      ],
+      "answer": 0,
+      "config": {},
+      "explanation": "Primero se especifica.",
+      "position": 0
+    },
+    {
+      "id": "q2",
+      "evaluationId": "ev2",
+      "type": "fill",
+      "prompt": "Completa la frase",
+      "options": [],
+      "answer": 0,
+      "config": {
+        "sentences": [
+          "El {{requisito}} describe una necesidad."
+        ],
+        "bank": [
+          "requisito",
+          "diseño"
+        ]
+      },
+      "explanation": "El requisito describe la necesidad.",
+      "position": 0
+    }
+  ],
+  "exercises": [
+    {
+      "id": "ord1",
+      "topicId": "t1",
+      "type": "order",
+      "prompt": "Ordena las actividades del proceso",
+      "instructions": "Usa las flechas para ordenar.",
+      "correctOrder": [
+        "Especificar",
+        "Desarrollar",
+        "Validar"
+      ],
+      "config": {},
+      "explanation": "El proceso va de especificación a validación.",
+      "example": {
+        "title": "Actividades del proceso",
+        "steps": [
+          {
+            "text": "Especificar el problema",
+            "why": "Fija el alcance."
+          },
+          {
+            "text": "Validar lo construido",
+            "why": "Confirma lo acordado."
+          }
+        ],
+        "hints": [
+          "Piensa qué ocurre antes de escribir código."
+        ]
+      },
+      "position": 0
+    },
+    {
+      "id": "fill1",
+      "topicId": "t1",
+      "type": "fill",
+      "prompt": "Completa la definición",
+      "instructions": "Toca un espacio y elige una palabra.",
+      "correctOrder": [],
+      "config": {
+        "sentences": [
+          "El {{requisito}} describe una necesidad."
+        ],
+        "bank": [
+          "requisito",
+          "diseño"
+        ]
+      },
+      "explanation": "El requisito describe la necesidad.",
+      "example": null,
+      "position": 1
+    }
+  ],
+  "examples": [
+    {
+      "id": "ex1",
+      "topicId": "t1",
+      "type": "match",
+      "title": "Atributos del buen software",
+      "prompt": "Enlaza cada atributo con su descripción",
+      "config": {
+        "pairs": [
+          {
+            "left": "Mantenimiento",
+            "right": "Puede evolucionar"
+          },
+          {
+            "left": "Eficiencia",
+            "right": "No desperdicia recursos"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "text": "Leer el atributo",
+          "why": "Identifica la propiedad."
+        },
+        {
+          "text": "Buscar su definición",
+          "why": "Cada atributo tiene una consecuencia."
+        }
+      ],
+      "hints": [
+        "Concéntrate en la consecuencia, no en el nombre."
+      ],
+      "explanation": "Cada atributo describe una propiedad distinta.",
+      "position": 0,
+      "referenceIds": [
+        "ref-apa-1"
+      ]
+    },
+    {
+      "id": "ex2",
+      "topicId": "t1",
+      "type": "fill",
+      "title": "Completar la definición",
+      "prompt": "Completa la oración",
+      "config": {
+        "sentences": [
+          "El {{requisito}} describe una necesidad."
+        ],
+        "bank": [
+          "requisito",
+          "diseño"
+        ]
+      },
+      "steps": [
+        {
+          "text": "Leer la oración",
+          "why": "El contexto da la pista."
+        }
+      ],
+      "hints": [],
+      "explanation": "El requisito describe la necesidad.",
+      "position": 1
+    }
+  ],
+  "references": [
+    {
+      "id": "ref-apa-1",
+      "text": "Sommerville, I. (2016). Software Engineering (10.ª ed.). Pearson.",
+      "url": "https://example.org/sommerville"
+    }
+  ],
+  "notices": [
+    {
+      "id": "n1",
+      "title": "Bienvenida",
+      "body": "Revisa el orden de las unidades antes de comenzar.",
+      "publishedAt": "2026-11-05T12:00:00.000Z",
+      "active": true
+    }
+  ]
+}
