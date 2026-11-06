@@ -115,6 +115,15 @@ test("el grupo cubre subtema propio y actividades sobre un subtema del curso", (
   assert.ok(doc.additions.some((addition) => addition.lessonId === "l1.1"));
 });
 
+test("una evaluación puede ser solo de preguntas", () => {
+  const doc = readCourse() as CourseDoc & { hash: string };
+  doc.evaluations[1].exerciseIds = [];
+  const { hash: _hash, ...content } = doc;
+  doc.hash = hashValue(content);
+  const result = validateRelease(doc);
+  if (!result.ok) assert.fail(result.error);
+});
+
 test("rechaza una lección con actividades", () => {
   const doc = readCourse();
   doc.lessons[0].exercises = [];
