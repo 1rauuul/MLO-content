@@ -1,11 +1,13 @@
 import type {
   ActivityType,
   CoreCourse,
+  CoreReference,
   ExerciseConfig,
   ExerciseExample,
   ExerciseStep,
   ExerciseType,
 } from "./model";
+import { normalizedDoi } from "./references";
 
 export type ExerciseInput = {
   type: ExerciseType;
@@ -26,6 +28,8 @@ export type ExampleInput = {
   hints: string[];
   explanation: string;
 };
+
+export type ReferenceInput = Omit<CoreReference, "content_id">;
 
 type Parsed<T> = { value: T } | { error: string };
 type Options = { strict?: boolean; normalize?: boolean };
@@ -305,6 +309,48 @@ export function parseExampleInput(raw: unknown, opts: Options = {}): Parsed<Exam
   };
 }
 
+/**
+ * DEC-07: el docente captura metadatos, no el texto final. El año vacío se
+ * guarda como `null` y se publica como «s. f.».
+ */
+export function parseReferenceInput(raw: unknown): Parsed<ReferenceInput> {
+  if (!isRecord(raw)) return { error: "La referencia tiene formato inválido." };
+
+  let authors: string[] = [];
+  if (raw.authors !== undefined && raw.authors !== null) {
+    if (!Array.isArray(raw.authors)) return { error: "Los autores deben ser una lista." };
+    for (const author of raw.authors) {
+      if (typeof author !== "string") return { error: "Cada autor debe ser texto." };
+    }
+    authors = list(raw.authors).filter(Boolean);
+  }
+  if (authors.length === 0) return { error: "Agrega al menos un autor." };
+
+  const title = text(raw.title);
+  if (!title) return { error: "Escribe el título de la referencia." };
+
+  let year: number | null = null;
+  if (raw.year !== undefined && raw.year !== null && String(raw.year).trim() !== "") {
+    year = Number(raw.year);
+    if (!Number.isInteger(year) || year < 1000 || year > 2999) {
+      return { error: "El año debe ser un entero de cuatro dígitos o quedar vacío." };
+    }
+  }
+
+  const source = text(raw.source);
+  const edition = text(raw.edition);
+  const doi = text(raw.doi);
+  const url = text(raw.url);
+  if (url && !/^https?:\/\/\S+$/i.test(url)) {
+    return { error: "La URL debe empezar por http:// o https://." };
+  }
+  if (doi && !/^10\.\S+\/\S+$/i.test(normalizedDoi(doi))) {
+    return { error: "El DOI debe tener la forma 10.xxxx/número." };
+  }
+
+  return { value: { authors, year, title, source, edition, doi, url } };
+}
+
 function validateBlocks(content: unknown, lessonId: string): void {
   if (!Array.isArray(content)) {
     throw new Error(`Lección ${lessonId}: el contenido no es una lista.`);
@@ -440,6 +486,41 @@ function validateQuestion(question: CoreCourse["questions"][number]): void {
 
 /** Valida todo el catálogo antes de crear un release. */
 export function validateCatalogForPublish(course: CoreCourse): void {
+  const referenceIds = new Set<string>();
+  for (const reference of course.references ?? []) {
+    const parsed = parseReferenceInput(reference);
+    if ("error" in parsed) {
+      throw new Error(`Referencia ${reference.content_id}: ${parsed.error}`);
+    }
+    if (referenceIds.has(reference.content_id)) {
+      throw new Error(`Referencia repetida: ${reference.content_id}`);
+    }
+    referenceIds.add(reference.content_id);
+  }
+
+  const assertLinks = (label: string, ids: string[] | undefined): void => {
+    for (const id of ids ?? []) {
+      if (!referenceIds.has(id)) {
+        throw new Error(`${label}: referencia inexistente (${id}).`);
+      }
+    }
+  };
+  for (const lesson of course.lessons) {
+    assertLinks(`Lección ${lesson.content_id}`, lesson.reference_content_ids);
+  }
+  for (const evaluation of course.evaluations) {
+    assertLinks(`Evaluación ${evaluation.content_id}`, evaluation.reference_content_ids);
+  }
+  for (const question of course.questions) {
+    assertLinks(`Pregunta ${question.content_id}`, question.reference_content_ids);
+  }
+  for (const exercise of course.exercises) {
+    assertLinks(`Ejercicio ${exercise.content_id}`, exercise.reference_content_ids);
+  }
+  for (const example of course.examples) {
+    assertLinks(`Ejemplo ${example.content_id}`, example.reference_content_ids);
+  }
+
   for (const lesson of course.lessons) {
     validateBlocks(lesson.content, lesson.content_id);
   }

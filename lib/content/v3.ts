@@ -1,7 +1,7 @@
 import type { ReleaseV3 } from "./contract-v3";
 import { hashValue } from "./hash";
 import type { CoreCourse, CoreQuestion, CoreTopic } from "./model";
-import { publishedId } from "./serialize";
+import { publishedId, serializeReference, type PublishedReference } from "./serialize";
 
 export type CourseStatus = "draft" | "published" | "unpublished";
 
@@ -84,6 +84,34 @@ export type V3ReleaseInput = {
 export function buildV3Release(input: V3ReleaseInput): ReleaseV3 {
   const itemId = (contentId: string) => publishedId(input.catalogId, contentId);
   const course = input.course;
+
+  // Solo se publican las referencias adjuntas a elementos incluidos. La
+  // deduplicación conserva la primera aparición y rechaza textos divergentes.
+  const referencesById = new Map(
+    (course.references ?? []).map((reference) => [reference.content_id, reference]),
+  );
+  const publishedReferences = new Map<string, PublishedReference>();
+  const referenceIds = (contentIds: string[] | undefined): string[] => {
+    const ids: string[] = [];
+    for (const contentId of contentIds ?? []) {
+      const reference = referencesById.get(contentId);
+      if (!reference) throw new Error(`Referencia inexistente: ${contentId}`);
+      const serialized = serializeReference(input.catalogId, reference);
+      const existing = publishedReferences.get(serialized.id);
+      if (!existing) publishedReferences.set(serialized.id, serialized);
+      else if (existing.text !== serialized.text || existing.url !== serialized.url) {
+        throw new Error(`Referencia repetida con contenido distinto: ${serialized.id}`);
+      }
+      if (!ids.includes(serialized.id)) ids.push(serialized.id);
+    }
+    return ids;
+  };
+  const withReferenceIds = (
+    contentIds: string[] | undefined,
+  ): { referenceIds?: string[] } => {
+    const ids = referenceIds(contentIds);
+    return ids.length > 0 ? { referenceIds: ids } : {};
+  };
 
   const units = [...course.units].sort(
     (left, right) =>
@@ -186,6 +214,7 @@ export function buildV3Release(input: V3ReleaseInput): ReleaseV3 {
       body: lesson.body,
       content: lesson.content,
       position: lesson.position,
+      ...withReferenceIds(lesson.reference_content_ids),
     })),
     evaluations: evaluations.map((evaluation) => ({
       id: itemId(evaluation.content_id),
@@ -197,6 +226,7 @@ export function buildV3Release(input: V3ReleaseInput): ReleaseV3 {
         itemId(question.content_id),
       ),
       exerciseIds: (evaluation.exercise_content_ids ?? []).map(itemId),
+      ...withReferenceIds(evaluation.reference_content_ids),
     })),
     questions: questions.map((question) => ({
       id: itemId(question.content_id),
@@ -208,6 +238,7 @@ export function buildV3Release(input: V3ReleaseInput): ReleaseV3 {
       config: question.config,
       explanation: question.explanation,
       position: question.position,
+      ...withReferenceIds(question.reference_content_ids),
     })),
     exercises: exercises.map((exercise) => ({
       id: itemId(exercise.content_id),
@@ -220,6 +251,7 @@ export function buildV3Release(input: V3ReleaseInput): ReleaseV3 {
       explanation: exercise.explanation,
       example: exercise.example ?? null,
       position: exercise.position,
+      ...withReferenceIds(exercise.reference_content_ids),
     })),
     examples: examples.map((example) => ({
       id: itemId(example.content_id),
@@ -232,8 +264,9 @@ export function buildV3Release(input: V3ReleaseInput): ReleaseV3 {
       hints: example.hints,
       explanation: example.explanation,
       position: example.position,
+      ...withReferenceIds(example.reference_content_ids),
     })),
-    references: [],
+    references: [...publishedReferences.values()],
     notices: [],
   };
 

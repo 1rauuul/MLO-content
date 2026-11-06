@@ -1,0 +1,160 @@
+{
+  "schemaVersion": 3,
+  "kind": "course",
+  "catalogId": "demo",
+  "courseId": "course-x05",
+  "releaseId": "demo-1",
+  "version": 1,
+  "publishedAt": "2026-11-06T00:00:00.000Z",
+  "baseRef": null,
+  "course": {
+    "title": "Curso X-05 (bibliografía)",
+    "description": "Fixture X-05",
+    "visibility": "published"
+  },
+  "units": [
+    {
+      "id": "demo-u1",
+      "number": 1,
+      "title": "Fundamentos",
+      "description": "Unidad de ejemplo.",
+      "difficulty": "Fundamental",
+      "color": "blue",
+      "position": 0
+    }
+  ],
+  "topics": [
+    {
+      "id": "demo-t1",
+      "unitId": "demo-u1",
+      "title": "Ingeniería de software",
+      "summary": "Lectura, actividades y evaluación con bibliografía.",
+      "position": 0
+    }
+  ],
+  "lessons": [
+    {
+      "id": "demo-l1.1",
+      "topicId": "demo-t1",
+      "code": "1.1",
+      "title": "Lectura con bibliografía",
+      "eyebrow": "Módulo 01 · Lección 01",
+      "body": "Contenido de lectura.",
+      "content": [
+        {
+          "type": "p",
+          "text": "Párrafo con una referencia."
+        }
+      ],
+      "position": 0,
+      "referenceIds": [
+        "demo-ref-apa-1"
+      ]
+    }
+  ],
+  "evaluations": [
+    {
+      "id": "demo-ev1",
+      "topicId": "demo-t1",
+      "title": "Evaluación con bibliografía",
+      "description": "",
+      "position": 0,
+      "questionIds": [
+        "demo-q1"
+      ],
+      "exerciseIds": [
+        "demo-ord1"
+      ],
+      "referenceIds": [
+        "demo-ref-apa-2"
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "id": "demo-q1",
+      "evaluationId": "demo-ev1",
+      "type": "mcq",
+      "prompt": "¿Qué documento describe el proceso?",
+      "options": [
+        "Libro",
+        "Fotografía"
+      ],
+      "answer": 0,
+      "config": {},
+      "explanation": "",
+      "position": 0,
+      "referenceIds": [
+        "demo-ref-apa-1"
+      ]
+    }
+  ],
+  "exercises": [
+    {
+      "id": "demo-ord1",
+      "topicId": "demo-t1",
+      "type": "order",
+      "prompt": "Ordena las etapas",
+      "instructions": "",
+      "correctOrder": [
+        "Especificar",
+        "Desarrollar",
+        "Validar"
+      ],
+      "config": {},
+      "explanation": "",
+      "example": null,
+      "position": 0,
+      "referenceIds": [
+        "demo-ref-apa-1"
+      ]
+    }
+  ],
+  "examples": [
+    {
+      "id": "demo-ex1",
+      "topicId": "demo-t1",
+      "type": "match",
+      "title": "Relaciona conceptos",
+      "prompt": "Relaciona cada concepto",
+      "config": {
+        "pairs": [
+          {
+            "left": "Requisito",
+            "right": "Necesidad"
+          },
+          {
+            "left": "Diseño",
+            "right": "Solución"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "text": "Leer",
+          "why": "Activa el conocimiento."
+        }
+      ],
+      "hints": [],
+      "explanation": "",
+      "position": 0,
+      "referenceIds": [
+        "demo-ref-apa-2"
+      ]
+    }
+  ],
+  "references": [
+    {
+      "id": "demo-ref-apa-1",
+      "text": "Sommerville, I. (2016). Software Engineering (10.ª ed.). Pearson. https://doi.org/10.1000/182",
+      "url": "https://doi.org/10.1000/182"
+    },
+    {
+      "id": "demo-ref-apa-2",
+      "text": "Pressman, R. S., & Maxim, B. R. (s. f.). Software Engineering: A Practitioner's Approach. McGraw-Hill. https://example.org/pressman",
+      "url": "https://example.org/pressman"
+    }
+  ],
+  "notices": [],
+  "hash": "c1b8bf30ac16168b4b5e036175ddb61bc14a1bebd0a36b5992e4a3f01b650255"
+}

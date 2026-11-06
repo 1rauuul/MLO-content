@@ -340,9 +340,13 @@ El ejemplo cuelga del subtema. No admite `lessonId`.
 | `url` | string | No | Dato textual, no multimedia. |
 
 `referenceIds` en lecciones, actividades y evaluaciones debe resolver a una
-referencia del release. La política de a qué elementos se adjuntan y cómo se
-deduplican sigue abierta en DEC-07; v3 permite adjuntarlas a lección, evaluación,
-pregunta, ejercicio y ejemplo sin fijar aún la política de producto.
+referencia del release. DEC-07: el CMS guarda autores, año, título, fuente,
+edición, DOI y URL, y genera el texto APA 7 al publicar; el contrato solo
+transporta `{id, text, url?}`. Las referencias se adjuntan a lección, evaluación,
+pregunta, ejercicio y ejemplo; solo se publican las de elementos visibles y el
+consumidor deduplica por `id` conservando la primera. La ausencia de año se
+publica como «s. f.». Fixture de productor:
+[`fixtures/x05/`](./fixtures/x05/README.md).
 
 ### 3.10 Aviso
 
@@ -762,7 +766,7 @@ ef7ef257fa0b898c5c8d54d161426780aa4e80b7036c544ed3befbfb0d85ce8b
   en X-04. Si hace falta sincronización incremental, evaluar el `topic.hash`
   opcional aditivo.
 - **DEC-05:** implementada en X-02 (sección 13).
-- **DEC-07:** alcance de referencias y deduplicación.
+- **DEC-07:** implementada en X-05; la forma del contrato no cambió.
 - **DEC-09:** transporte de avisos.
 - **X-03:** migración de datos con sub-temas, re-parentado de actividades y
   evaluación por subtema.

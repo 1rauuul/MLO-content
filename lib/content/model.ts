@@ -5,6 +5,18 @@ export type UnitColor = "blue" | "violet" | "green";
 export type ExerciseType = "order" | "fill" | "match" | "crossword";
 export type ActivityType = ExerciseType | "mcq";
 
+/** DEC-07: metadatos editables; el texto APA 7 se genera al publicar. */
+export type CoreReference = {
+  content_id: string;
+  authors: string[];
+  year: number | null;
+  title: string;
+  source: string;
+  edition: string;
+  doi: string;
+  url: string;
+};
+
 export type ExerciseStep = { text: string; why: string };
 
 export type ExerciseExample = {
@@ -63,6 +75,7 @@ export type CoreLesson = {
   synthesis: string[];
   content: ContentBlock[];
   position: number;
+  reference_content_ids?: string[];
 };
 
 export type CoreEvaluation = {
@@ -75,6 +88,7 @@ export type CoreEvaluation = {
   exercise_count: number;
   position?: number;
   exercise_content_ids?: string[];
+  reference_content_ids?: string[];
 };
 
 export type CoreExercise = {
@@ -89,6 +103,7 @@ export type CoreExercise = {
   explanation: string;
   example: ExerciseExample | null;
   position: number;
+  reference_content_ids?: string[];
 };
 
 export type CoreExample = {
@@ -103,6 +118,7 @@ export type CoreExample = {
   hints: string[];
   explanation: string;
   position: number;
+  reference_content_ids?: string[];
 };
 
 export type CoreQuestion = {
@@ -115,6 +131,7 @@ export type CoreQuestion = {
   config: ExerciseConfig;
   explanation: string;
   position: number;
+  reference_content_ids?: string[];
 };
 
 /** Archivo que produce `scripts/export-base.ts` en el repo de MLO. */
@@ -128,4 +145,5 @@ export type CoreCourse = {
   exercises: CoreExercise[];
   examples: CoreExample[];
   questions: CoreQuestion[];
+  references?: CoreReference[];
 };

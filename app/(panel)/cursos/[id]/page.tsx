@@ -119,6 +119,12 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
             {course.uses_base ? "Con contenido base" : "Sin contenido base"}
           </span>
           {!canEdit && <span className="badge badge-warning">Solo lectura</span>}
+          <Link
+            href={`/cursos/${course.id}/referencias`}
+            className="btn btn-secondary btn-sm"
+          >
+            Referencias
+          </Link>
           {canEdit && !course.is_group && course.status === "published" && (
             <form action={unpublish} className="ml-auto">
               <input type="hidden" name="courseId" value={course.id} />

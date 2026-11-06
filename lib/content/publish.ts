@@ -14,6 +14,7 @@ import type {
   CoreExercise,
   CoreLesson,
   CoreQuestion,
+  CoreReference,
   CoreTopic,
   CoreUnit,
 } from "./model";
@@ -110,6 +111,60 @@ export async function publishCourse(teacher: Teacher, course: Course): Promise<P
          and e.archived_at is null
          and x.archived_at is null
        order by e.content_id, x.position, x.content_id`;
+    const references = await tx<CoreReference[]>`
+      select content_id, authors, year, title, source, edition, doi, url
+        from content_references
+       where course_id in ${tx(sourceIds)} and archived_at is null
+       order by content_id`;
+    const referenceLinks = await tx<
+      { kind: string; element_content_id: string; reference_content_id: string }[]
+    >`
+      select 'lesson' as kind, l.content_id as element_content_id,
+             r.content_id as reference_content_id
+        from lesson_references lr
+        join content_references r on r.id = lr.reference_id
+        join lessons l on l.id = lr.lesson_id
+       where l.course_id in ${tx(sourceIds)} and l.archived_at is null
+         and r.archived_at is null
+      union all
+      select 'evaluation', e.content_id, r.content_id
+        from evaluation_references er
+        join content_references r on r.id = er.reference_id
+        join evaluations e on e.id = er.evaluation_id
+       where e.course_id in ${tx(sourceIds)} and e.archived_at is null
+         and r.archived_at is null
+      union all
+      select 'question', q.content_id, r.content_id
+        from question_references qr
+        join content_references r on r.id = qr.reference_id
+        join questions q on q.id = qr.question_id
+        join evaluations e on e.id = q.evaluation_id
+       where q.course_id in ${tx(sourceIds)} and q.archived_at is null
+         and e.archived_at is null and r.archived_at is null
+      union all
+      select 'exercise', x.content_id, r.content_id
+        from exercise_references xr
+        join content_references r on r.id = xr.reference_id
+        join exercises x on x.id = xr.exercise_id
+       where x.course_id in ${tx(sourceIds)} and x.archived_at is null
+         and r.archived_at is null
+      union all
+      select 'example', x.content_id, r.content_id
+        from example_references xr
+        join content_references r on r.id = xr.reference_id
+        join examples x on x.id = xr.example_id
+       where x.course_id in ${tx(sourceIds)} and x.archived_at is null
+         and r.archived_at is null
+      order by 1, 2, 3`;
+    const referenceIdsByElement = new Map<string, string[]>();
+    for (const row of referenceLinks) {
+      const key = `${row.kind}:${row.element_content_id}`;
+      const list = referenceIdsByElement.get(key) ?? [];
+      list.push(row.reference_content_id);
+      referenceIdsByElement.set(key, list);
+    }
+    const elementReferences = (kind: string, contentId: string): string[] =>
+      referenceIdsByElement.get(`${kind}:${contentId}`) ?? [];
 
     // Las columnas de referencia guardan UUID; la composición usa content_id.
     const unitKeyById = new Map(
@@ -162,6 +217,7 @@ export async function publishCourse(teacher: Teacher, course: Course): Promise<P
       synthesis: lesson.synthesis,
       content: lesson.content,
       position: lesson.position,
+      reference_content_ids: elementReferences("lesson", lesson.content_id),
     }));
     const mappedEvaluations: CoreEvaluation[] = evaluations.map((evaluation) => ({
       content_id: evaluation.content_id,
@@ -174,6 +230,7 @@ export async function publishCourse(teacher: Teacher, course: Course): Promise<P
       exercise_count: evaluation.exercise_count,
       position: evaluation.position ?? 0,
       exercise_content_ids: exercisesByEvaluation.get(evaluation.content_id) ?? [],
+      reference_content_ids: elementReferences("evaluation", evaluation.content_id),
     }));
     const mappedExercises: CoreExercise[] = exercises.map((exercise) => ({
       content_id: exercise.content_id,
@@ -188,6 +245,7 @@ export async function publishCourse(teacher: Teacher, course: Course): Promise<P
       explanation: exercise.explanation,
       example: exercise.example,
       position: exercise.position,
+      reference_content_ids: elementReferences("exercise", exercise.content_id),
     }));
     const mappedExamples: CoreExample[] = examples.map((example) => ({
       content_id: example.content_id,
@@ -202,6 +260,12 @@ export async function publishCourse(teacher: Teacher, course: Course): Promise<P
       hints: example.hints,
       explanation: example.explanation,
       position: example.position,
+      reference_content_ids: elementReferences("example", example.content_id),
+    }));
+
+    const mappedQuestions: CoreQuestion[] = questions.map((question) => ({
+      ...question,
+      reference_content_ids: elementReferences("question", question.content_id),
     }));
 
     // v2 mantiene una evaluación primaria por lección (menor position, luego id).
@@ -217,14 +281,15 @@ export async function publishCourse(teacher: Teacher, course: Course): Promise<P
       evaluations: v2Evaluations,
       exercises: mappedExercises,
       examples: mappedExamples,
-      questions: questions.filter((question) =>
+      questions: mappedQuestions.filter((question) =>
         v2EvaluationIds.has(question.evaluation_content_id),
       ),
+      references,
     };
     const v3Source: CoreCourse = {
       ...source,
       evaluations: mappedEvaluations,
-      questions,
+      questions: mappedQuestions,
     };
 
     // Una sola secuencia de versiones para v2 y v3; así el release v3 puede
@@ -259,6 +324,7 @@ export async function publishCourse(teacher: Teacher, course: Course): Promise<P
       v2Hash = manifest.hash;
     }
 
+    validateCatalogForPublish(v3Source);
     const release = buildV3Release({
       catalogId: current.key,
       courseId: course.id,

@@ -14,6 +14,7 @@ import {
 import { canJoinGroup, groupVisibility, buildGroupRelease } from "./content/group-release";
 import { isUniqueViolation } from "./content/x03";
 import { validateRelease } from "./content/contract-v3";
+import { validateCatalogForPublish } from "./content/validate";
 import type {
   CoreCourse,
   CoreEvaluation,
@@ -21,6 +22,7 @@ import type {
   CoreExercise,
   CoreLesson,
   CoreQuestion,
+  CoreReference,
   CoreTopic,
   CoreUnit,
 } from "./content/model";
@@ -632,6 +634,60 @@ export async function publishClassRelease(
        where e.course_id = ${contentCourseId} and e.archived_at is null
          and x.archived_at is null
        order by e.content_id, x.position, x.content_id`;
+    const references = await tx<CoreReference[]>`
+      select content_id, authors, year, title, source, edition, doi, url
+        from content_references
+       where course_id = ${contentCourseId} and archived_at is null
+       order by content_id`;
+    const referenceLinks = await tx<
+      { kind: string; element_content_id: string; reference_content_id: string }[]
+    >`
+      select 'lesson' as kind, l.content_id as element_content_id,
+             r.content_id as reference_content_id
+        from lesson_references lr
+        join content_references r on r.id = lr.reference_id
+        join lessons l on l.id = lr.lesson_id
+       where l.course_id = ${contentCourseId} and l.archived_at is null
+         and r.archived_at is null
+      union all
+      select 'evaluation', e.content_id, r.content_id
+        from evaluation_references er
+        join content_references r on r.id = er.reference_id
+        join evaluations e on e.id = er.evaluation_id
+       where e.course_id = ${contentCourseId} and e.archived_at is null
+         and r.archived_at is null
+      union all
+      select 'question', q.content_id, r.content_id
+        from question_references qr
+        join content_references r on r.id = qr.reference_id
+        join questions q on q.id = qr.question_id
+        join evaluations e on e.id = q.evaluation_id
+       where q.course_id = ${contentCourseId} and q.archived_at is null
+         and e.archived_at is null and r.archived_at is null
+      union all
+      select 'exercise', x.content_id, r.content_id
+        from exercise_references xr
+        join content_references r on r.id = xr.reference_id
+        join exercises x on x.id = xr.exercise_id
+       where x.course_id = ${contentCourseId} and x.archived_at is null
+         and r.archived_at is null
+      union all
+      select 'example', x.content_id, r.content_id
+        from example_references xr
+        join content_references r on r.id = xr.reference_id
+        join examples x on x.id = xr.example_id
+       where x.course_id = ${contentCourseId} and x.archived_at is null
+         and r.archived_at is null
+      order by 1, 2, 3`;
+    const referenceIdsByElement = new Map<string, string[]>();
+    for (const row of referenceLinks) {
+      const key = `${row.kind}:${row.element_content_id}`;
+      const list = referenceIdsByElement.get(key) ?? [];
+      list.push(row.reference_content_id);
+      referenceIdsByElement.set(key, list);
+    }
+    const elementReferences = (kind: string, contentId: string): string[] =>
+      referenceIdsByElement.get(`${kind}:${contentId}`) ?? [];
 
     const unitKey = new Map(
       (
@@ -683,6 +739,7 @@ export async function publishClassRelease(
         synthesis: lesson.synthesis,
         content: lesson.content,
         position: lesson.position,
+        reference_content_ids: elementReferences("lesson", lesson.content_id),
       })),
       exercises: exercises.map((exercise) => ({
         content_id: exercise.content_id,
@@ -696,6 +753,7 @@ export async function publishClassRelease(
         explanation: exercise.explanation,
         example: exercise.example,
         position: exercise.position,
+        reference_content_ids: elementReferences("exercise", exercise.content_id),
       })),
       examples: examples.map((example) => ({
         content_id: example.content_id,
@@ -709,6 +767,7 @@ export async function publishClassRelease(
         hints: example.hints,
         explanation: example.explanation,
         position: example.position,
+        reference_content_ids: elementReferences("example", example.content_id),
       })),
       evaluations: evaluations.map((evaluation) => ({
         content_id: evaluation.content_id,
@@ -720,8 +779,13 @@ export async function publishClassRelease(
         exercise_count: evaluation.exercise_count,
         position: evaluation.position ?? 0,
         exercise_content_ids: evalExercises.get(evaluation.content_id) ?? [],
+        reference_content_ids: elementReferences("evaluation", evaluation.content_id),
       })),
-      questions,
+      questions: questions.map((question) => ({
+        ...question,
+        reference_content_ids: elementReferences("question", question.content_id),
+      })),
+      references,
     };
 
     const additionsByLesson = new Map<string, ContentBlock[]>();
@@ -790,6 +854,7 @@ export async function publishClassRelease(
       select coalesce(max(version), 0) + 1 as version
         from class_releases_v3
        where class_id = ${classId}`;
+    validateCatalogForPublish(own);
     const release = buildGroupRelease({
       catalogId: parent.key,
       groupId: klass.id,

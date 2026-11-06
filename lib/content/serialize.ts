@@ -4,6 +4,7 @@ import type {
   CoreExercise,
   CoreLesson,
   CoreQuestion,
+  CoreReference,
   CoreUnit,
   Difficulty,
   ExerciseExample,
@@ -11,6 +12,7 @@ import type {
   UnitColor,
   ActivityType,
 } from "./model";
+import { apa7Text, referenceUrl } from "./references";
 
 export type PublishedUnit = {
   id: string;
@@ -78,6 +80,25 @@ export type PublishedQuestion = {
   answer: number;
   explanation: string;
 };
+
+/** DEC-07: el contrato v3 solo recibe texto APA 7 y un enlace opcional. */
+export type PublishedReference = {
+  id: string;
+  text: string;
+  url?: string;
+};
+
+export function serializeReference(
+  catalogId: string,
+  reference: CoreReference,
+): PublishedReference {
+  const url = referenceUrl(reference);
+  return {
+    id: publishedId(catalogId, reference.content_id),
+    text: apa7Text(reference),
+    ...(url ? { url } : {}),
+  };
+}
 
 export type PublishedLessonPayload = {
   schemaVersion: 2;

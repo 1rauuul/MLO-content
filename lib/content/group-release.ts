@@ -97,7 +97,7 @@ export function buildGroupRelease(input: GroupReleaseInput): ReleaseV3 {
       lessonId: publishedId(input.catalogId, addition.lessonContentId),
       blocks: addition.blocks,
     })),
-    references: [],
+    references: own.references,
     notices: [],
   };
 
