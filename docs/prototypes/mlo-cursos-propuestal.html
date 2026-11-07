@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Propuesta MLO · Cursos creados desde CMS</title>
+    <style>
+      :root {
+        --bg: #f5f7fb;
+        --surface: #fff;
+        --card: #fff;
+        --text: #172033;
+        --muted: #617086;
+        --line: #dce3ed;
+        --primary: #315fec;
+        --success: #138a63;
+        --warning: #b98225;
+        --danger: #c43d4b;
+        --soft: #e9eff9;
+        --on-primary: #fff;
+        --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      * { box-sizing: border-box; }
+      body { margin: 0; background: #e9eef7; color: var(--text); font-family: var(--sans); }
+      .presentation { max-width: 1540px; margin: 0 auto; padding: 48px 28px 64px; }
+      .eyebrow { color: var(--primary); font: 700 10px/1.25 var(--mono); letter-spacing: 1.1px; text-transform: uppercase; }
+      h1 { margin: 9px 0 10px; font-size: clamp(30px, 4vw, 48px); letter-spacing: -1.8px; line-height: 1.05; }
+      .intro { max-width: 750px; margin: 0; color: var(--muted); font-size: 16px; line-height: 1.55; }
+      .notice { margin: 26px 0 38px; max-width: 920px; padding: 14px 16px; border: 1px solid #bfd0ff; border-radius: 14px; background: #f4f7ff; color: #314d99; font-size: 14px; line-height: 1.45; }
+      .flow { display: flex; flex-wrap: wrap; gap: 8px; margin: -18px 0 30px; }
+      .flow button { border: 1px solid #c7d3ef; border-radius: 999px; padding: 8px 11px; background: #fff; color: #315fec; font: 700 12px var(--sans); cursor: pointer; }
+      .flow button:hover { border-color: var(--primary); background: #f4f7ff; }
+      .screens { display: grid; grid-template-columns: repeat(auto-fit, minmax(286px, 1fr)); gap: 34px; align-items: start; }
+      .screen-wrap { display: grid; justify-items: center; gap: 12px; }
+      .caption { width: 100%; max-width: 365px; color: var(--muted); font-size: 13px; line-height: 1.42; }
+      .caption strong { color: var(--text); }
+      .phone { position: relative; width: min(100%, 365px); height: 748px; overflow: hidden; border: 10px solid #172033; border-radius: 42px; background: var(--bg); box-shadow: 0 28px 54px rgb(23 32 51 / 20%); }
+      .speaker { position: absolute; z-index: 3; top: 10px; left: 50%; width: 98px; height: 22px; transform: translateX(-50%); border-radius: 0 0 15px 15px; background: #172033; }
+      .status { display: flex; justify-content: space-between; padding: 14px 22px 7px; font-size: 10px; font-weight: 700; }
+      .content { height: calc(100% - 26px); overflow: hidden; padding: 19px 18px 86px; }
+      .top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+      .avatar { display: grid; width: 42px; height: 42px; place-items: center; border-radius: 50%; background: var(--soft); color: var(--primary); font: 700 13px var(--mono); }
+      .title { margin: 4px 0 0; font-size: 27px; line-height: 1.04; letter-spacing: -1px; }
+      .back { display: grid; width: 34px; height: 34px; place-items: center; border: 1px solid var(--line); border-radius: 12px; color: var(--text); font-size: 21px; }
+      .subtle { margin: 6px 0 0; color: var(--muted); font-size: 12px; line-height: 1.45; }
+      .hero { position: relative; margin: 20px 0 22px; min-height: 157px; padding: 19px; overflow: hidden; border-radius: 20px; background: var(--primary); color: #fff; }
+      .hero .eyebrow { color: #dce6ff; }
+      .hero h3 { max-width: 230px; margin: 8px 0 7px; font-size: 21px; line-height: 1.09; letter-spacing: -.5px; }
+      .hero p { margin: 0; color: #e6ecff; font-size: 12px; }
+      .round-action { position: absolute; right: 16px; bottom: 16px; display: grid; width: 40px; height: 40px; place-items: center; border-radius: 999px; background: #fff; color: var(--primary); font-size: 22px; }
+      .section { display: flex; align-items: end; justify-content: space-between; margin: 18px 0 10px; }
+      .section h2 { margin: 3px 0 0; font-size: 19px; letter-spacing: -.4px; }
+      .section .count { color: var(--muted); font: 700 12px var(--mono); }
+      .course-card, .unit, .lesson-card, .status-card { border: 1px solid var(--line); border-radius: 16px; background: var(--card); }
+      .course-card { display: grid; grid-template-columns: 40px 1fr 20px; gap: 11px; align-items: center; padding: 13px; margin-top: 9px; }
+      .course-icon { display: grid; width: 40px; height: 40px; place-items: center; border-radius: 14px; background: #e8edff; color: var(--primary); font-weight: 800; }
+      .course-card h3, .lesson-card h3 { margin: 0; font-size: 13px; line-height: 1.25; }
+      .course-card p, .lesson-card p { margin: 3px 0 0; color: var(--muted); font-size: 11px; }
+      .chev { color: var(--muted); font-size: 20px; }
+      .join { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: 14px; padding: 11px; border: 1px solid var(--line); border-radius: 14px; color: var(--primary); background: var(--card); font-size: 13px; font-weight: 700; }
+      button.join { cursor: pointer; font-family: inherit; }
+      .flow-action { cursor: pointer; transition: transform .18s ease, box-shadow .18s ease; }
+      .flow-action:hover { transform: translateY(-2px); box-shadow: 0 7px 18px rgb(23 32 51 / 10%); }
+      .tabbar { position: absolute; right: 0; bottom: 0; left: 0; display: flex; justify-content: space-around; padding: 10px 20px 14px; border-top: 1px solid var(--line); background: var(--surface); color: var(--muted); font-size: 10px; text-align: center; }
+      .tabbar span:first-child { color: var(--primary); font-weight: 800; }
+      .tabbar b { display: block; margin-bottom: 3px; font-size: 17px; font-weight: 500; }
+      .sheet { position: absolute; right: 0; bottom: 0; left: 0; z-index: 3; padding: 17px 18px 22px; border-radius: 24px 24px 0 0; background: #fff; box-shadow: 0 -18px 45px rgb(23 32 51 / 18%); }
+      .handle { width: 36px; height: 4px; margin: 0 auto 15px; border-radius: 9px; background: var(--line); }
+      .sheet h2 { margin: 0 0 5px; font-size: 20px; letter-spacing: -.4px; }
+      .field { margin: 16px 0 10px; padding: 12px; border: 1px solid var(--line); border-radius: 14px; color: var(--muted); font: 13px var(--mono); letter-spacing: 1px; }
+      .button { width: 100%; padding: 12px; border-radius: 14px; background: var(--primary); color: #fff; text-align: center; font-size: 13px; font-weight: 700; }
+      .course-banner { margin: 18px 0; padding: 15px; border: 1px solid #bfd0ff; border-radius: 16px; background: #f3f6ff; }
+      .course-banner h3 { margin: 4px 0; font-size: 15px; }
+      .unit { margin-top: 10px; overflow: hidden; }
+      .unit-head { display: flex; gap: 11px; padding: 13px; }
+      .unit-number { display: grid; width: 32px; height: 32px; flex: 0 0 auto; place-items: center; border-radius: 12px; background: var(--primary); color: #fff; font: 700 12px var(--mono); }
+      .unit h3 { margin: 0; font-size: 14px; }
+      .unit p { margin: 3px 0 0; color: var(--muted); font-size: 11px; }
+      .topic { display: flex; align-items: center; justify-content: space-between; padding: 11px 13px; border-top: 1px solid var(--line); font-size: 12px; }
+      .topic code { padding: 4px 6px; border-radius: 7px; background: var(--soft); color: var(--primary); font: 700 10px var(--mono); }
+      .status-card { display: flex; gap: 10px; align-items: center; margin: 17px 0; padding: 12px; font-size: 13px; font-weight: 650; }
+      .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--primary); }
+      .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+      .tile { min-height: 124px; padding: 14px; border: 1px solid var(--line); border-radius: 16px; background: var(--card); }
+      .tile i { display: grid; width: 35px; height: 35px; place-items: center; border-radius: 12px; background: var(--soft); color: var(--primary); font-style: normal; font-size: 18px; }
+      .tile:nth-child(2) i { background: #e6f7f0; color: var(--success); }
+      .tile:nth-child(3) i { background: #fff5df; color: var(--warning); }
+      .tile:nth-child(4) i { background: #ffeaec; color: var(--danger); }
+      .tile h3 { margin: 15px 0 2px; font-size: 14px; }
+      .tile p { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.35; }
+      .progress { height: 4px; margin: 15px 0; overflow: hidden; border-radius: 99px; background: var(--soft); }
+      .progress b { display: block; width: 50%; height: 100%; background: var(--primary); }
+      .pill-tabs { display: flex; gap: 7px; margin: 13px 0 15px; }
+      .pill { flex: 1; padding: 9px 3px; border: 1px solid var(--line); border-radius: 12px; background: #fff; color: var(--muted); font-size: 11px; font-weight: 650; text-align: center; }
+      .pill.active { border-color: var(--primary); background: var(--primary); color: #fff; }
+      .reading { padding: 18px; border: 1px solid var(--line); border-radius: 16px; background: var(--card); }
+      .reading h2 { margin: 5px 0 12px; font-size: 23px; line-height: 1.1; letter-spacing: -.8px; }
+      .reading p { margin: 0; color: #344155; font-size: 13px; line-height: 1.6; }
+      .reading .note { margin-top: 14px; padding: 12px; border-radius: 12px; background: var(--soft); color: #40516e; font-size: 12px; line-height: 1.45; }
+      .example-state { display: none; margin-top: 12px; padding: 12px; border: 1px solid #bde7d5; border-radius: 12px; background: #f1fbf6; color: #176d51; font-size: 12px; line-height: 1.45; }
+      .example-state.show { display: block; }
+      .footer-actions { display: flex; gap: 9px; margin-top: 15px; }
+      .secondary, .primary { flex: 1; padding: 11px 5px; border-radius: 13px; font-size: 12px; font-weight: 700; text-align: center; }
+      button.secondary, button.primary { border: 0; cursor: pointer; font-family: inherit; }
+      .secondary { border: 1px solid var(--line); background: #fff; color: var(--text); }
+      .primary { background: var(--primary); color: #fff; }
+      @media (max-width: 620px) { .presentation { padding: 30px 16px 44px; } .screens { gap: 40px; } }
+    </style>
+  </head>
+  <body>
+    <main class="presentation">
+      <div class="eyebrow">Propuesta de producto · no es implementación</div>
+      <h1>MLO con cursos creados desde el CMS</h1>
+      <p class="intro">Estas pantallas muestran el recorrido propuesto para un alumno que se une a una clase cuyo curso fue creado desde cero. Conservan la paleta, espaciado, tarjetas, tipografía y navegación de MLO actual.</p>
+      <div class="notice"><strong>Alcance:</strong> este archivo es una pieza de presentación y revisión. No modifica el APK ni el código de MLO; la implementación solo se iniciará después del visto bueno sobre la propuesta.</div>
+      <nav class="flow" aria-label="Recorrido de la propuesta">
+        <button data-go="mis-cursos">1 · Mis cursos</button><button data-go="unirse">2 · Unirse</button><button data-go="curso">3 · Curso</button><button data-go="subtema">4 · Subtema</button><button data-go="leccion">5 · Lección</button>
+      </nav>
+
+      <section class="screens" aria-label="Pantallas propuestas de MLO">
+        <article class="screen-wrap" id="mis-cursos">
+          <div class="phone">
+            <div class="speaker"></div><div class="status"><span>9:41</span><span>● ● ●  ▰</span></div>
+            <div class="content">
+              <div class="top"><div><div class="eyebrow">Martes, 4 de noviembre</div><h2 class="title">Hola, Ana</h2></div><div class="avatar">AR</div></div>
+              <div class="hero"><div class="eyebrow">Continúa donde lo dejaste</div><h3>Unidad 1<br />Principios de UX</h3><p>1 de 4 subtemas · 25%</p><div class="round-action">›</div></div>
+              <div class="section"><div><div class="eyebrow">Tu biblioteca</div><h2>Mis cursos</h2></div><div class="count">02</div></div>
+              <div class="course-card flow-action" data-go="curso"><div class="course-icon">UX</div><div><h3>Diseño de experiencias</h3><p>Clase · UX2026 · 25%</p></div><div class="chev">›</div></div>
+              <div class="course-card"><div class="course-icon" style="background:#e6f7f0;color:#138a63">IS</div><div><h3>Ingeniería de software</h3><p>Curso disponible · 0%</p></div><div class="chev">›</div></div>
+              <button class="join flow-action" data-go="unirse">＋ Unirme a una clase</button>
+            </div>
+            <div class="tabbar"><span><b>⌂</b>Cursos</span><span><b>◉</b>Progreso</span><span><b>♙</b>Perfil</span></div>
+          </div>
+          <p class="caption"><strong>01 · Mis cursos.</strong> Nueva pantalla de entrada: funciona aunque el alumno no tenga el catálogo <code>base</code>.</p>
+        </article>
+
+        <article class="screen-wrap" id="unirse">
+          <div class="phone">
+            <div class="speaker"></div><div class="status"><span>9:41</span><span>● ● ●  ▰</span></div>
+            <div class="content">
+              <div class="top"><div class="back">‹</div><div class="avatar">AR</div></div>
+              <div style="margin-top:20px"><div class="eyebrow">Unirme a una clase</div><h2 class="title">Accede a un curso</h2><p class="subtle">Tu maestro te compartirá un código de seis caracteres.</p></div>
+              <div class="sheet"><div class="handle"></div><h2>Código de clase</h2><p class="subtle">Al confirmar, verás el curso y MLO lo descargará para usarlo sin conexión.</p><div class="field">UX24AB</div><div class="course-banner"><div class="eyebrow">Curso asociado</div><h3>Diseño de experiencias de usuario</h3><p class="subtle">Prof. Laura Méndez · 4 unidades</p></div><div class="button flow-action" data-go="curso">Unirme al curso</div></div>
+            </div>
+          </div>
+          <p class="caption"><strong>02 · Unión por clase.</strong> Antes de sincronizar, la app confirma qué curso autónomo se añadirá a la biblioteca.</p>
+        </article>
+
+        <article class="screen-wrap" id="curso">
+          <div class="phone">
+            <div class="speaker"></div><div class="status"><span>9:41</span><span>● ● ●  ▰</span></div>
+            <div class="content">
+              <div class="top"><div class="back">‹</div><div class="avatar">AR</div></div>
+              <div style="margin-top:15px"><div class="eyebrow">Curso · UX2026</div><h2 class="title">Diseño de experiencias</h2><p class="subtle">Prof. Laura Méndez · Sincronizado hace un momento</p></div>
+              <div class="course-banner"><div class="eyebrow">Tu avance</div><h3>1 de 12 subtemas completados</h3><div class="progress"><b></b></div><p class="subtle">Sigue con Principios de UX</p></div>
+              <div class="section"><div><div class="eyebrow">Ruta de aprendizaje</div><h2>Unidades</h2></div><div class="count">04</div></div>
+              <div class="unit"><div class="unit-head"><div class="unit-number">01</div><div><h3>Fundamentos de UX</h3><p>4 subtemas · 25% completado</p></div></div><div class="topic"><span><code>1.1</code> ¿Qué es UX?</span><span style="color:var(--success)">✓</span></div><div class="topic flow-action" data-go="subtema"><span><code>1.2</code> Principios de UX</span><span class="chev">›</span></div></div>
+              <div class="unit"><div class="unit-head"><div class="unit-number" style="background:#8b7cfe">02</div><div><h3>Investigación de usuarios</h3><p>3 subtemas · Aún no iniciado</p></div></div></div>
+            </div>
+          </div>
+          <p class="caption"><strong>03 · Detalle de curso.</strong> Reutiliza las tarjetas de unidad de MLO, pero el catálogo puede venir íntegramente del CMS.</p>
+        </article>
+
+        <article class="screen-wrap" id="subtema">
+          <div class="phone">
+            <div class="speaker"></div><div class="status"><span>9:41</span><span>● ● ●  ▰</span></div>
+            <div class="content">
+              <div class="back">‹</div><div style="margin-top:18px"><div class="eyebrow">Unidad 1 · Subtema 1.2</div><h2 class="title">Principios de UX</h2></div>
+              <div class="status-card"><div class="dot"></div><span>En progreso</span></div>
+              <div class="grid"><div class="tile flow-action" data-go="leccion"><i>▤</i><h3>Lecciones</h3><p>Concepto y síntesis</p></div><div class="tile flow-action" data-go="leccion" data-mode="example"><i>✦</i><h3>Ejemplos</h3><p>Demostración guiada</p></div><div class="tile flow-action" data-go="leccion" data-mode="exercise"><i>✎</i><h3>Ejercicios</h3><p>Practica lo aprendido</p></div><div class="tile flow-action" data-go="leccion" data-mode="evaluation"><i>✓</i><h3>Evaluación</h3><p>Comprueba tu avance</p></div></div>
+              <div class="course-banner" style="margin-top:20px"><div class="eyebrow">Contenido de clase</div><h3>Actividad de observación</h3><p class="subtle">Añadida por tu grupo UX2026</p></div>
+            </div>
+          </div>
+          <p class="caption"><strong>04 · Hub de subtema.</strong> Conserva los cuatro accesos actuales y permite incorporar contenido publicado para la clase.</p>
+        </article>
+
+        <article class="screen-wrap" id="leccion">
+          <div class="phone">
+            <div class="speaker"></div><div class="status"><span>9:41</span><span>● ● ●  ▰</span></div>
+            <div class="content">
+              <div class="back">‹</div><div style="margin-top:15px"><div class="eyebrow">Unidad 1 · Lección 1</div><h2 class="title">Lecciones</h2></div>
+              <div class="progress"><b></b></div>
+              <div class="pill-tabs"><button class="pill active" data-tab="concept">Concepto</button><button class="pill" data-tab="synthesis">Síntesis</button></div>
+              <div class="reading"><div class="eyebrow" id="reading-eyebrow">Fundamentos de UX</div><h2 id="reading-title">Principios de diseño centrado en las personas</h2><p id="reading-copy">Una experiencia útil comienza al comprender qué necesitan las personas, qué intentan lograr y en qué contexto utilizan un producto.</p><div class="note" id="reading-note"><div class="eyebrow">Actividad de UX2026</div><strong>Observa un flujo cotidiano.</strong><br />Identifica una decisión que reduzca la fricción del usuario.</div><div class="example-state" id="example-state"><strong>Ejemplo guiado listo.</strong><br />Relaciona cada principio con una decisión de diseño y recibe pistas paso a paso.</div></div>
+              <div class="footer-actions"><button class="secondary" id="back-section">Anterior</button><button class="primary" id="next-section">Ver ejemplos</button></div>
+            </div>
+          </div>
+          <p class="caption"><strong>05 · Lección.</strong> La lectura mantiene la tarjeta, pestañas y acciones de MLO; los extras del curso o clase aparecen identificados.</p>
+        </article>
+      </section>
+    </main>
+    <script>
+      const targets = document.querySelectorAll('[data-go]');
+      targets.forEach(node => node.addEventListener('click', () => {
+        const id = node.dataset.go;
+        if (node.dataset.mode) setPreviewMode(node.dataset.mode);
+        document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }));
+      const copy = document.getElementById('reading-copy');
+      const title = document.getElementById('reading-title');
+      const note = document.getElementById('reading-note');
+      const eyebrow = document.getElementById('reading-eyebrow');
+      const example = document.getElementById('example-state');
+      function setPreviewMode(mode) {
+        example.classList.remove('show');
+        if (mode === 'example') { eyebrow.textContent = 'Ejemplos'; title.textContent = 'Reconocer decisiones centradas en las personas'; copy.textContent = 'Sigue una demostración guiada con pistas antes de resolver por tu cuenta.'; note.style.display = 'none'; example.classList.add('show'); }
+        if (mode === 'exercise') { eyebrow.textContent = 'Práctica'; title.textContent = 'Aplica los principios de UX'; copy.textContent = 'Resuelve una actividad de relación. Tu avance queda guardado en este dispositivo.'; note.style.display = 'block'; }
+        if (mode === 'evaluation') { eyebrow.textContent = 'Evaluación'; title.textContent = 'Comprueba tu avance'; copy.textContent = 'La evaluación combina preguntas y ejercicios del subtema.'; note.style.display = 'block'; }
+        if (mode === 'concept') { eyebrow.textContent = 'Fundamentos de UX'; title.textContent = 'Principios de diseño centrado en las personas'; copy.textContent = 'Una experiencia útil comienza al comprender qué necesitan las personas, qué intentan lograr y en qué contexto utilizan un producto.'; note.style.display = 'block'; }
+      }
+      document.querySelectorAll('[data-tab]').forEach(tab => tab.addEventListener('click', () => {
+        document.querySelectorAll('[data-tab]').forEach(item => item.classList.remove('active'));
+        tab.classList.add('active');
+        if (tab.dataset.tab === 'synthesis') { eyebrow.textContent = 'Principios de UX'; title.textContent = 'Síntesis'; copy.textContent = '• Conocer a las personas guía las decisiones.\n• Reducir fricción hace los flujos más claros.\n• Validar temprano evita suposiciones.'; note.style.display = 'none'; example.classList.remove('show'); }
+        else setPreviewMode('concept');
+      }));
+      document.getElementById('next-section').addEventListener('click', () => setPreviewMode('example'));
+      document.getElementById('back-section').addEventListener('click', () => setPreviewMode('concept'));
+    </script>
+  </body>
+</html>

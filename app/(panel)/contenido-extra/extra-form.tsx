@@ -255,7 +255,7 @@ export function ExtraForm({
 
       <div className="space-y-2">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-sm text-ink-soft">Clases a las que se asigna</p>
+          <p className="text-sm text-ink-soft">Grupos a los que se asigna</p>
           <button
             type="button"
             onClick={toggleAll}
@@ -287,7 +287,7 @@ export function ExtraForm({
           ))}
         </div>
         <p className="text-xs text-ink-faint">
-          Si eliges varias, el mismo contenido entra en la publicación de cada clase.
+          Si eliges varios, el mismo contenido entra en la publicación de cada grupo.
         </p>
       </div>
 
@@ -717,7 +717,8 @@ export function ExtraForm({
         )}
         {lessons.length === 0 && (
           <p className="text-sm text-warning">
-            No hay lecciones del curso base. Importa el core antes de agregar contenido.
+            No hay lecciones del curso base. Importa el contenido base antes de agregar
+            contenido.
           </p>
         )}
         {state.error && (

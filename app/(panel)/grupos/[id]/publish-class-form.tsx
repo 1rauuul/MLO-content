@@ -14,7 +14,7 @@ export function PublishClassForm({ classId }: { classId: string }) {
     <form action={action} className="space-y-2">
       <input type="hidden" name="classId" value={classId} />
       <button type="submit" disabled={pending} className="btn btn-primary">
-        {pending ? "Publicando…" : "Publicar clase"}
+        {pending ? "Publicando…" : "Publicar grupo"}
       </button>
       {state.error && (
         <p className="form-error" role="alert">

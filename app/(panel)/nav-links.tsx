@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 
 const LINKS = [
   { href: "/mis-cursos", label: "Mis cursos", match: ["/mis-cursos", "/cursos"] },
-  { href: "/clases", label: "Clases", match: ["/clases"] },
+  { href: "/grupos", label: "Grupos", match: ["/grupos"] },
   { href: "/contenido-extra", label: "Contenido extra", match: ["/contenido-extra"] },
   { href: "/admin/maestros", label: "Maestros", match: ["/admin/maestros"], adminOnly: true },
 ];

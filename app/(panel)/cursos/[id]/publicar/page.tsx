@@ -39,7 +39,10 @@ export default async function PublishPage({ params }: { params: Promise<{ id: st
         <div className="mt-1 flex flex-wrap items-center gap-3">
           <h1 className="page-title">Publicar</h1>
           <span className="font-mono text-xs text-ink-faint">{course.key}</span>
-          {course.is_base && <span className="badge badge-neutral">Core</span>}
+          <span className="badge badge-neutral">{course.level}</span>
+          {course.is_base && (
+            <span className="badge badge-neutral">Contenido base</span>
+          )}
           <span
             className={
               course.status === "published"
@@ -55,9 +58,11 @@ export default async function PublishPage({ params }: { params: Promise<{ id: st
                 ? "Despublicado"
                 : "Borrador"}
           </span>
-          <span className="badge badge-neutral">
-            {course.uses_base ? "Con contenido base" : "Sin contenido base"}
-          </span>
+          {!course.is_base && (
+            <span className="badge badge-neutral">
+              {course.uses_base ? "Con contenido base" : "Sin contenido base"}
+            </span>
+          )}
           {course.status === "published" && (
             <form action={unpublish} className="ml-auto">
               <input type="hidden" name="courseId" value={course.id} />
@@ -68,7 +73,8 @@ export default async function PublishPage({ params }: { params: Promise<{ id: st
           )}
         </div>
         <p className="page-lead">
-          Cada publicación guarda un snapshot inmutable con core + adiciones.
+          Cada publicación guarda un snapshot inmutable con el contenido base y tus
+          adiciones.
         </p>
       </header>
 
@@ -95,7 +101,8 @@ export default async function PublishPage({ params }: { params: Promise<{ id: st
         )}
 
         <p className="mt-4 border-t border-line pt-4 text-xs text-ink-faint">
-          Los ids se prefijan con la clave del curso; el core conserva los suyos.
+          Los ids se prefijan con la clave del curso; el contenido base conserva los
+          suyos.
         </p>
       </div>
 

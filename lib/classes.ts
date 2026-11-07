@@ -492,15 +492,15 @@ export async function publishClassRelease(
         join teachers t on t.id = c.teacher_id
        where c.id = ${classId}
        for update of c`;
-    if (!klass) throw new Error("La clase no existe.");
+    if (!klass) throw new Error("El grupo no existe.");
     if (klass.archived_at) throw new Error("Restaura el grupo antes de publicar.");
     if (teacher.role !== "admin" && klass.teacher_id !== teacher.id) {
-      throw new Error("No puedes publicar esta clase.");
+      throw new Error("No puedes publicar este grupo.");
     }
 
     const [parent] = await tx<{ key: string }[]>`
       select key from courses where id = ${klass.course_id} limit 1`;
-    if (!parent) throw new Error("El curso padre de la clase no existe.");
+    if (!parent) throw new Error("El curso padre del grupo no existe.");
     const [parentRelease] = await tx<{ version: number; hash: string }[]>`
       select version, content_hash as hash
         from releases_v3

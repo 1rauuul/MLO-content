@@ -7,6 +7,8 @@ export type Course = {
   id: string;
   key: string;
   title: string;
+  description: string;
+  level: "Fundamental" | "Intermedio" | "Avanzado";
   owner_id: string | null;
   is_base: boolean;
   is_group: boolean;
@@ -16,7 +18,7 @@ export type Course = {
 
 export async function getCourseForRead(teacher: Teacher, id: string): Promise<Course> {
   const rows = await db()<Course[]>`
-    select id, key, title, owner_id, is_base, is_group, uses_base, status
+    select id, key, title, description, level, owner_id, is_base, is_group, uses_base, status
       from courses
      where id = ${id}
      limit 1`;

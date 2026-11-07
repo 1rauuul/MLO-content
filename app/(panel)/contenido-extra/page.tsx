@@ -53,15 +53,15 @@ export default async function ContenidoExtraPage({
         <h1 className="page-title">Contenido extra</h1>
         <p className="page-lead">
           Agrega bloques, ejemplos o ejercicios a una lección existente del curso base y
-          elige a qué clases se asignan. No se crean lecciones ni subtemas nuevos.
+          elige a qué grupos se asignan. No se crean lecciones ni subtemas nuevos.
         </p>
       </header>
 
       {classes.length === 0 ? (
         <p className="empty">
-          Primero crea una clase en{" "}
-          <Link href="/clases" className="link">
-            Clases
+          Primero crea un grupo en{" "}
+          <Link href="/grupos" className="link">
+            Grupos
           </Link>
           .
         </p>
@@ -80,7 +80,7 @@ export default async function ContenidoExtraPage({
           <h2 className="text-sm font-semibold text-ink">Contenido agregado</h2>
           <p className="text-sm text-ink-muted">
             {extras.length} {extras.length === 1 ? "contenido" : "contenidos"}. Editar uno
-            lo actualiza en todas sus clases al volver a publicarlas.
+            lo actualiza en todos sus grupos al volver a publicarlos.
           </p>
         </div>
 
@@ -103,7 +103,7 @@ export default async function ContenidoExtraPage({
                       {extra.lesson_title}
                     </p>
                     <p className="mt-1 text-xs text-ink-faint">
-                      Clases: {extra.class_names.join(", ") || "sin asignar"}
+                      Grupos: {extra.class_names.join(", ") || "sin asignar"}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">

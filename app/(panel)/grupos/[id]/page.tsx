@@ -50,8 +50,8 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
   return (
     <div className="space-y-6">
       <header>
-        <Link href="/clases" className="text-sm text-ink-muted hover:text-ink">
-          ← Clases
+        <Link href="/grupos" className="text-sm text-ink-muted hover:text-ink">
+          ← Grupos
         </Link>
         <div className="mt-1 flex flex-wrap items-center gap-3">
           <h1 className="page-title">{klass.name}</h1>
@@ -142,7 +142,7 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
       <section className="card p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-sm font-semibold text-ink">Contenido de la clase</h2>
+            <h2 className="text-sm font-semibold text-ink">Contenido extra del grupo</h2>
             <p className="mt-1 text-sm text-ink-muted">
               {extras.length}{" "}
               {extras.length === 1 ? "contenido asignado" : "contenidos asignados"}.
@@ -154,7 +154,7 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
         </div>
 
         {extras.length === 0 ? (
-          <p className="empty mt-4">Esta clase todavía no tiene contenido extra.</p>
+          <p className="empty mt-4">Este grupo todavía no tiene contenido extra.</p>
         ) : (
           <ul className="mt-4 divide-y divide-line border-t border-line">
             {extras.map((extra) => (
@@ -187,7 +187,7 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
       <section className="card p-5">
         <h2 className="text-sm font-semibold text-ink">Alumnos</h2>
         <p className="mt-1 text-sm text-ink-muted">
-          {students.length} {students.length === 1 ? "alumno" : "alumnos"} en esta clase.
+          {students.length} {students.length === 1 ? "alumno" : "alumnos"} en este grupo.
         </p>
 
         {students.length === 0 ? (

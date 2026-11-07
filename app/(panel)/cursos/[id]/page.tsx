@@ -112,12 +112,17 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
         <div className="mt-1 flex flex-wrap items-center gap-3">
           <h1 className="page-title">{course.title}</h1>
           <span className="font-mono text-xs text-ink-faint">{course.key}</span>
-          {course.is_base && <span className="badge badge-neutral">Core</span>}
+          <span className="badge badge-neutral">{course.level}</span>
+          {course.is_base && (
+            <span className="badge badge-neutral">Contenido base</span>
+          )}
           {course.is_group && <span className="badge badge-neutral">Grupo</span>}
           <span className={statusClass}>{statusLabel}</span>
-          <span className="badge badge-neutral">
-            {course.uses_base ? "Con contenido base" : "Sin contenido base"}
-          </span>
+          {!course.is_base && (
+            <span className="badge badge-neutral">
+              {course.uses_base ? "Con contenido base" : "Sin contenido base"}
+            </span>
+          )}
           {!canEdit && <span className="badge badge-warning">Solo lectura</span>}
           <Link
             href={`/cursos/${course.id}/referencias`}
@@ -142,6 +147,7 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
             </Link>
           )}
         </div>
+        {course.description && <p className="page-lead">{course.description}</p>}
       </header>
 
       {units.length === 0 ? (
@@ -162,7 +168,9 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
                   <span className="text-xs text-ink-faint">
                     {unit.difficulty} · {unit.color}
                   </span>
-                  {isCore && <span className="badge badge-neutral">Core</span>}
+                  {isCore && (
+                    <span className="badge badge-neutral">Contenido base</span>
+                  )}
                   {canEdit && !isCore && (
                     <span className="ml-auto">
                       <MoveButtons
@@ -196,7 +204,11 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
                             <span className="ml-2 text-xs text-ink-faint">
                               {lessonCount.get(topic.id) ?? 0} lecciones
                             </span>
-                            {!own && <span className="badge badge-neutral ml-2">Core</span>}
+                            {!own && (
+                              <span className="badge badge-neutral ml-2">
+                                Contenido base
+                              </span>
+                            )}
                           </span>
                           {canEdit && own && (
                             <MoveButtons

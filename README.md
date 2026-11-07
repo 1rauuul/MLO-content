@@ -3,11 +3,12 @@
 Plan y estado del proyecto: [`PLAN.md`](PLAN.md).
 
 Panel para que cada maestro agregue contenido propio (unidades, lecciones, ejercicios y evaluaciones)
-sobre el **core** del curso. La app MLO descarga el resultado por el contrato v2
+sobre el **contenido base** del curso. La app MLO descarga el resultado por el contrato v2
 (`docs/api/contrato.md` del repositorio base).
 
-El core se guarda una sola vez y es compartido. El curso de un maestro guarda solo sus
-aportaciones; al publicar, el servidor compone **core + adicionales** en un snapshot inmutable.
+El contenido base se guarda una sola vez y es compartido. El curso de un maestro guarda
+solo sus aportaciones; al publicar, el servidor compone **contenido base + adicionales**
+en un snapshot inmutable.
 
 ## Estado
 
@@ -16,10 +17,10 @@ aportaciones; al publicar, el servidor compone **core + adicionales** en un snap
 independientes, vista previa y validación estricta al publicar. Los ejemplos
 independientes no admiten `order` (el contrato no lleva `correctOrder`).
 
-**M4A · Clases y contenido extra.** Cada maestro crea clases con un código fijo, agrega
-bloques/ejemplos/ejercicios a lecciones del core y los asigna a una o varias clases. La
-publicación es un snapshot inmutable por clase que MLO descargará y guardará para usar
-sin conexión. También están `GET /catalogs/{catalogId}/manifest` y
+**M4A · Grupos y contenido extra.** Cada maestro crea grupos con un código fijo, agrega
+bloques/ejemplos/ejercicios a lecciones del contenido base y los asigna a uno o varios
+grupos. La publicación es un snapshot inmutable por grupo que MLO descargará y guardará
+para usar sin conexión. También están `GET /catalogs/{catalogId}/manifest` y
 `GET /catalogs/{catalogId}/lessons/{lessonId}`.
 
 El motor de ejemplos independientes de MLO ya está corregido y probado con el release
@@ -44,9 +45,7 @@ Requisitos: Node 22+ y un proyecto de Supabase.
 
 3. Aplica las migraciones **en orden**. Pega cada archivo de
    `supabase/migrations/` en el **SQL Editor** de Supabase (o usa
-   `npm run db:apply -- <archivo>`). Son `20261027000000_init.sql`,
-   `…000001_examples.sql`, `…000002_question_position.sql`,
-   `…000003_exercise_example_position.sql` y `…000004_classes.sql`.
+   `npm run db:apply -- <archivo>`).
 
 4. Crea el administrador:
 
@@ -54,7 +53,7 @@ Requisitos: Node 22+ y un proyecto de Supabase.
    npm run seed:admin
    ```
 
-5. Importa el contenido del core (el fixture ya está versionado):
+5. Importa el contenido base (el fixture ya está versionado):
 
    ```bash
    npm run import:base
@@ -94,13 +93,14 @@ npm run export:release -- base <ruta>/MLO-Ingenieria-software/src/shared/service
 | Ruta | Quién | Qué hace |
 |---|---|---|
 | `/login` | público | Entrar |
-| `/mis-cursos` | maestro | Core (lectura) y cursos propios |
+| `/mis-cursos` | maestro | Contenido base (lectura) y cursos propios |
+| `/mis-cursos/crear` | maestro | Alta de un curso |
 | `/cursos/[id]` | maestro | Unidades y lecciones; agregar contenido |
 | `/cursos/[id]/lecciones/[id]` | dueño | Editar texto y bloques |
 | `/cursos/[id]/publicar` | dueño / admin | Crear un release inmutable |
-| `/clases` | maestro | Crear clases y ver sus códigos |
-| `/clases/[id]` | dueño / admin | Alumnos, contenido y publicación por clase |
-| `/contenido-extra` | dueño / admin | Bloques, ejemplos y ejercicios asignados a clases |
+| `/grupos` | maestro | Crear grupos y ver sus códigos |
+| `/grupos/[id]` | dueño / admin | Alumnos, contenido y publicación por grupo |
+| `/contenido-extra` | dueño / admin | Bloques, ejemplos y ejercicios asignados a grupos |
 | `/admin/maestros` | admin | Alta de cuentas |
 
 ### API para MLO

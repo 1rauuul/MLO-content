@@ -98,11 +98,11 @@ export async function createClass(
   }
 
   if (!classId) {
-    return { error: "No se pudo generar el código de la clase. Inténtalo de nuevo." };
+    return { error: "No se pudo generar el código del grupo. Inténtalo de nuevo." };
   }
 
-  revalidatePath("/clases");
-  redirect(`/clases/${classId}`);
+  revalidatePath("/grupos");
+  redirect(`/grupos/${classId}`);
 }
 
 export async function createClassContent(formData: FormData): Promise<void> {
@@ -125,7 +125,7 @@ export async function createClassContent(formData: FormData): Promise<void> {
     return contentCourse.id;
   });
 
-  revalidatePath(`/clases/${klass.id}`);
+  revalidatePath(`/grupos/${klass.id}`);
   redirect(`/cursos/${courseId}`);
 }
 
@@ -133,16 +133,16 @@ export async function archiveClass(formData: FormData): Promise<void> {
   const teacher = await requireTeacher();
   const klass = await requireEditableClass(teacher, String(formData.get("classId") ?? ""));
   await db()`update classes set archived_at = now() where id = ${klass.id}`;
-  revalidatePath("/clases");
-  revalidatePath(`/clases/${klass.id}`);
+  revalidatePath("/grupos");
+  revalidatePath(`/grupos/${klass.id}`);
 }
 
 export async function restoreClass(formData: FormData): Promise<void> {
   const teacher = await requireTeacher();
   const klass = await requireEditableClass(teacher, String(formData.get("classId") ?? ""));
   await db()`update classes set archived_at = null where id = ${klass.id}`;
-  revalidatePath("/clases");
-  revalidatePath(`/clases/${klass.id}`);
+  revalidatePath("/grupos");
+  revalidatePath(`/grupos/${klass.id}`);
 }
 
 export async function saveExtra(
@@ -156,7 +156,7 @@ export async function saveExtra(
   const classIds = [...new Set(formData.getAll("classIds").map(String).filter(Boolean))];
 
   if (!isExtraType(type)) return { error: "Elige un tipo de contenido válido." };
-  if (classIds.length === 0) return { error: "Elige al menos una clase." };
+  if (classIds.length === 0) return { error: "Elige al menos un grupo." };
 
   const sql = db();
   const [lesson] = await sql<{ id: string }[]>`
@@ -175,7 +175,7 @@ export async function saveExtra(
      where id in ${sql(classIds)}
        and (teacher_id = ${teacher.id} or ${teacher.role} = 'admin')`;
   if (allowed.length !== classIds.length) {
-    return { error: "Alguna de las clases elegidas no existe o no es tuya." };
+    return { error: "Alguno de los grupos elegidos no existe o no es tuyo." };
   }
 
   const payloadInput =
@@ -228,9 +228,9 @@ export async function saveExtra(
   });
 
   revalidatePath("/contenido-extra");
-  revalidatePath("/clases");
+  revalidatePath("/grupos");
   for (const classId of new Set([...classIds, ...previousClassIds])) {
-    revalidatePath(`/clases/${classId}`);
+    revalidatePath(`/grupos/${classId}`);
   }
 
   return { ok: true };
@@ -251,8 +251,8 @@ export async function deleteExtra(formData: FormData): Promise<void> {
   await sql`delete from lesson_extras where id = ${id}`;
 
   revalidatePath("/contenido-extra");
-  revalidatePath("/clases");
-  for (const row of classIds) revalidatePath(`/clases/${row.class_id}`);
+  revalidatePath("/grupos");
+  for (const row of classIds) revalidatePath(`/grupos/${row.class_id}`);
 }
 
 export async function createClassInvitation(
@@ -284,7 +284,7 @@ export async function createClassInvitation(
     link: created.invitation.link,
   });
 
-  revalidatePath(`/clases/${klass.id}`);
+  revalidatePath(`/grupos/${klass.id}`);
 
   return {
     ok: true,
@@ -308,7 +308,7 @@ export async function revokeClassInvitation(formData: FormData): Promise<void> {
     String(formData.get("classId") ?? ""),
   );
   await revokeInvitation(klass.id, invitationId);
-  revalidatePath(`/clases/${klass.id}`);
+  revalidatePath(`/grupos/${klass.id}`);
 }
 
 export async function publishClass(
@@ -321,8 +321,8 @@ export async function publishClass(
 
   try {
     const result = await publishClassRelease(teacher, klass.id);
-    revalidatePath(`/clases/${klass.id}`);
-    revalidatePath("/clases");
+    revalidatePath(`/grupos/${klass.id}`);
+    revalidatePath("/grupos");
     return { ok: true, ...result };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "No se pudo publicar." };
