@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 
 const LINKS = [
@@ -9,6 +9,19 @@ const LINKS = [
   { href: "/contenido-extra", label: "Contenido extra", match: ["/contenido-extra"] },
   { href: "/admin/maestros", label: "Maestros", match: ["/admin/maestros"], adminOnly: true },
 ];
+
+function PendingDot() {
+  const { pending } = useLinkStatus();
+
+  return (
+    <span
+      aria-hidden="true"
+      className={`ml-1 inline-block size-1 rounded-full bg-accent transition-opacity duration-150 ${
+        pending ? "animate-pulse opacity-100" : "opacity-0"
+      }`}
+    />
+  );
+}
 
 export function NavLinks({ isAdmin }: { isAdmin: boolean }) {
   const pathname = usePathname();
@@ -28,6 +41,7 @@ export function NavLinks({ isAdmin }: { isAdmin: boolean }) {
             className={`nav-link ${active ? "nav-link-active" : ""}`}
           >
             {link.label}
+            <PendingDot />
           </Link>
         );
       })}

@@ -114,7 +114,7 @@ export default async function ReferencesPage({
           ← {course.title}
         </Link>
         <div className="mt-1 flex flex-wrap items-center gap-3">
-          <h1 className="page-title">Referencias</h1>
+          <h1 className="page-title">Referencias del curso</h1>
           <span className="badge badge-neutral">APA 7</span>
           {!canEdit && <span className="badge badge-warning">Solo lectura</span>}
         </div>

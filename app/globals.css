@@ -9,10 +9,12 @@
   --color-line-strong: #cfd6df;
   --color-ink: #0f172a;
   --color-ink-soft: #475569;
-  --color-ink-muted: #64748b;
-  --color-ink-faint: #94a3b8;
+  --color-ink-muted: #5b6776;
+  --color-ink-faint: #667085;
   --color-brand: #0f172a;
   --color-brand-hover: #1e293b;
+  --color-accent: #315fec;
+  --color-accent-soft: #eef3ff;
   --color-positive: #15803d;
   --color-positive-soft: #ecfdf3;
   --color-warning: #b45309;
@@ -38,12 +40,12 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-brand);
+    outline: 2px solid var(--color-accent);
     outline-offset: 2px;
   }
 
   ::selection {
-    background: var(--color-brand);
+    background: var(--color-accent);
     color: #fff;
   }
 
@@ -69,18 +71,21 @@
 
   .card-hover:hover {
     box-shadow: var(--shadow-lift);
+    transform: translateY(-1px);
   }
 
   .page-title {
-    @apply text-2xl font-semibold tracking-tight text-ink;
+    @apply text-[28px] font-semibold leading-[1.1] tracking-[-0.03em] text-ink;
+    text-wrap: balance;
   }
 
   .page-lead {
     @apply mt-1 max-w-2xl text-sm text-ink-muted;
+    text-wrap: pretty;
   }
 
   .eyebrow {
-    @apply text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-faint;
+    @apply text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-muted;
   }
 
   .field {
@@ -93,8 +98,8 @@
   }
 
   .field:focus {
-    @apply border-brand outline-none;
-    box-shadow: 0 0 0 3px rgb(15 23 42 / 0.1);
+    @apply border-accent outline-none;
+    box-shadow: 0 0 0 3px rgb(49 95 236 / 0.14);
   }
 
   .field-label {
@@ -106,7 +111,11 @@
   }
 
   .btn {
-    @apply inline-flex select-none items-center justify-center gap-2 rounded-[var(--radius-control)] border border-transparent px-3.5 py-2 text-sm font-medium transition-colors duration-150;
+    @apply inline-flex select-none items-center justify-center gap-2 rounded-[var(--radius-control)] border border-transparent px-3.5 py-2 text-sm font-medium transition-all duration-150;
+  }
+
+  .btn:active:not(:disabled) {
+    transform: translateY(1px);
   }
 
   .btn:disabled {
@@ -115,6 +124,11 @@
 
   .btn-primary {
     @apply bg-brand text-white hover:bg-brand-hover;
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.12);
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    box-shadow: 0 5px 14px -4px rgb(15 23 42 / 0.35);
   }
 
   .btn-secondary {
@@ -158,23 +172,26 @@
   }
 
   .link {
-    @apply font-medium text-ink underline-offset-4 hover:underline;
+    @apply font-medium text-accent underline-offset-4 hover:underline;
   }
 
   .form-error {
     @apply text-sm text-danger;
+    animation: notice-in 180ms ease-out;
   }
 
   .form-ok {
     @apply text-sm text-positive;
+    animation: notice-in 180ms ease-out;
   }
 
   .nav-link {
-    @apply rounded-lg px-3 py-1.5 text-sm text-ink-muted transition-colors hover:bg-surface-soft hover:text-ink;
+    @apply rounded-lg px-3 py-1.5 text-sm text-ink-muted transition hover:bg-surface-soft hover:text-ink;
   }
 
   .nav-link-active {
     @apply bg-surface-soft font-medium text-ink;
+    box-shadow: inset 0 -2px 0 var(--color-accent);
   }
 
   .table-panel {
@@ -344,6 +361,18 @@
   .preview-note {
     @apply text-xs text-ink-faint;
   }
+
+}
+
+@keyframes notice-in {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Vista previa MLO: el alumno usa el tema oscuro de la app. */
@@ -377,7 +406,7 @@
 }
 
 .mlo-preview .text-ink-faint {
-  color: #718096;
+  color: #a9b6c6;
 }
 
 .mlo-preview .bg-surface-soft {

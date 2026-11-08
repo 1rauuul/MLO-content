@@ -113,13 +113,10 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
           <h1 className="page-title">{course.title}</h1>
           <span className="font-mono text-xs text-ink-faint">{course.key}</span>
           <span className="badge badge-neutral">{course.level}</span>
-          {course.is_base && (
-            <span className="badge badge-neutral">Contenido base</span>
-          )}
           {course.is_group && <span className="badge badge-neutral">Grupo</span>}
           <span className={statusClass}>{statusLabel}</span>
           {!course.is_base && (
-            <span className="badge badge-neutral">
+            <span className="text-xs text-ink-muted">
               {course.uses_base ? "Con contenido base" : "Sin contenido base"}
             </span>
           )}
@@ -169,7 +166,7 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
                     {unit.difficulty} · {unit.color}
                   </span>
                   {isCore && (
-                    <span className="badge badge-neutral">Contenido base</span>
+                    <span className="text-[11px] text-ink-faint">Contenido base</span>
                   )}
                   {canEdit && !isCore && (
                     <span className="ml-auto">
@@ -205,7 +202,7 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
                               {lessonCount.get(topic.id) ?? 0} lecciones
                             </span>
                             {!own && (
-                              <span className="badge badge-neutral ml-2">
+                              <span className="ml-2 text-[11px] text-ink-faint">
                                 Contenido base
                               </span>
                             )}

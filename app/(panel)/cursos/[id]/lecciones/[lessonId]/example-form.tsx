@@ -271,7 +271,6 @@ export function ExampleForm({
 
       {showPreview && (
         <div className="space-y-2">
-          <p className="eyebrow">Vista previa</p>
           <PreviewFrame label="MLO · Ejemplo">
             <ExamplePreview
               key={`${draft.type}-${JSON.stringify(draft.config)}`}

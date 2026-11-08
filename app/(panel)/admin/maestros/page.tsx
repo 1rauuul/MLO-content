@@ -22,7 +22,7 @@ export default async function MaestrosPage() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="page-title">Maestros</h1>
+        <h1 className="page-title">Cuentas de maestros</h1>
         <p className="page-lead">Solo el administrador puede dar de alta cuentas.</p>
       </header>
 

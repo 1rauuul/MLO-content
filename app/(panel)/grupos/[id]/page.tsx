@@ -61,8 +61,8 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
           {teacher.role === "admin" && (
             <span className="text-xs text-ink-faint">Docente: {klass.teacher_name}</span>
           )}
-          <span className="badge badge-neutral">Curso: {klass.course_title}</span>
-          <span className="badge badge-neutral">
+          <span className="text-xs text-ink-muted">Curso: {klass.course_title}</span>
+          <span className="text-xs tabular-nums text-ink-muted">
             {klass.capacity === null ? "Sin cupo" : `Cupo ${klass.capacity}`}
           </span>
           {klass.archived_at && <span className="badge badge-warning">Archivado</span>}
@@ -110,8 +110,9 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
           <h2 className="text-sm font-semibold text-ink">Publicación</h2>
           {last ? (
             <p className="mt-1 text-sm text-ink-muted">
-              Versión v2 <strong className="text-ink-soft">{last.version}</strong> ·{" "}
-              {formatDate(last.published_at)} · hash{" "}
+              Versión v2{" "}
+              <strong className="tabular-nums text-ink-soft">{last.version}</strong> ·{" "}
+              <span className="tabular-nums">{formatDate(last.published_at)}</span> · hash{" "}
               <span className="font-mono text-xs">{last.content_hash.slice(0, 12)}</span>
             </p>
           ) : (
@@ -119,16 +120,22 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
               Todavía no hay una versión publicada.
             </p>
           )}
-          <p className="mt-1 text-sm text-ink-muted">
+          <p className="mt-1 text-sm tabular-nums text-ink-muted">
             {v3
               ? `Release v3 de grupo: versión ${v3.version} · hash ${v3.content_hash.slice(0, 12)}.`
               : "Release v3 de grupo: pendiente de publicar."}
           </p>
           <p className="mt-2">
             {pending ? (
-              <span className="badge badge-warning">Hay cambios sin publicar</span>
+              <span className="inline-flex items-center gap-1.5 text-xs text-warning">
+                <span className="size-1.5 rounded-full bg-warning" />
+                Hay cambios sin publicar
+              </span>
             ) : last ? (
-              <span className="badge badge-positive">Publicado</span>
+              <span className="inline-flex items-center gap-1.5 text-xs text-positive">
+                <span className="size-1.5 rounded-full bg-positive" />
+                Publicado
+              </span>
             ) : null}
           </p>
         </div>
@@ -159,7 +166,9 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
           <ul className="mt-4 divide-y divide-line border-t border-line">
             {extras.map((extra) => (
               <li key={extra.id} className="flex flex-wrap items-start gap-3 py-3">
-                <span className="badge badge-neutral">{TYPE_LABEL[extra.type]}</span>
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-ink-muted">
+                  {TYPE_LABEL[extra.type]}
+                </span>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium text-ink">{extraSummary(extra)}</p>
                   <p className="text-xs text-ink-muted">
@@ -187,7 +196,8 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
       <section className="card p-5">
         <h2 className="text-sm font-semibold text-ink">Alumnos</h2>
         <p className="mt-1 text-sm text-ink-muted">
-          {students.length} {students.length === 1 ? "alumno" : "alumnos"} en este grupo.
+          <span className="tabular-nums">{students.length}</span>{" "}
+          {students.length === 1 ? "alumno" : "alumnos"} en este grupo.
         </p>
 
         {students.length === 0 ? (

@@ -163,8 +163,9 @@ export default async function ContenidoExtraPage({
         <div>
           <h2 className="text-sm font-semibold text-ink">Contenido agregado</h2>
           <p className="text-sm text-ink-muted">
-            {extras.length} {extras.length === 1 ? "contenido" : "contenidos"}. Editar uno
-            lo actualiza en todos sus grupos al volver a publicarlos.
+            <span className="tabular-nums">{extras.length}</span>{" "}
+            {extras.length === 1 ? "contenido" : "contenidos"}. Editar uno lo actualiza
+            en todos sus grupos al volver a publicarlos.
           </p>
         </div>
 
@@ -175,7 +176,9 @@ export default async function ContenidoExtraPage({
             {extras.map((extra) => (
               <li key={extra.id} className="card p-4">
                 <div className="flex flex-wrap items-start gap-3">
-                  <span className="badge badge-neutral">{TYPE_LABEL[extra.type]}</span>
+                  <span className="text-[10px] font-semibold uppercase tracking-wide text-ink-muted">
+                    {TYPE_LABEL[extra.type]}
+                  </span>
                   <div className="min-w-0 flex-1">
                     <p className="font-medium text-ink">{extraSummary(extra)}</p>
                     <p className="text-xs text-ink-muted">
@@ -210,7 +213,7 @@ export default async function ContenidoExtraPage({
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="page-title">Contenido extra</h1>
+        <h1 className="page-title">Contenido de los grupos</h1>
         <p className="page-lead">
           Crea lecciones, ejemplos, ejercicios y evaluaciones para el curso de tus grupos,
           o agrega aportaciones a lecciones existentes.

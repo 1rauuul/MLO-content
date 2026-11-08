@@ -331,7 +331,6 @@ export function ExerciseForm({
 
       {showPreview && (
         <div className="space-y-2">
-          <p className="eyebrow">Vista previa</p>
           <PreviewFrame label="MLO · Ejercicio">
             <ExercisePreview
               key={`${draft.type}-${JSON.stringify(draft.config)}-${draft.correctOrder.join("|")}`}

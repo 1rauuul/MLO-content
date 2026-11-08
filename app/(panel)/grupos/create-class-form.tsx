@@ -4,44 +4,52 @@ import { useActionState } from "react";
 
 import { createClass, type ClassResult } from "@/lib/actions/classes";
 
-export function CreateClassForm({
-  courses,
-}: {
-  courses: { id: string; title: string }[];
-}) {
+export function CreateClassForm() {
   const [state, action, pending] = useActionState<ClassResult, FormData>(createClass, {});
 
   return (
-    <form action={action} className="card flex flex-wrap items-start gap-3 p-4">
-      <input
-        name="name"
-        required
-        maxLength={80}
-        placeholder="Nombre del grupo (por ejemplo, Grupo A)"
-        aria-label="Nombre del grupo"
-        className="field min-w-60 flex-1"
-      />
-      <select name="courseId" required className="field min-w-48" aria-label="Curso padre">
-        <option value="">Curso padre…</option>
-        {courses.map((course) => (
-          <option key={course.id} value={course.id}>
-            {course.title}
-          </option>
-        ))}
-      </select>
-      <input
-        name="capacity"
-        type="number"
-        min={1}
-        placeholder="Cupo (opcional)"
-        aria-label="Cupo del grupo"
-        className="field w-36"
-      />
-      <button type="submit" disabled={pending} className="btn btn-primary">
-        {pending ? "Creando…" : "Crear grupo"}
-      </button>
+    <form action={action} className="card overflow-hidden">
+      <div className="border-b border-line px-5 py-4">
+        <h2 className="text-sm font-semibold text-ink">Nuevo grupo</h2>
+        <p className="mt-0.5 text-xs text-ink-muted">
+          El código de acceso se genera automáticamente.
+        </p>
+      </div>
+
+      <div className="grid gap-4 p-5 sm:grid-cols-[minmax(0,1fr)_160px_auto] sm:items-end">
+        <label className="field-label">
+          Nombre del grupo
+          <input
+            name="name"
+            required
+            maxLength={80}
+            placeholder="Ej. UX · Grupo A"
+            className="field"
+          />
+        </label>
+
+        <label className="field-label">
+          Cupo (opcional)
+          <input
+            name="capacity"
+            type="number"
+            min={1}
+            placeholder="Sin límite"
+            className="field"
+          />
+        </label>
+
+        <button
+          type="submit"
+          disabled={pending}
+          className="btn btn-primary w-full sm:w-auto"
+        >
+          {pending ? "Creando…" : "Crear grupo"}
+        </button>
+      </div>
+
       {state.error && (
-        <p className="form-error w-full" role="alert">
+        <p className="form-error px-5 pb-5" role="alert">
           {state.error}
         </p>
       )}

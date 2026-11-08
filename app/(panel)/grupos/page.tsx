@@ -2,30 +2,24 @@ import Link from "next/link";
 
 import { requireTeacher } from "@/lib/auth";
 import { listClasses } from "@/lib/classes";
-import { db } from "@/lib/db";
 
 import { CreateClassForm } from "./create-class-form";
 
 export default async function GruposPage() {
   const teacher = await requireTeacher();
   const classes = await listClasses(teacher);
-  const parentCourses = await db()<{ id: string; title: string }[]>`
-    select id, title from courses
-     where not is_group
-       and (is_base or owner_id = ${teacher.id} or ${teacher.role} = 'admin')
-     order by is_base desc, title`;
 
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="page-title">Grupos</h1>
+        <h1 className="page-title">Mis grupos</h1>
         <p className="page-lead">
-          Cada grupo tiene un código fijo para que los alumnos se unan. El contenido extra
-          que asignes se publica por grupo.
+          Cada grupo tiene un código fijo para que los alumnos se unan. El contenido que
+          crees se publica por grupo.
         </p>
       </header>
 
-      <CreateClassForm courses={parentCourses} />
+      <CreateClassForm />
 
       {classes.length === 0 ? (
         <p className="empty">
@@ -38,7 +32,7 @@ export default async function GruposPage() {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <Link
                   href={`/grupos/${klass.id}`}
-                  className="text-[15px] font-medium text-ink underline-offset-4 hover:underline"
+                  className="text-balance text-[15px] font-semibold text-ink underline-offset-4 hover:underline"
                 >
                   {klass.name}
                 </Link>
@@ -54,17 +48,24 @@ export default async function GruposPage() {
               <dl className="mt-auto grid grid-cols-3 gap-2 border-t border-line pt-3 text-sm">
                 <div>
                   <dt className="eyebrow">Alumnos</dt>
-                  <dd className="mt-0.5 font-medium text-ink">{klass.student_count}</dd>
+                  <dd className="mt-0.5 font-medium tabular-nums text-ink">
+                    {klass.student_count}
+                  </dd>
                 </div>
                 <div>
                   <dt className="eyebrow">Extras</dt>
-                  <dd className="mt-0.5 font-medium text-ink">{klass.extra_count}</dd>
+                  <dd className="mt-0.5 font-medium tabular-nums text-ink">
+                    {klass.extra_count}
+                  </dd>
                 </div>
                 <div>
                   <dt className="eyebrow">Publicado</dt>
                   <dd className="mt-0.5">
                     {klass.published_version ? (
-                      <span className="badge badge-positive">v{klass.published_version}</span>
+                      <span className="inline-flex items-center gap-1.5 text-ink-soft">
+                        <span className="size-1.5 rounded-full bg-positive" />
+                        <span className="tabular-nums">v{klass.published_version}</span>
+                      </span>
                     ) : (
                       <span className="text-ink-faint">—</span>
                     )}

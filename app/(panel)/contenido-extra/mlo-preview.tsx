@@ -87,16 +87,26 @@ export function MloTopicPreview({
       <div className="max-h-[640px] space-y-4 overflow-y-auto p-4">
         <div
           aria-hidden="true"
-          className="grid size-8 place-items-center rounded-xl border border-[#324050] bg-[#1e2835] text-lg text-[#f4f7fb]"
+          className="grid size-8 place-items-center rounded-xl border border-[#324050] bg-[#1e2835] text-[#f4f7fb]"
         >
-          ‹
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="size-4"
+          >
+            <path d="m15 18-6-6 6-6" />
+          </svg>
         </div>
 
         <div>
           <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-[#4d7cfe]">
             {topic ? `Unidad ${topic.unitNumber} · Subtema` : group?.name ?? "Tu grupo"}
           </p>
-          <h3 className="mt-1 text-[24px] font-semibold leading-[1.05] tracking-[-0.04em] text-[#f4f7fb]">
+          <h3 className="mt-1 text-balance text-[24px] font-semibold leading-[1.05] tracking-[-0.04em] text-[#f4f7fb]">
             {topic?.title ?? "Contenido del grupo"}
           </h3>
         </div>

@@ -8,11 +8,7 @@ import { createCourse, type ActionResult } from "@/lib/actions/content";
 
 const LEVELS = ["Fundamental", "Intermedio", "Avanzado"] as const;
 
-export function CreateCourseForm({
-  baseCourseId,
-}: {
-  baseCourseId: string | null;
-}) {
+export function CreateCourseForm() {
   const [state, action, pending] = useActionState<ActionResult, FormData>(createCourse, {});
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -47,9 +43,8 @@ export function CreateCourseForm({
 
       <div className="editor-preview-grid">
         <form id="create-course" action={action} className="card overflow-hidden">
-          <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-4">
+          <div className="border-b border-line px-5 py-4">
             <h2 className="text-sm font-semibold text-ink">Datos del curso</h2>
-            <span className="eyebrow">Nuevo curso</span>
           </div>
 
           <div className="space-y-5 p-5">
@@ -126,16 +121,6 @@ export function CreateCourseForm({
                 </span>
               </span>
             </label>
-
-            {baseCourseId && (
-              <div className="rounded-xl border border-dashed border-line-strong bg-surface-soft/60 p-4 text-sm text-ink-muted">
-                ¿Ya existe el curso?{" "}
-                <Link href={`/cursos/${baseCourseId}`} className="link">
-                  Abrir el contenido base
-                </Link>{" "}
-                y revisa cómo está estructurado.
-              </div>
-            )}
 
             {state.error && (
               <p className="form-error" role="alert">

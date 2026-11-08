@@ -495,18 +495,15 @@ export function ExtraForm({
             </div>
           )}
 
-          <div className="space-y-2">
-            <p className="eyebrow">Vista previa</p>
-            <ExercisePreview
-              type={exercise.type}
-              prompt={exercise.prompt}
-              instructions={exercise.instructions}
-              correctOrder={exercise.correctOrder}
-              config={exercise.config}
-              explanation={exercise.explanation}
-              example={null}
-            />
-          </div>
+          <ExercisePreview
+            type={exercise.type}
+            prompt={exercise.prompt}
+            instructions={exercise.instructions}
+            correctOrder={exercise.correctOrder}
+            config={exercise.config}
+            explanation={exercise.explanation}
+            example={null}
+          />
         </div>
       )}
 
@@ -675,18 +672,15 @@ export function ExtraForm({
             hint="Opcional; pueden quedar vacías."
           />
 
-          <div className="space-y-2">
-            <p className="eyebrow">Vista previa</p>
-            <ExamplePreview
-              type={example.type}
-              title={example.title}
-              prompt={example.prompt}
-              config={example.config}
-              steps={example.steps}
-              hints={example.hints}
-              explanation={example.explanation}
-            />
-          </div>
+          <ExamplePreview
+            type={example.type}
+            title={example.title}
+            prompt={example.prompt}
+            config={example.config}
+            steps={example.steps}
+            hints={example.hints}
+            explanation={example.explanation}
+          />
         </div>
       )}
 

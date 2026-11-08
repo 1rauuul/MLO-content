@@ -160,9 +160,9 @@ export function ContentStudio({ groups }: { groups: StudioGroup[] }) {
         <section className="card overflow-hidden">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4">
             <div>
-              <h2 className="text-sm font-semibold text-ink">Contenido del grupo</h2>
+              <h2 className="text-sm font-semibold text-ink">Dónde se publica</h2>
               <p className="mt-0.5 text-xs text-ink-muted">
-                Elige el grupo y el subtema donde se publicará.
+                Elige el grupo y el subtema donde vivirá el contenido.
               </p>
             </div>
             {group?.courseId && (
@@ -217,19 +217,14 @@ export function ContentStudio({ groups }: { groups: StudioGroup[] }) {
         </section>
 
         <section className="card overflow-hidden">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4">
-            <div>
-              <h2 className="text-sm font-semibold text-ink">
-                Crear contenido del subtema
-              </h2>
-              <p className="mt-0.5 text-xs text-ink-muted">
-                Lecciones, ejemplos, ejercicios y evaluaciones con la misma estructura
-                que usa MLO.
-              </p>
-            </div>
-            <span className="eyebrow">
-              {topic ? `Unidad ${topic.unitNumber} · ${topic.unitTitle}` : "Sin subtema"}
-            </span>
+          <div className="border-b border-line px-5 py-4">
+            <h2 className="text-sm font-semibold text-ink">
+              Crear contenido del subtema
+            </h2>
+            <p className="mt-0.5 text-xs text-ink-muted">
+              Lecciones, ejemplos, ejercicios y evaluaciones con la misma estructura que
+              usa MLO.
+            </p>
           </div>
 
           <div className="space-y-5 p-5">
@@ -245,9 +240,9 @@ export function ContentStudio({ groups }: { groups: StudioGroup[] }) {
                       setType(item.type);
                       setNotice(null);
                     }}
-                    className={`rounded-xl border p-3 text-left transition-colors ${
+                    className={`rounded-xl border p-3 text-left transition-all ${
                       active
-                        ? "border-ink bg-surface-soft shadow-[var(--shadow-card)]"
+                        ? "border-accent bg-accent-soft/60 shadow-[var(--shadow-card)]"
                         : "border-line bg-surface hover:border-line-strong"
                     }`}
                   >

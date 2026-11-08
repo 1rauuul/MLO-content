@@ -37,12 +37,9 @@ export default async function PublishPage({ params }: { params: Promise<{ id: st
           ← {course.title}
         </Link>
         <div className="mt-1 flex flex-wrap items-center gap-3">
-          <h1 className="page-title">Publicar</h1>
+          <h1 className="page-title">Publicar curso</h1>
           <span className="font-mono text-xs text-ink-faint">{course.key}</span>
           <span className="badge badge-neutral">{course.level}</span>
-          {course.is_base && (
-            <span className="badge badge-neutral">Contenido base</span>
-          )}
           <span
             className={
               course.status === "published"
@@ -59,7 +56,7 @@ export default async function PublishPage({ params }: { params: Promise<{ id: st
                 : "Borrador"}
           </span>
           {!course.is_base && (
-            <span className="badge badge-neutral">
+            <span className="text-xs text-ink-muted">
               {course.uses_base ? "Con contenido base" : "Sin contenido base"}
             </span>
           )}
@@ -83,15 +80,19 @@ export default async function PublishPage({ params }: { params: Promise<{ id: st
           <dl className="grid gap-4 sm:grid-cols-3">
             <div>
               <dt className="eyebrow">Última versión</dt>
-              <dd className="mt-0.5 text-base font-medium text-ink">{last.version}</dd>
+              <dd className="mt-0.5 text-base font-medium tabular-nums text-ink">
+                {last.version}
+              </dd>
             </div>
             <div>
               <dt className="eyebrow">Lecciones</dt>
-              <dd className="mt-0.5 text-base font-medium text-ink">{last.lessons}</dd>
+              <dd className="mt-0.5 text-base font-medium tabular-nums text-ink">
+                {last.lessons}
+              </dd>
             </div>
             <div>
               <dt className="eyebrow">Publicada</dt>
-              <dd className="mt-0.5 text-base font-medium text-ink">
+              <dd className="mt-0.5 text-base font-medium tabular-nums text-ink">
                 {new Date(last.published_at).toISOString().slice(0, 16).replace("T", " ")}
               </dd>
             </div>

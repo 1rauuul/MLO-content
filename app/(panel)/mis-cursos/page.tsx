@@ -19,10 +19,10 @@ const STATUS_LABEL: Record<CourseRow["status"], string> = {
   unpublished: "Despublicado",
 };
 
-const STATUS_CLASS: Record<CourseRow["status"], string> = {
-  draft: "badge badge-neutral",
-  published: "badge badge-positive",
-  unpublished: "badge badge-warning",
+const STATUS_DOT: Record<CourseRow["status"], string> = {
+  draft: "bg-ink-faint",
+  published: "bg-positive",
+  unpublished: "bg-warning",
 };
 
 export default async function MisCursosPage() {
@@ -64,17 +64,12 @@ export default async function MisCursosPage() {
         <ul className="grid gap-4 sm:grid-cols-2">
           {courses.map((course) => (
             <li key={course.id} className="card card-hover flex flex-col p-5">
-              <div className="flex items-start justify-between gap-3">
-                <Link
-                  href={`/cursos/${course.id}`}
-                  className="text-[15px] font-semibold text-ink underline-offset-4 hover:underline"
-                >
-                  {course.title}
-                </Link>
-                {course.is_base && (
-                  <span className="badge badge-neutral shrink-0">Contenido base</span>
-                )}
-              </div>
+              <Link
+                href={`/cursos/${course.id}`}
+                className="text-balance text-[15px] font-semibold text-ink underline-offset-4 hover:underline"
+              >
+                {course.title}
+              </Link>
 
               {course.description && (
                 <p className="mt-1 line-clamp-2 text-sm text-ink-muted">
@@ -86,7 +81,7 @@ export default async function MisCursosPage() {
 
               <div className="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3 text-sm text-ink-muted">
                 <p>
-                  <span className="font-mono text-ink-soft">{course.lesson_count}</span>{" "}
+                  <span className="tabular-nums text-ink-soft">{course.lesson_count}</span>{" "}
                   {course.is_base
                     ? course.lesson_count === 1
                       ? "lección de contenido base"
@@ -95,7 +90,10 @@ export default async function MisCursosPage() {
                       ? "aportación"
                       : "aportaciones"}
                 </p>
-                <span className={STATUS_CLASS[course.status]}>
+                <span className="inline-flex items-center gap-1.5 text-xs text-ink-muted">
+                  <span
+                    className={`size-1.5 rounded-full ${STATUS_DOT[course.status]}`}
+                  />
                   {STATUS_LABEL[course.status]}
                 </span>
               </div>
