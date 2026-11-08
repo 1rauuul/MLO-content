@@ -53,7 +53,7 @@ export default async function GruposPage() {
                   </dd>
                 </div>
                 <div>
-                  <dt className="eyebrow">Extras</dt>
+                  <dt className="eyebrow">Contenido adicional</dt>
                   <dd className="mt-0.5 font-medium tabular-nums text-ink">
                     {klass.extra_count}
                   </dd>

@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { BackLink } from "@/app/(panel)/back-link";
 import { requireTeacher } from "@/lib/auth";
 import type { ContentBlock } from "@/lib/content";
 import type { CoreExample, CoreExercise } from "@/lib/content/model";
@@ -69,9 +69,7 @@ export default async function LessonPage({
   return (
     <div className="space-y-6">
       <header>
-        <Link href={`/cursos/${courseId}`} className="text-sm text-ink-muted hover:text-ink">
-          ← {lesson.course_title}
-        </Link>
+        <BackLink href={`/cursos/${courseId}`}>{lesson.course_title}</BackLink>
         <div className="mt-1 flex flex-wrap items-center gap-3">
           <h1 className="page-title">{lesson.title}</h1>
           <span className="rounded-lg bg-surface px-2 py-0.5 font-mono text-xs text-ink-soft ring-1 ring-line">

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { BackLink } from "@/app/(panel)/back-link";
 
 import { deleteReference, setElementReferences } from "@/lib/actions/references";
 import { canEditCourse, getCourseForRead } from "@/lib/access";
@@ -110,9 +110,7 @@ export default async function ReferencesPage({
   return (
     <div className="space-y-6">
       <header>
-        <Link href={`/cursos/${course.id}`} className="text-sm text-ink-muted hover:text-ink">
-          ← {course.title}
-        </Link>
+        <BackLink href={`/cursos/${course.id}`}>{course.title}</BackLink>
         <div className="mt-1 flex flex-wrap items-center gap-3">
           <h1 className="page-title">Referencias del curso</h1>
           <span className="badge badge-neutral">APA 7</span>

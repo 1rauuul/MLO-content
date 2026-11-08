@@ -32,11 +32,9 @@ function formatDate(value: string): string {
 
 export function InvitationPanel({
   classId,
-  invitations,
   disabled,
 }: {
   classId: string;
-  invitations: InvitationRow[];
   disabled: boolean;
 }) {
   const [state, action, pending] = useActionState<InvitationResult, FormData>(
@@ -128,52 +126,57 @@ export function InvitationPanel({
           </p>
         </div>
       )}
+    </section>
+  );
+}
 
-      <div className="mt-6">
-        <h3 className="text-sm font-semibold text-ink">Historial</h3>
-        <p className="mt-1 text-sm text-ink-muted">
-          {invitations.length}{" "}
-          {invitations.length === 1 ? "invitación" : "invitaciones"}.
-        </p>
+export function InvitationHistory({
+  classId,
+  invitations,
+  disabled,
+}: {
+  classId: string;
+  invitations: InvitationRow[];
+  disabled: boolean;
+}) {
+  return (
+    <section className="card p-5">
+      <h2 className="text-sm font-semibold text-ink">Historial</h2>
+      <p className="mt-1 text-sm text-ink-muted">
+        <span className="tabular-nums">{invitations.length}</span>{" "}
+        {invitations.length === 1 ? "invitación" : "invitaciones"}.
+      </p>
 
-        {invitations.length === 0 ? (
-          <p className="empty mt-3">Todavía no hay invitaciones en este grupo.</p>
-        ) : (
-          <ul className="mt-3 divide-y divide-line border-t border-line">
-            {invitations.map((invitation) => (
-              <li
-                key={invitation.id}
-                className="flex flex-wrap items-center gap-3 py-3"
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-ink">
-                    {invitation.email}
-                  </p>
-                  <p className="text-xs text-ink-muted">
-                    Vence {formatDate(invitation.expiresAt)}
-                  </p>
-                </div>
-                <span className={`badge ${STATUS_LABEL[invitation.status].badge}`}>
-                  {STATUS_LABEL[invitation.status].label}
-                </span>
-                {invitation.status === "pending" && !disabled && (
-                  <form action={revokeClassInvitation}>
-                    <input type="hidden" name="classId" value={classId} />
-                    <input
-                      type="hidden"
-                      name="invitationId"
-                      value={invitation.id}
-                    />
-                    <button type="submit" className="btn btn-secondary btn-sm">
-                      Revocar
-                    </button>
-                  </form>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      {invitations.length === 0 ? (
+        <p className="empty mt-3">Todavía no hay invitaciones en este grupo.</p>
+      ) : (
+        <ul className="mt-3 divide-y divide-line border-t border-line">
+          {invitations.map((invitation) => (
+            <li key={invitation.id} className="flex flex-wrap items-center gap-3 py-3">
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-ink">
+                  {invitation.email}
+                </p>
+                <p className="text-xs text-ink-muted">
+                  Vence <span className="tabular-nums">{formatDate(invitation.expiresAt)}</span>
+                </p>
+              </div>
+              <span className={`badge ${STATUS_LABEL[invitation.status].badge}`}>
+                {STATUS_LABEL[invitation.status].label}
+              </span>
+              {invitation.status === "pending" && !disabled && (
+                <form action={revokeClassInvitation}>
+                  <input type="hidden" name="classId" value={classId} />
+                  <input type="hidden" name="invitationId" value={invitation.id} />
+                  <button type="submit" className="btn btn-secondary btn-sm">
+                    Revocar
+                  </button>
+                </form>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   );
 }

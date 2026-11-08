@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { BackLink } from "@/app/(panel)/back-link";
 import { revokeCourseAccess } from "@/lib/actions/access";
 import { moveTopic, moveUnit } from "@/lib/actions/content";
 import { unpublish } from "@/lib/actions/publish";
@@ -106,9 +107,7 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
   return (
     <div className="space-y-6">
       <header>
-        <Link href="/mis-cursos" className="text-sm text-ink-muted hover:text-ink">
-          ← Mis cursos
-        </Link>
+        <BackLink href="/mis-cursos">Mis cursos</BackLink>
         <div className="mt-1 flex flex-wrap items-center gap-3">
           <h1 className="page-title">{course.title}</h1>
           <span className="font-mono text-xs text-ink-faint">{course.key}</span>

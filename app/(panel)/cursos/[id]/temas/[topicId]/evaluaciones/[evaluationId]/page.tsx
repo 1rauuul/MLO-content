@@ -1,5 +1,6 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
+
+import { BackLink } from "@/app/(panel)/back-link";
 
 import { deleteQuestion, moveQuestion } from "@/lib/actions/topics";
 import { requireTeacher } from "@/lib/auth";
@@ -94,12 +95,9 @@ export default async function EvaluationPage({
   return (
     <div className="space-y-6">
       <header>
-        <Link
-          href={`/cursos/${courseId}/temas/${topicId}`}
-          className="text-sm text-ink-muted hover:text-ink"
-        >
-          ← {evaluation.topic_title}
-        </Link>
+        <BackLink href={`/cursos/${courseId}/temas/${topicId}`}>
+          {evaluation.topic_title}
+        </BackLink>
         <div className="mt-1 flex flex-wrap items-center gap-3">
           <h1 className="page-title">{evaluation.title}</h1>
           <span className="badge badge-neutral">{evaluation.course_title}</span>

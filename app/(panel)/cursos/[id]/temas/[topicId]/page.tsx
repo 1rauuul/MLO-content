@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { BackLink } from "@/app/(panel)/back-link";
 import { moveLesson } from "@/lib/actions/content";
 import {
   moveEvaluation,
@@ -118,9 +119,7 @@ export default async function TopicPage({
   return (
     <div className="space-y-6">
       <header>
-        <Link href={`/cursos/${courseId}`} className="text-sm text-ink-muted hover:text-ink">
-          ← {topic.course_title}
-        </Link>
+        <BackLink href={`/cursos/${courseId}`}>{topic.course_title}</BackLink>
         <div className="mt-1 flex flex-wrap items-center gap-3">
           <h1 className="page-title">{topic.title}</h1>
           <span className="badge badge-neutral">{topic.unit_title}</span>

@@ -1,5 +1,4 @@
-import Link from "next/link";
-
+import { BackLink } from "@/app/(panel)/back-link";
 import { unpublish } from "@/lib/actions/publish";
 import { requireEditableCourse } from "@/lib/access";
 import { requireTeacher } from "@/lib/auth";
@@ -33,9 +32,7 @@ export default async function PublishPage({ params }: { params: Promise<{ id: st
   return (
     <div className="space-y-6">
       <header>
-        <Link href={`/cursos/${course.id}`} className="text-sm text-ink-muted hover:text-ink">
-          ← {course.title}
-        </Link>
+        <BackLink href={`/cursos/${course.id}`}>{course.title}</BackLink>
         <div className="mt-1 flex flex-wrap items-center gap-3">
           <h1 className="page-title">Publicar curso</h1>
           <span className="font-mono text-xs text-ink-faint">{course.key}</span>

@@ -208,7 +208,7 @@ export function ExtraForm({
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-sm font-semibold text-ink">
-          {initial ? "Editar contenido extra" : "Nuevo contenido extra"}
+          {initial ? "Editar contenido adicional" : "Nuevo contenido adicional"}
         </h2>
         {initial && (
           <Link
@@ -309,7 +309,7 @@ export function ExtraForm({
           <BlockEditor
             key={initial?.id ?? "lesson-blocks"}
             initial={lessonDraft.blocks}
-            label="Bloques del contenido extra"
+            label="Bloques del contenido adicional"
           />
         </div>
       )}

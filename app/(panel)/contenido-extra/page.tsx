@@ -161,7 +161,9 @@ export default async function ContenidoExtraPage({
 
       <section className="space-y-3">
         <div>
-          <h2 className="text-sm font-semibold text-ink">Contenido agregado</h2>
+          <h2 className="text-sm font-semibold text-ink">
+            Contenido adicional agregado
+          </h2>
           <p className="text-sm text-ink-muted">
             <span className="tabular-nums">{extras.length}</span>{" "}
             {extras.length === 1 ? "contenido" : "contenidos"}. Editar uno lo actualiza

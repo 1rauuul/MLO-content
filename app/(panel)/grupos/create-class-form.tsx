@@ -16,7 +16,7 @@ export function CreateClassForm() {
         </p>
       </div>
 
-      <div className="grid gap-4 p-5 sm:grid-cols-[minmax(0,1fr)_160px_auto] sm:items-end">
+      <div className="grid gap-4 p-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
         <label className="field-label">
           Nombre del grupo
           <input
@@ -24,17 +24,6 @@ export function CreateClassForm() {
             required
             maxLength={80}
             placeholder="Ej. UX · Grupo A"
-            className="field"
-          />
-        </label>
-
-        <label className="field-label">
-          Cupo (opcional)
-          <input
-            name="capacity"
-            type="number"
-            min={1}
-            placeholder="Sin límite"
             className="field"
           />
         </label>

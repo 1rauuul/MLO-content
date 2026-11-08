@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useActionState, useState } from "react";
 
+import { BackLink } from "@/app/(panel)/back-link";
 import { PreviewFrame } from "@/app/(panel)/preview-frame";
 import { createCourse, type ActionResult } from "@/lib/actions/content";
 
@@ -19,12 +19,7 @@ export function CreateCourseForm() {
     <div className="space-y-6">
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
-          <Link
-            href="/mis-cursos"
-            className="text-sm text-ink-muted underline-offset-4 hover:text-ink hover:underline"
-          >
-            ← Mis cursos
-          </Link>
+          <BackLink href="/mis-cursos">Mis cursos</BackLink>
           <h1 className="page-title mt-1">Crea un curso desde cero</h1>
           <p className="page-lead">
             Define el curso que tus alumnos descargarán desde MLO. Puedes empezar vacío
