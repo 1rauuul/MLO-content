@@ -345,3 +345,179 @@
     @apply text-xs text-ink-faint;
   }
 }
+
+/* Vista previa MLO: el alumno usa el tema oscuro de la app. */
+.mlo-preview .card {
+  background: #1e2835;
+  border-color: #324050;
+  box-shadow: none;
+}
+
+.mlo-preview .text-ink,
+.mlo-preview .preview-title,
+.mlo-preview .preview-prose h2,
+.mlo-preview .preview-context h2,
+.mlo-preview .preview-synthesis h2 {
+  color: #f4f7fb;
+}
+
+.mlo-preview .text-ink-soft,
+.mlo-preview .preview-body,
+.mlo-preview .preview-prose,
+.mlo-preview .preview-context,
+.mlo-preview .preview-synthesis {
+  color: #d5dde8;
+}
+
+.mlo-preview .text-ink-muted,
+.mlo-preview .preview-note,
+.mlo-preview .preview-match-row,
+.mlo-preview .preview-option {
+  color: #9cabbc;
+}
+
+.mlo-preview .text-ink-faint {
+  color: #718096;
+}
+
+.mlo-preview .bg-surface-soft {
+  background: #263447;
+}
+
+.mlo-preview .eyebrow,
+.mlo-preview .preview-eyebrow {
+  color: #4d7cfe;
+}
+
+.mlo-preview .badge-neutral {
+  background: #263447;
+  color: #9cabbc;
+  box-shadow: inset 0 0 0 1px #324050;
+}
+
+.mlo-preview .preview-order-row {
+  background: #263447;
+  border-color: #324050;
+  color: #f4f7fb;
+}
+
+.mlo-preview .preview-match-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0.5rem;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: #f4f7fb;
+}
+
+.mlo-preview .preview-match-row > span {
+  border: 1px solid #324050;
+  border-radius: 0.75rem;
+  background: #1e2835;
+  padding: 0.625rem 0.75rem;
+}
+
+.mlo-preview .preview-match-row:nth-of-type(4n + 1) > span {
+  border-color: #4d7cfe;
+}
+
+.mlo-preview .preview-match-row:nth-of-type(4n + 2) > span {
+  border-color: #45d39a;
+}
+
+.mlo-preview .preview-match-row:nth-of-type(4n + 3) > span {
+  border-color: #f3bc61;
+}
+
+.mlo-preview .preview-match-row:nth-of-type(4n + 4) > span {
+  border-color: #ee6f7d;
+}
+
+.mlo-preview .preview-match-row select {
+  height: 100%;
+  border-radius: 0.75rem;
+}
+
+.mlo-preview .preview-mini-btn {
+  border-color: #324050;
+  color: #9cabbc;
+}
+
+.mlo-preview .preview-mini-btn:hover {
+  border-color: #4d7cfe;
+  color: #f4f7fb;
+}
+
+.mlo-preview .preview-activity-text {
+  color: #f4f7fb;
+}
+
+.mlo-preview .preview-select {
+  background: #263447;
+  border-color: #324050;
+  color: #f4f7fb;
+}
+
+.mlo-preview .preview-check {
+  background: #4d7cfe;
+}
+
+.mlo-preview .preview-check:hover {
+  background: #6b91ff;
+}
+
+.mlo-preview .preview-feedback-correct {
+  color: #45d39a;
+}
+
+.mlo-preview .preview-feedback-error {
+  color: #ee6f7d;
+}
+
+.mlo-preview .preview-crossword {
+  background: #324050;
+}
+
+.mlo-preview .preview-cell {
+  background: #1e2835;
+  color: #f4f7fb;
+}
+
+.mlo-preview .preview-cell-empty {
+  background: #10151d;
+}
+
+.mlo-preview .preview-context {
+  background: #263447;
+}
+
+.mlo-preview .preview-code {
+  background: #121923;
+}
+
+.mlo-preview .preview-empty {
+  border-color: #324050;
+  color: #9cabbc;
+}
+
+.mlo-preview .preview-errors {
+  background: #301f29;
+  border-color: #ee6f7d66;
+  color: #ee6f7d;
+}
+
+.mlo-preview .preview-prose th {
+  background: #263447;
+  border-color: #324050;
+  color: #9cabbc;
+}
+
+.mlo-preview .preview-prose td {
+  border-color: #324050;
+  color: #d5dde8;
+}
+
+.mlo-preview .preview-steps {
+  color: #9cabbc;
+}

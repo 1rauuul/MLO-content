@@ -167,7 +167,7 @@ export function ExtraForm({
 
   useEffect(() => {
     if (!state.ok) return;
-    router.replace("/contenido-extra");
+    router.replace("/contenido-extra?tab=extras");
     router.refresh();
   }, [state.ok, router]);
 
@@ -211,7 +211,10 @@ export function ExtraForm({
           {initial ? "Editar contenido extra" : "Nuevo contenido extra"}
         </h2>
         {initial && (
-          <Link href="/contenido-extra" className="text-sm text-ink-muted hover:text-ink">
+          <Link
+            href="/contenido-extra?tab=extras"
+            className="text-sm text-ink-muted hover:text-ink"
+          >
             Cancelar edición
           </Link>
         )}
@@ -708,10 +711,7 @@ export function ExtraForm({
               : "Agregar contenido"}
         </button>
         {initial && (
-          <Link
-            href="/contenido-extra"
-            className="btn btn-secondary"
-          >
+          <Link href="/contenido-extra?tab=extras" className="btn btn-secondary">
             Cancelar
           </Link>
         )}

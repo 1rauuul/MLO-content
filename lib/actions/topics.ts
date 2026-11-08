@@ -8,7 +8,7 @@ import { requireTeacher } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { parseQuestionInput } from "@/lib/content/validate";
 
-export type TopicResult = { error?: string; ok?: boolean };
+export type TopicResult = { error?: string; ok?: boolean; evaluationId?: string };
 
 function formJson(formData: FormData): unknown {
   try {
@@ -82,6 +82,9 @@ export async function createEvaluation(
     returning id`;
 
   refreshTopic(scope.course.id, scope.topic.id);
+  if (formData.get("stay") === "on") {
+    return { ok: true, evaluationId: created.id };
+  }
   redirect(`/cursos/${scope.course.id}/temas/${scope.topic.id}/evaluaciones/${created.id}`);
 }
 

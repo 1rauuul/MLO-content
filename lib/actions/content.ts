@@ -114,11 +114,14 @@ export async function createLesson(
 
   const title = String(formData.get("title") ?? "").trim();
   const code = String(formData.get("code") ?? "").trim();
+  const rawContent = String(formData.get("content") ?? "[]").trim();
+  const parsed = rawContent === "[]" ? null : parseBlocks(rawContent);
 
   if (title.length < 3) return { error: "Escribe el título de la lección." };
   if (!/^\d+(\.\d+)?$/.test(code)) {
     return { error: "Usa un código como 1.5 o 6." };
   }
+  if (parsed && "error" in parsed) return { error: parsed.error };
 
   const topic = await db()<{ id: string; unit_id: string }[]>`
     select id, unit_id
@@ -151,15 +154,17 @@ export async function createLesson(
       from lessons
      where topic_id = ${topic[0].id}`;
 
-  await db()`insert into lessons
-      (course_id, unit_id, topic_id, content_id, code, title, position)
+  const sql = db();
+  await sql`insert into lessons
+      (course_id, unit_id, topic_id, content_id, code, title, content, position)
     values
       (${course.id}, ${topic[0].unit_id}, ${topic[0].id}, ${contentId}, ${code},
-       ${title}, ${positions[0].position})`;
+       ${title}, ${sql.json(parsed && "blocks" in parsed ? parsed.blocks : [])},
+       ${positions[0].position})`;
 
   revalidatePath(`/cursos/${courseId}`);
   revalidatePath(`/cursos/${courseId}/temas/${topicId}`);
-  return {};
+  return { ok: true };
 }
 
 export async function updateLesson(

@@ -15,7 +15,7 @@ import { PreviewFrame } from "@/app/(panel)/preview-frame";
 import { EntriesEditor, Field, PairsEditor, StepsEditor, TextList, fieldClass } from "./fields";
 import { ExercisePreview } from "./preview";
 
-type Draft = {
+export type ExerciseDraft = {
   type: ExerciseType;
   prompt: string;
   instructions: string;
@@ -41,7 +41,7 @@ function emptyConfig(type: ExerciseType): ExerciseConfig {
   return {};
 }
 
-function emptyDraft(): Draft {
+function emptyDraft(): ExerciseDraft {
   return {
     type: "order",
     prompt: "",
@@ -53,7 +53,7 @@ function emptyDraft(): Draft {
   };
 }
 
-function draftFrom(item: CoreExercise): Draft {
+function draftFrom(item: CoreExercise): ExerciseDraft {
   return {
     type: item.type,
     prompt: item.prompt,
@@ -70,20 +70,35 @@ export function ExerciseForm({
   initial,
   onSaved,
   onCancel,
+  onDraftChange,
+  showPreview = true,
+  formId,
+  flush = false,
 }: {
   lessonId: string;
   initial?: CoreExercise;
   onSaved: () => void;
   onCancel: () => void;
+  onDraftChange?: (draft: ExerciseDraft) => void;
+  showPreview?: boolean;
+  formId?: string;
+  flush?: boolean;
 }) {
-  const [draft, setDraft] = useState<Draft>(initial ? draftFrom(initial) : emptyDraft());
+  const [draft, setDraft] = useState<ExerciseDraft>(
+    initial ? draftFrom(initial) : emptyDraft(),
+  );
   const [state, action, pending] = useActionState<EditorResult, FormData>(saveExercise, {});
 
   useEffect(() => {
     if (state.ok) onSaved();
   }, [state.ok, onSaved]);
 
-  const patch = (values: Partial<Draft>) => setDraft((current) => ({ ...current, ...values }));
+  useEffect(() => {
+    onDraftChange?.(draft);
+  }, [draft, onDraftChange]);
+
+  const patch = (values: Partial<ExerciseDraft>) =>
+    setDraft((current) => ({ ...current, ...values }));
 
   const changeType = (type: ExerciseType) =>
     patch({
@@ -114,7 +129,11 @@ export function ExerciseForm({
   const previewError = "error" in validation ? validation.error : null;
 
   return (
-    <form action={action} className="card space-y-5 border-line-strong p-5">
+    <form
+      id={formId}
+      action={action}
+      className={flush ? "space-y-5" : "card space-y-5 border-line-strong p-5"}
+    >
       <input type="hidden" name="lessonId" value={lessonId} />
       <input type="hidden" name="exerciseId" value={initial?.content_id ?? ""} />
       <input type="hidden" name="data" value={JSON.stringify(draft)} />
@@ -304,22 +323,30 @@ export function ExerciseForm({
         )}
       </div>
 
-      <div className="space-y-2">
-        <p className="eyebrow">Vista previa</p>
-        <PreviewFrame label="MLO · Ejercicio">
-          <ExercisePreview
-            key={`${draft.type}-${JSON.stringify(draft.config)}-${draft.correctOrder.join("|")}`}
-            type={draft.type}
-            prompt={draft.prompt}
-            instructions={draft.instructions}
-            correctOrder={draft.correctOrder}
-            config={draft.config}
-            explanation={draft.explanation}
-            example={draft.example}
-            error={previewError}
-          />
-        </PreviewFrame>
-      </div>
+      {!showPreview && previewError && (
+        <p className="form-error" role="alert">
+          {previewError}
+        </p>
+      )}
+
+      {showPreview && (
+        <div className="space-y-2">
+          <p className="eyebrow">Vista previa</p>
+          <PreviewFrame label="MLO · Ejercicio">
+            <ExercisePreview
+              key={`${draft.type}-${JSON.stringify(draft.config)}-${draft.correctOrder.join("|")}`}
+              type={draft.type}
+              prompt={draft.prompt}
+              instructions={draft.instructions}
+              correctOrder={draft.correctOrder}
+              config={draft.config}
+              explanation={draft.explanation}
+              example={draft.example}
+              error={previewError}
+            />
+          </PreviewFrame>
+        </div>
+      )}
 
       <div className="flex flex-wrap items-center gap-3">
         <button

@@ -168,8 +168,13 @@ function ActivityRunnerState({ type, config, correctOrder, options, answer }: Ac
         <ul className="space-y-1.5">
           {order.map((item, index) => (
             <li key={`${item}-${index}`} className="preview-order-row">
-              <span>{item}</span>
-              <span className="flex gap-1">
+              <span className="flex min-w-0 items-center gap-2">
+                <span className="grid size-6 shrink-0 place-items-center rounded-md bg-surface-soft font-mono text-[10px] text-ink-muted ring-1 ring-line">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <span className="min-w-0">{item}</span>
+              </span>
+              <span className="flex shrink-0 gap-1">
                 <button type="button" className="preview-mini-btn" onClick={() => move(index, -1)}>
                   ↑
                 </button>

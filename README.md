@@ -100,7 +100,7 @@ npm run export:release -- base <ruta>/MLO-Ingenieria-software/src/shared/service
 | `/cursos/[id]/publicar` | dueño / admin | Crear un release inmutable |
 | `/grupos` | maestro | Crear grupos y ver sus códigos |
 | `/grupos/[id]` | dueño / admin | Alumnos, contenido y publicación por grupo |
-| `/contenido-extra` | dueño / admin | Bloques, ejemplos y ejercicios asignados a grupos |
+| `/contenido-extra` | dueño / admin | Contenido del grupo y aportaciones asignadas a grupos |
 | `/admin/maestros` | admin | Alta de cuentas |
 
 ### API para MLO

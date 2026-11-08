@@ -10,7 +10,7 @@ import { PreviewFrame } from "@/app/(panel)/preview-frame";
 import { EntriesEditor, Field, PairsEditor, StepsEditor, TextList, fieldClass } from "./fields";
 import { ExamplePreview } from "./preview";
 
-type Draft = {
+export type ExampleDraft = {
   type: ExerciseType;
   title: string;
   prompt: string;
@@ -36,7 +36,7 @@ function emptyConfig(type: ExerciseType): ExerciseConfig {
   return {};
 }
 
-function emptyDraft(): Draft {
+function emptyDraft(): ExampleDraft {
   return {
     type: "match",
     title: "",
@@ -48,7 +48,7 @@ function emptyDraft(): Draft {
   };
 }
 
-function draftFrom(item: CoreExample): Draft {
+function draftFrom(item: CoreExample): ExampleDraft {
   return {
     type: item.type,
     title: item.title,
@@ -65,20 +65,33 @@ export function ExampleForm({
   initial,
   onSaved,
   onCancel,
+  onDraftChange,
+  showPreview = true,
+  formId,
+  flush = false,
 }: {
   lessonId: string;
   initial?: CoreExample;
   onSaved: () => void;
   onCancel: () => void;
+  onDraftChange?: (draft: ExampleDraft) => void;
+  showPreview?: boolean;
+  formId?: string;
+  flush?: boolean;
 }) {
-  const [draft, setDraft] = useState<Draft>(initial ? draftFrom(initial) : emptyDraft());
+  const [draft, setDraft] = useState<ExampleDraft>(initial ? draftFrom(initial) : emptyDraft());
   const [state, action, pending] = useActionState<EditorResult, FormData>(saveExample, {});
 
   useEffect(() => {
     if (state.ok) onSaved();
   }, [state.ok, onSaved]);
 
-  const patch = (values: Partial<Draft>) => setDraft((current) => ({ ...current, ...values }));
+  useEffect(() => {
+    onDraftChange?.(draft);
+  }, [draft, onDraftChange]);
+
+  const patch = (values: Partial<ExampleDraft>) =>
+    setDraft((current) => ({ ...current, ...values }));
 
   const changeType = (type: ExerciseType) =>
     patch({ type, config: emptyConfig(type) });
@@ -98,7 +111,11 @@ export function ExampleForm({
   const previewError = "error" in validation ? validation.error : null;
 
   return (
-    <form action={action} className="card space-y-5 border-line-strong p-5">
+    <form
+      id={formId}
+      action={action}
+      className={flush ? "space-y-5" : "card space-y-5 border-line-strong p-5"}
+    >
       <input type="hidden" name="lessonId" value={lessonId} />
       <input type="hidden" name="exampleId" value={initial?.content_id ?? ""} />
       <input type="hidden" name="data" value={JSON.stringify(draft)} />
@@ -246,22 +263,30 @@ export function ExampleForm({
         hint="Opcional; pueden quedar vacías."
       />
 
-      <div className="space-y-2">
-        <p className="eyebrow">Vista previa</p>
-        <PreviewFrame label="MLO · Ejemplo">
-          <ExamplePreview
-            key={`${draft.type}-${JSON.stringify(draft.config)}`}
-            type={draft.type}
-            title={draft.title}
-            prompt={draft.prompt}
-            config={draft.config}
-            steps={draft.steps}
-            hints={draft.hints}
-            explanation={draft.explanation}
-            error={previewError}
-          />
-        </PreviewFrame>
-      </div>
+      {!showPreview && previewError && (
+        <p className="form-error" role="alert">
+          {previewError}
+        </p>
+      )}
+
+      {showPreview && (
+        <div className="space-y-2">
+          <p className="eyebrow">Vista previa</p>
+          <PreviewFrame label="MLO · Ejemplo">
+            <ExamplePreview
+              key={`${draft.type}-${JSON.stringify(draft.config)}`}
+              type={draft.type}
+              title={draft.title}
+              prompt={draft.prompt}
+              config={draft.config}
+              steps={draft.steps}
+              hints={draft.hints}
+              explanation={draft.explanation}
+              error={previewError}
+            />
+          </PreviewFrame>
+        </div>
+      )}
 
       <div className="flex flex-wrap items-center gap-3">
         <button
