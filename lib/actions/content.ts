@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { getBaseCourseId, requireEditableCourse } from "@/lib/access";
 import { requireTeacher } from "@/lib/auth";
 import { parseBlocks } from "@/lib/content";
+import { publishCourse } from "@/lib/content/publish";
 import { editorCourseIds } from "@/lib/content/x03";
 import { db } from "@/lib/db";
 import { newCourseKey } from "@/lib/ids";
@@ -49,7 +50,22 @@ export async function createCourse(
     return { error: "No se pudo generar la clave del curso. Inténtalo de nuevo." };
   }
 
+  try {
+    const course = await requireEditableCourse(teacher, courseId);
+    await publishCourse(teacher, course);
+  } catch (error) {
+    // El alta es todo o nada: si no se puede publicar, no queda un borrador.
+    await db()`delete from courses where id = ${courseId}`;
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "No se pudo publicar el curso. Inténtalo de nuevo.",
+    };
+  }
+
   revalidatePath("/mis-cursos");
+  revalidatePath(`/cursos/${courseId}`);
   redirect(`/cursos/${courseId}`);
 }
 

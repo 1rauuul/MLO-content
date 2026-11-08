@@ -16,24 +16,14 @@ export function CreateCourseForm() {
   const [usesBase, setUsesBase] = useState(false);
 
   return (
-    <div className="space-y-6">
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0 flex-1">
-          <BackLink href="/mis-cursos">Mis cursos</BackLink>
-          <h1 className="page-title mt-1">Crea un curso desde cero</h1>
-          <p className="page-lead">
-            Define el curso que tus alumnos descargarán desde MLO. Puedes empezar vacío
-            o cargar el contenido base como punto de partida.
-          </p>
-        </div>
-        <button
-          type="submit"
-          form="create-course"
-          disabled={pending}
-          className="btn btn-primary"
-        >
-          {pending ? "Creando…" : "Crear curso"}
-        </button>
+    <div className="space-y-6 pb-24">
+      <header>
+        <BackLink href="/mis-cursos">Mis cursos</BackLink>
+        <h1 className="page-title mt-1">Crea un curso desde cero</h1>
+        <p className="page-lead">
+          Define el curso que tus alumnos descargarán desde MLO. Se publica
+          automáticamente al crearlo; puedes empezar vacío o cargar el contenido base.
+        </p>
       </header>
 
       <div className="editor-preview-grid">
@@ -100,22 +90,34 @@ export function CreateCourseForm() {
               </label>
             </div>
 
-            <label className="flex gap-3 rounded-xl border border-line bg-surface-soft p-4">
-              <input
-                type="checkbox"
-                name="usesBase"
-                checked={usesBase}
-                onChange={(event) => setUsesBase(event.target.checked)}
-                className="mt-0.5 size-4 accent-brand"
-              />
-              <span className="text-sm">
-                <span className="block font-medium text-ink">Cargar contenido base</span>
-                <span className="mt-0.5 block text-xs leading-relaxed text-ink-muted">
-                  Incluye el contenido base compartido como punto de partida. Si queda
-                  desactivado, el curso inicia totalmente vacío.
+            <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-line bg-surface-soft p-4">
+              <label className="flex max-w-2xl gap-3">
+                <input
+                  type="checkbox"
+                  name="usesBase"
+                  checked={usesBase}
+                  onChange={(event) => setUsesBase(event.target.checked)}
+                  className="mt-0.5 size-4 accent-brand"
+                />
+                <span className="text-sm">
+                  <span className="block font-medium text-ink">
+                    Cargar contenido base
+                  </span>
+                  <span className="mt-0.5 block text-xs leading-relaxed text-ink-muted">
+                    Incluye el contenido base compartido como punto de partida. Si queda
+                    desactivado, el curso inicia totalmente vacío.
+                  </span>
                 </span>
-              </span>
-            </label>
+              </label>
+
+              <button
+                type="submit"
+                disabled={pending}
+                className="btn btn-primary w-full shrink-0 sm:w-auto"
+              >
+                {pending ? "Creando y publicando…" : "Crear curso"}
+              </button>
+            </div>
 
             {state.error && (
               <p className="form-error" role="alert">
@@ -165,6 +167,22 @@ export function CreateCourseForm() {
             </div>
           </PreviewFrame>
         </aside>
+      </div>
+
+      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface/95 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-3">
+          <p className="hidden text-xs text-ink-muted sm:block">
+            El curso se publica automáticamente al crearlo.
+          </p>
+          <button
+            type="submit"
+            form="create-course"
+            disabled={pending}
+            className="btn btn-primary w-full sm:ml-auto sm:w-auto"
+          >
+            {pending ? "Creando y publicando…" : "Crear curso"}
+          </button>
+        </div>
       </div>
     </div>
   );
