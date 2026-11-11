@@ -1,7 +1,7 @@
 "use client";
 
 import type { ContentBlock } from "@/lib/content";
-import type { StudioContentType, StudioGroup, StudioTopic } from "@/lib/studio";
+import type { StudioContentType } from "@/lib/studio";
 
 import {
   ExamplePreview,
@@ -10,27 +10,11 @@ import {
 } from "../cursos/[id]/lecciones/[lessonId]/preview";
 import type { ExampleDraft } from "../cursos/[id]/lecciones/[lessonId]/example-form";
 import type { ExerciseDraft } from "../cursos/[id]/lecciones/[lessonId]/exercise-form";
-import { ContentTypeIcon } from "./content-icons";
-
-const TONES: Record<StudioContentType, string> = {
-  lesson: "#4d7cfe",
-  example: "#45d39a",
-  exercise: "#f3bc61",
-  evaluation: "#ee6f7d",
-};
-
 const LABELS: Record<StudioContentType, string> = {
   lesson: "Lección",
   example: "Ejemplo",
   exercise: "Ejercicio",
   evaluation: "Evaluación",
-};
-
-const NOTES: Record<StudioContentType, string> = {
-  lesson: "Concepto y síntesis",
-  example: "Demostración guiada",
-  exercise: "Práctica interactiva",
-  evaluation: "Preguntas y ejercicios",
 };
 
 export type LessonDraft = {
@@ -45,28 +29,18 @@ export type EvaluationDraft = {
 };
 
 export function MloTopicPreview({
-  group,
-  topic,
   type,
   lessonDraft,
   exampleDraft,
   exerciseDraft,
   evaluationDraft,
 }: {
-  group: StudioGroup | null;
-  topic: StudioTopic | null;
   type: StudioContentType;
   lessonDraft: LessonDraft;
   exampleDraft: ExampleDraft | null;
   exerciseDraft: ExerciseDraft | null;
   evaluationDraft: EvaluationDraft;
 }) {
-  const counts: Record<StudioContentType, number> = {
-    lesson: topic?.lessons.length ?? 0,
-    example: topic?.exampleCount ?? 0,
-    exercise: topic?.exerciseCount ?? 0,
-    evaluation: topic?.evaluationCount ?? 0,
-  };
   const hasDraft: Record<StudioContentType, boolean> = {
     lesson: lessonDraft.title.trim().length > 0 || lessonDraft.blocks.length > 0,
     example: Boolean(exampleDraft?.title.trim() || exampleDraft?.prompt.trim()),
@@ -85,79 +59,6 @@ export function MloTopicPreview({
       </div>
 
       <div className="max-h-[640px] space-y-4 overflow-y-auto p-4">
-        <div
-          aria-hidden="true"
-          className="grid size-8 place-items-center rounded-xl border border-[#324050] bg-[#1e2835] text-[#f4f7fb]"
-        >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="size-4"
-          >
-            <path d="m15 18-6-6 6-6" />
-          </svg>
-        </div>
-
-        <div>
-          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-[#4d7cfe]">
-            {topic ? `Unidad ${topic.unitNumber} · Subtema` : group?.name ?? "Tu grupo"}
-          </p>
-          <h3 className="mt-1 text-balance text-[24px] font-semibold leading-[1.05] tracking-[-0.04em] text-[#f4f7fb]">
-            {topic?.title ?? "Contenido del grupo"}
-          </h3>
-        </div>
-
-        <div className="flex items-center gap-2.5 rounded-full border border-[#324050] bg-[#1e2835] px-3.5 py-2.5 text-sm font-semibold text-[#f4f7fb]">
-          <span className="size-2.5 rounded-full bg-[#4d7cfe]" />
-          En progreso
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          {(Object.keys(LABELS) as StudioContentType[]).map((item) => {
-            const active = item === type;
-            const draft = active && hasDraft[item];
-            const count = counts[item];
-            const note = draft
-              ? "Tu borrador actual"
-              : count > 0
-                ? `${count} ${count === 1 ? "elemento" : "elementos"}`
-                : NOTES[item];
-
-            return (
-              <div
-                key={item}
-                className="flex aspect-square flex-col justify-between rounded-[20px] border bg-[#1e2835] p-4"
-                style={{
-                  borderColor: active ? TONES[item] : "#324050",
-                  boxShadow: active ? `0 0 0 1px ${TONES[item]}33` : undefined,
-                }}
-              >
-                <span
-                  className="grid size-9 place-items-center rounded-xl"
-                  style={{
-                    backgroundColor: `${TONES[item]}24`,
-                    color: TONES[item],
-                  }}
-                >
-                  <ContentTypeIcon type={item} className="size-5" />
-                </span>
-                <span>
-                  <span className="block text-[15px] font-semibold text-[#f4f7fb]">
-                    {LABELS[item]}
-                  </span>
-                  <span className="mt-0.5 block text-[11px] leading-snug text-[#9cabbc]">
-                    {note}
-                  </span>
-                </span>
-              </div>
-            );
-          })}
-        </div>
-
         <div>
           <p className="mb-2 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-[#9cabbc]">
             {LABELS[type]} en MLO
@@ -188,6 +89,7 @@ export function MloTopicPreview({
                   type={exampleDraft.type}
                   title={exampleDraft.title}
                   prompt={exampleDraft.prompt}
+                  correctOrder={exampleDraft.correctOrder}
                   config={exampleDraft.config}
                   steps={exampleDraft.steps}
                   hints={exampleDraft.hints}

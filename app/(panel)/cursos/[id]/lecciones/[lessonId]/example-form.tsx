@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useState } from "react";
 
 import type { CoreExample, ExerciseConfig, ExerciseStep, ExerciseType } from "@/lib/content/model";
-import { parseExampleInput } from "@/lib/content/validate";
+import { parseExampleInput, parseExerciseInput } from "@/lib/content/validate";
 import { saveExample, type EditorResult } from "@/lib/actions/exercises";
 import { PreviewFrame } from "@/app/(panel)/preview-frame";
 
@@ -14,6 +14,7 @@ export type ExampleDraft = {
   type: ExerciseType;
   title: string;
   prompt: string;
+  correctOrder: string[];
   config: ExerciseConfig;
   steps: ExerciseStep[];
   hints: string[];
@@ -41,6 +42,7 @@ function emptyDraft(): ExampleDraft {
     type: "match",
     title: "",
     prompt: "",
+    correctOrder: [],
     config: emptyConfig("match"),
     steps: [{ text: "", why: "" }],
     hints: [],
@@ -53,6 +55,7 @@ function draftFrom(item: CoreExample): ExampleDraft {
     type: item.type,
     title: item.title,
     prompt: item.prompt,
+    correctOrder: [],
     config: item.config ?? emptyConfig(item.type),
     steps: item.steps,
     hints: item.hints,
@@ -62,6 +65,8 @@ function draftFrom(item: CoreExample): ExampleDraft {
 
 export function ExampleForm({
   lessonId,
+  courseId,
+  topicId,
   initial,
   onSaved,
   onCancel,
@@ -70,7 +75,9 @@ export function ExampleForm({
   formId,
   flush = false,
 }: {
-  lessonId: string;
+  lessonId?: string;
+  courseId?: string;
+  topicId?: string;
   initial?: CoreExample;
   onSaved: () => void;
   onCancel: () => void;
@@ -80,6 +87,7 @@ export function ExampleForm({
   flush?: boolean;
 }) {
   const [draft, setDraft] = useState<ExampleDraft>(initial ? draftFrom(initial) : emptyDraft());
+  const [alsoExercise, setAlsoExercise] = useState(false);
   const [state, action, pending] = useActionState<EditorResult, FormData>(saveExample, {});
 
   useEffect(() => {
@@ -94,20 +102,34 @@ export function ExampleForm({
     setDraft((current) => ({ ...current, ...values }));
 
   const changeType = (type: ExerciseType) =>
-    patch({ type, config: emptyConfig(type) });
+    patch({ type, config: emptyConfig(type), correctOrder: type === "order" ? ["", ""] : [] });
 
-  const validation = parseExampleInput(
-    {
-      type: draft.type,
-      title: draft.title,
-      prompt: draft.prompt,
-      config: draft.config,
-      steps: draft.steps,
-      hints: draft.hints,
-      explanation: draft.explanation,
-    },
-    { normalize: true },
-  );
+  const validation =
+    draft.type === "order"
+      ? parseExerciseInput(
+          {
+            type: draft.type,
+            prompt: draft.prompt,
+            instructions: "",
+            correctOrder: draft.correctOrder,
+            config: draft.config,
+            explanation: draft.explanation,
+            example: { title: draft.title, steps: draft.steps, hints: draft.hints },
+          },
+          { normalize: true },
+        )
+      : parseExampleInput(
+          {
+            type: draft.type,
+            title: draft.title,
+            prompt: draft.prompt,
+            config: draft.config,
+            steps: draft.steps,
+            hints: draft.hints,
+            explanation: draft.explanation,
+          },
+          { normalize: true },
+        );
   const previewError = "error" in validation ? validation.error : null;
 
   return (
@@ -116,8 +138,11 @@ export function ExampleForm({
       action={action}
       className={flush ? "space-y-5" : "card space-y-5 border-line-strong p-5"}
     >
-      <input type="hidden" name="lessonId" value={lessonId} />
+      {lessonId && <input type="hidden" name="lessonId" value={lessonId} />}
+      {courseId && <input type="hidden" name="courseId" value={courseId} />}
+      {topicId && <input type="hidden" name="topicId" value={topicId} />}
       <input type="hidden" name="exampleId" value={initial?.content_id ?? ""} />
+      <input type="hidden" name="alsoExercise" value={alsoExercise ? "on" : ""} />
       <input type="hidden" name="data" value={JSON.stringify(draft)} />
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -127,7 +152,7 @@ export function ExampleForm({
             onChange={(event) => changeType(event.target.value as ExerciseType)}
             className={fieldClass}
           >
-            {/* Ordenar necesita correctOrder y el contrato de ejemplos no lo tiene. */}
+            <option value="order">Ordenar</option>
             <option value="fill">Completar</option>
             <option value="match">Relacionar</option>
             <option value="crossword">Crucigrama</option>
@@ -158,6 +183,16 @@ export function ExampleForm({
           />
         </Field>
       </div>
+
+      {draft.type === "order" && (
+        <TextList
+          label="Secuencia resuelta"
+          values={draft.correctOrder}
+          onChange={(correctOrder) => patch({ correctOrder })}
+          placeholder="Elemento en orden"
+          hint="Un ejemplo de ordenar se publica también como ejercicio con su resolución guiada."
+        />
+      )}
 
       {draft.type === "fill" && (
         <div className="space-y-4">
@@ -253,6 +288,43 @@ export function ExampleForm({
         </div>
       )}
 
+      {!initial && (
+        <fieldset className="space-y-2 rounded-xl border border-line bg-surface-soft p-4">
+          <legend className="px-1 text-sm font-medium text-ink">Publicación</legend>
+          <label className="flex items-start gap-2 text-sm text-ink-soft">
+            <input
+              type="radio"
+              checked={!alsoExercise}
+              onChange={() => setAlsoExercise(false)}
+              disabled={draft.type === "order"}
+              className="mt-0.5 size-4"
+            />
+            <span>
+              <strong className="text-ink">Solo como ejemplo</strong>
+              <span className="mt-0.5 block text-xs text-ink-muted">
+                {draft.type === "order"
+                  ? "Ordenar necesita una actividad interactiva; elige la siguiente opción."
+                  : "Publica una demostración guiada en la sección de ejemplos."}
+              </span>
+            </span>
+          </label>
+          <label className="flex items-start gap-2 text-sm text-ink-soft">
+            <input
+              type="radio"
+              checked={alsoExercise || draft.type === "order"}
+              onChange={() => setAlsoExercise(true)}
+              className="mt-0.5 size-4"
+            />
+            <span>
+              <strong className="text-ink">Como ejemplo y ejercicio</strong>
+              <span className="mt-0.5 block text-xs text-ink-muted">
+                Publica la actividad para practicar y también su explicación guiada.
+              </span>
+            </span>
+          </label>
+        </fieldset>
+      )}
+
       <StepsEditor steps={draft.steps} onChange={(steps) => patch({ steps })} />
 
       <TextList
@@ -277,6 +349,7 @@ export function ExampleForm({
               type={draft.type}
               title={draft.title}
               prompt={draft.prompt}
+              correctOrder={draft.correctOrder}
               config={draft.config}
               steps={draft.steps}
               hints={draft.hints}

@@ -345,6 +345,7 @@ export function ExamplePreview({
   type,
   title,
   prompt,
+  correctOrder = [],
   config,
   steps,
   hints,
@@ -354,6 +355,7 @@ export function ExamplePreview({
   type: ExerciseType;
   title: string;
   prompt: string;
+  correctOrder?: string[];
   config: ExerciseConfig;
   steps: ExerciseStep[];
   hints: string[];
@@ -371,7 +373,7 @@ export function ExamplePreview({
       <ActivityRunner
         type={type}
         config={config}
-        correctOrder={[]}
+        correctOrder={correctOrder}
         options={[]}
         answer={0}
       />

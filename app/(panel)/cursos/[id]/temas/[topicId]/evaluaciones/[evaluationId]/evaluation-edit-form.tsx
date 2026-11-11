@@ -10,15 +10,13 @@ export function EvaluationEditForm({
   courseId,
   topicId,
   evaluation,
-  lessons,
   exercises,
   selected,
   questionCount,
 }: {
   courseId: string;
   topicId: string;
-  evaluation: { id: string; title: string; description: string; lessonId: string };
-  lessons: { id: string; code: string; title: string }[];
+  evaluation: { id: string; title: string; description: string };
   exercises: { content_id: string; type: string; title: string }[];
   selected: string[];
   questionCount: number;
@@ -29,7 +27,6 @@ export function EvaluationEditForm({
   );
   const [title, setTitle] = useState(evaluation.title);
   const [description, setDescription] = useState(evaluation.description);
-  const [lessonId, setLessonId] = useState(evaluation.lessonId);
   const [exerciseIds, setExerciseIds] = useState(selected);
   const composition = evaluationComposition(exerciseIds);
 
@@ -46,7 +43,7 @@ export function EvaluationEditForm({
         <input type="hidden" name="topicId" value={topicId} />
         <input type="hidden" name="evaluationId" value={evaluation.id} />
 
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-3">
           <label className="space-y-1 text-sm">
             <span className="eyebrow">Título</span>
             <input
@@ -58,21 +55,6 @@ export function EvaluationEditForm({
             />
           </label>
           <label className="space-y-1 text-sm">
-            <span className="eyebrow">Lección de anclaje v2</span>
-            <select
-              name="lessonId"
-              value={lessonId}
-              onChange={(event) => setLessonId(event.target.value)}
-              className="field"
-            >
-              {lessons.map((lesson) => (
-                <option key={lesson.id} value={lesson.id}>
-                  {lesson.code} · {lesson.title}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="space-y-1 text-sm sm:col-span-2">
             <span className="eyebrow">Descripción</span>
             <input
               name="description"

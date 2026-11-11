@@ -62,15 +62,26 @@ const TYPE_META: {
 const EMPTY_LESSON: LessonDraft = { title: "", code: "", blocks: [] };
 const EMPTY_EVALUATION: EvaluationDraft = { title: "", description: "" };
 
-export function ContentStudio({ groups }: { groups: StudioGroup[] }) {
+export function ContentStudio({
+  groups,
+  initialGroupId,
+  initialTopicId,
+}: {
+  groups: StudioGroup[];
+  initialGroupId?: string;
+  initialTopicId?: string;
+}) {
   const router = useRouter();
   const initialGroup =
     groups.find((group) => group.courseId && group.topics.length > 0) ??
     groups[0] ??
     null;
 
-  const [groupId, setGroupId] = useState(initialGroup?.id ?? "");
-  const [topicId, setTopicId] = useState(initialGroup?.topics[0]?.id ?? "");
+  const requestedGroup = groups.find((group) => group.id === initialGroupId);
+  const firstGroup = requestedGroup ?? initialGroup;
+  const requestedTopic = firstGroup?.topics.find((topic) => topic.id === initialTopicId);
+  const [groupId, setGroupId] = useState(firstGroup?.id ?? "");
+  const [topicId, setTopicId] = useState(requestedTopic?.id ?? firstGroup?.topics[0]?.id ?? "");
   const [type, setType] = useState<StudioContentType>("lesson");
   const [version, setVersion] = useState(0);
   const [notice, setNotice] = useState<string | null>(null);
@@ -97,10 +108,6 @@ export function ContentStudio({ groups }: { groups: StudioGroup[] }) {
     return [...units.entries()];
   }, [group]);
 
-  const [lessonId, setLessonId] = useState(topic?.lessons[0]?.id ?? "");
-  const activeLesson =
-    topic?.lessons.find((lesson) => lesson.id === lessonId) ?? topic?.lessons[0] ?? null;
-
   const resetDrafts = () => {
     setVersion((current) => current + 1);
     setLessonDraft(EMPTY_LESSON);
@@ -109,7 +116,6 @@ export function ContentStudio({ groups }: { groups: StudioGroup[] }) {
     setEvaluationDraft(EMPTY_EVALUATION);
     setCreatedEvaluation(null);
     setNotice(null);
-    setLessonId("");
   };
 
   const selectGroup = (id: string) => {
@@ -266,25 +272,6 @@ export function ContentStudio({ groups }: { groups: StudioGroup[] }) {
               })}
             </div>
 
-            {topic && type !== "lesson" && topic.lessons.length > 0 && (
-              <Field
-                label="Lección de contexto"
-                hint="El ejemplo, ejercicio o evaluación se asocia a esta lección."
-              >
-                <select
-                  value={activeLesson?.id ?? ""}
-                  onChange={(event) => setLessonId(event.target.value)}
-                  className={fieldClass}
-                >
-                  {topic.lessons.map((lesson) => (
-                    <option key={lesson.id} value={lesson.id}>
-                      {lesson.code} · {lesson.title}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-            )}
-
             {!group ? (
               <p className="empty">
                 Primero crea un grupo en{" "}
@@ -320,25 +307,6 @@ export function ContentStudio({ groups }: { groups: StudioGroup[] }) {
               <p className="empty">Selecciona un subtema para comenzar.</p>
             ) : (
               <>
-                {type !== "lesson" && !activeLesson && (
-                  <p className="rounded-xl border border-dashed border-line-strong bg-surface-soft/60 p-4 text-sm text-ink-muted">
-                    Primero crea una lección en este subtema para asociar{" "}
-                    {type === "example"
-                      ? "el ejemplo"
-                      : type === "evaluation"
-                        ? "la evaluación"
-                        : "el ejercicio"}
-                    .
-                    <button
-                      type="button"
-                      onClick={() => setType("lesson")}
-                      className="link ml-1"
-                    >
-                      Crear lección
-                    </button>
-                  </p>
-                )}
-
                 {type === "lesson" && (
                   <LessonStudioForm
                     key={`lesson-${topic.id}-${version}`}
@@ -349,10 +317,11 @@ export function ContentStudio({ groups }: { groups: StudioGroup[] }) {
                   />
                 )}
 
-                {type === "example" && activeLesson && (
+                {type === "example" && (
                   <ExampleForm
-                    key={`example-${topic.id}-${activeLesson.id}-${version}`}
-                    lessonId={activeLesson.id}
+                    key={`example-${topic.id}-${version}`}
+                    courseId={group.courseId ?? ""}
+                    topicId={topic.id}
                     onSaved={onExampleSaved}
                     onCancel={() => setType("lesson")}
                     onDraftChange={setExampleDraft}
@@ -361,10 +330,11 @@ export function ContentStudio({ groups }: { groups: StudioGroup[] }) {
                   />
                 )}
 
-                {type === "exercise" && activeLesson && (
+                {type === "exercise" && (
                   <ExerciseForm
-                    key={`exercise-${topic.id}-${activeLesson.id}-${version}`}
-                    lessonId={activeLesson.id}
+                    key={`exercise-${topic.id}-${version}`}
+                    courseId={group.courseId ?? ""}
+                    topicId={topic.id}
                     onSaved={onExerciseSaved}
                     onCancel={() => setType("lesson")}
                     onDraftChange={setExerciseDraft}
@@ -373,12 +343,11 @@ export function ContentStudio({ groups }: { groups: StudioGroup[] }) {
                   />
                 )}
 
-                {type === "evaluation" && activeLesson && (
+                {type === "evaluation" && (
                   <EvaluationStudioForm
                     key={`evaluation-${topic.id}-${version}`}
                     group={group}
                     topic={topic}
-                    lesson={activeLesson}
                     onDraftChange={setEvaluationDraft}
                     onCreated={onEvaluationCreated}
                   />
@@ -410,8 +379,6 @@ export function ContentStudio({ groups }: { groups: StudioGroup[] }) {
           <span className="text-xs text-ink-faint">En vivo</span>
         </div>
         <MloTopicPreview
-          group={group}
-          topic={topic}
           type={type}
           lessonDraft={lessonDraft}
           exampleDraft={exampleDraft}
@@ -512,13 +479,11 @@ function LessonStudioForm({
 function EvaluationStudioForm({
   group,
   topic,
-  lesson,
   onDraftChange,
   onCreated,
 }: {
   group: StudioGroup;
   topic: StudioTopic;
-  lesson: { id: string; code: string; title: string };
   onDraftChange: (draft: EvaluationDraft) => void;
   onCreated: (evaluationId: string) => void;
 }) {
@@ -545,7 +510,6 @@ function EvaluationStudioForm({
       <input type="hidden" name="courseId" value={group.courseId ?? ""} />
       <input type="hidden" name="topicId" value={topic.id} />
       <input type="hidden" name="stay" value="on" />
-      <input type="hidden" name="lessonId" value={lesson.id} />
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Título de la evaluación">
@@ -561,13 +525,6 @@ function EvaluationStudioForm({
             className={fieldClass}
           />
         </Field>
-        <div className="field-label">
-          Lección de anclaje
-          <div className="field flex items-center gap-2 bg-surface-soft text-ink-soft">
-            <span className="font-mono text-xs">{lesson.code}</span>
-            <span className="truncate">{lesson.title}</span>
-          </div>
-        </div>
         <div className="sm:col-span-2">
           <Field label="Descripción" hint="Opcional; se muestra antes de comenzar.">
             <input

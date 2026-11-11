@@ -14,7 +14,7 @@ type EvaluationRow = {
   id: string;
   content_id: string;
   topic_id: string;
-  lesson_id: string;
+  lesson_id: string | null;
   title: string;
   description: string;
   position: number;
@@ -72,10 +72,6 @@ export default async function EvaluationPage({
   const canEdit =
     teacher.role === "admin" || (!evaluation.is_base && evaluation.owner_id === teacher.id);
 
-  const lessons = await db()<{ id: string; code: string; title: string }[]>`
-    select id, code, title from lessons
-     where topic_id = ${topicId} and archived_at is null
-     order by position, code, id`;
   const exercises = await db()<{ content_id: string; type: string; prompt: string }[]>`
     select content_id, type, prompt from exercises
      where topic_id = ${topicId} and archived_at is null
@@ -116,9 +112,7 @@ export default async function EvaluationPage({
                 id: evaluation.id,
                 title: evaluation.title,
                 description: evaluation.description,
-                lessonId: evaluation.lesson_id,
               }}
-              lessons={lessons}
               exercises={exercises.map((exercise) => ({
                 content_id: exercise.content_id,
                 type: exercise.type,

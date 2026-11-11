@@ -1,17 +1,15 @@
 import Link from "next/link";
 
 import { BackLink } from "@/app/(panel)/back-link";
-import { revokeCourseAccess } from "@/lib/actions/access";
 import { moveTopic, moveUnit } from "@/lib/actions/content";
 import { unpublish } from "@/lib/actions/publish";
 import { canEditCourse, getBaseCourseId, getCourseForRead } from "@/lib/access";
 import { requireTeacher } from "@/lib/auth";
 import { editorCourseIds } from "@/lib/content/x03";
-import { listCourseAccess } from "@/lib/course-access";
 import { db } from "@/lib/db";
 
-import { GrantAccessForm } from "./access-form";
 import { CreateTopicForm } from "./create-topic-form";
+import { TopicContentLink } from "./topic-content-link";
 import { CreateUnitForm } from "./unit-form";
 
 type UnitRow = {
@@ -31,6 +29,13 @@ type TopicRow = {
   title: string;
   summary: string;
   position: number;
+};
+
+type ClassRow = {
+  id: string;
+  name: string;
+  course_id: string;
+  content_course_id: string | null;
 };
 
 function MoveButtons({
@@ -68,41 +73,26 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
     course.id,
     await getBaseCourseId(),
   );
-  const access = canEdit ? await listCourseAccess(course.id) : [];
-  const statusLabel =
-    course.status === "published"
-      ? "Publicado"
-      : course.status === "unpublished"
-        ? "Despublicado"
-        : "Borrador";
-  const statusClass =
-    course.status === "published"
-      ? "badge badge-positive"
-      : course.status === "unpublished"
-        ? "badge badge-warning"
-        : "badge badge-neutral";
-
-  const units = await db()<UnitRow[]>`
+  const [units, topics, assignedGroups] = await Promise.all([
+    db()<UnitRow[]>`
     select id, course_id, number, title, description, difficulty, color
       from units
      where course_id in (${course.id}, ${coreId})
        and archived_at is null
-     order by number, position, id`;
-  const topics = await db()<TopicRow[]>`
+     order by number, position, id`,
+    db()<TopicRow[]>`
     select id, course_id, unit_id, title, summary, position
       from topics
      where course_id in (${course.id}, ${coreId})
        and archived_at is null
-     order by position, id`;
-  const lessons = await db()<{ topic_id: string }[]>`
-    select topic_id
-      from lessons
-     where course_id in (${course.id}, ${coreId})
-       and archived_at is null`;
-  const lessonCount = new Map<string, number>();
-  for (const lesson of lessons) {
-    lessonCount.set(lesson.topic_id, (lessonCount.get(lesson.topic_id) ?? 0) + 1);
-  }
+     order by position, id`,
+    db()<ClassRow[]>`
+      select id, name, course_id, content_course_id
+        from classes
+       where (course_id = ${course.id} or content_course_id = ${course.id})
+         and archived_at is null
+       order by name`,
+  ]);
 
   return (
     <div className="space-y-6">
@@ -110,15 +100,7 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
         <BackLink href="/mis-cursos">Mis cursos</BackLink>
         <div className="mt-1 flex flex-wrap items-center gap-3">
           <h1 className="page-title">{course.title}</h1>
-          <span className="font-mono text-xs text-ink-faint">{course.key}</span>
-          <span className="badge badge-neutral">{course.level}</span>
           {course.is_group && <span className="badge badge-neutral">Grupo</span>}
-          <span className={statusClass}>{statusLabel}</span>
-          {!course.is_base && (
-            <span className="text-xs text-ink-muted">
-              {course.uses_base ? "Con contenido base" : "Sin contenido base"}
-            </span>
-          )}
           {!canEdit && <span className="badge badge-warning">Solo lectura</span>}
           <Link
             href={`/cursos/${course.id}/referencias`}
@@ -145,6 +127,31 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
         </div>
         {course.description && <p className="page-lead">{course.description}</p>}
       </header>
+
+      {canEdit && <CreateUnitForm courseId={course.id} />}
+
+      <section className="card p-5">
+        <h2 className="text-sm font-semibold text-ink">Grupos asignados</h2>
+        <p className="mt-1 text-sm text-ink-muted">
+          Estos grupos dependen de este curso para su contenido.
+        </p>
+        {assignedGroups.length === 0 ? (
+          <p className="empty mt-3">Todavía no hay grupos asignados a este curso.</p>
+        ) : (
+          <ul className="mt-3 divide-y divide-line border-t border-line">
+            {assignedGroups.map((group) => (
+              <li key={group.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
+                <Link href={`/grupos/${group.id}`} className="text-ink-soft underline-offset-4 hover:underline">
+                  {group.name}
+                </Link>
+                {group.content_course_id === course.id && (
+                  <span className="text-xs text-ink-faint">Contenido propio</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       {units.length === 0 ? (
         <p className="empty">Este curso todavía no tiene unidades.</p>
@@ -183,7 +190,7 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
 
                 {unitTopics.length > 0 && (
                   <ul className="mt-4 divide-y divide-line border-t border-line">
-                    {unitTopics.map((topic) => {
+                    {unitTopics.map((topic, index) => {
                       const own = topic.course_id === course.id;
                       return (
                         <li
@@ -191,27 +198,29 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
                           className="flex flex-wrap items-center justify-between gap-2 py-2.5 text-sm"
                         >
                           <span className="text-ink-soft">
-                            <Link
-                              href={`/cursos/${course.id}/temas/${topic.id}`}
-                              className="underline-offset-4 hover:underline"
-                            >
-                              {topic.title}
-                            </Link>
-                            <span className="ml-2 text-xs text-ink-faint">
-                              {lessonCount.get(topic.id) ?? 0} lecciones
+                            <span className="mr-2 font-mono text-xs text-ink-faint">
+                              {unit.number}.{index + 1}
                             </span>
-                            {!own && (
-                              <span className="ml-2 text-[11px] text-ink-faint">
-                                Contenido base
-                              </span>
+                            {topic.title}
+                          </span>
+                          <span className="flex flex-wrap items-center gap-2">
+                            {canEdit && own && (
+                              <>
+                                {course.is_group && (
+                                  <TopicContentLink
+                                    topicId={topic.id}
+                                    groups={assignedGroups
+                                      .filter((group) => group.content_course_id === course.id)
+                                      .map((group) => ({ id: group.id, name: group.name }))}
+                                  />
+                                )}
+                                <MoveButtons
+                                  action={moveTopic}
+                                  fields={{ courseId: course.id, topicId: topic.id }}
+                                />
+                              </>
                             )}
                           </span>
-                          {canEdit && own && (
-                            <MoveButtons
-                              action={moveTopic}
-                              fields={{ courseId: course.id, topicId: topic.id }}
-                            />
-                          )}
                         </li>
                       );
                     })}
@@ -223,47 +232,6 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
             );
           })}
         </div>
-      )}
-
-      {canEdit && <CreateUnitForm courseId={course.id} />}
-
-      {canEdit && !course.is_group && (
-        <section className="card p-5">
-          <h2 className="text-sm font-semibold text-ink">Acceso</h2>
-          <p className="mt-1 text-sm text-ink-muted">
-            Solo los alumnos con acceso pueden descubrir y descargar este curso
-            cuando está publicado. El curso base conserva su regla de piloto.
-          </p>
-
-          {access.length === 0 ? (
-            <p className="empty mt-3">Todavía no hay alumnos con acceso.</p>
-          ) : (
-            <ul className="mt-3 divide-y divide-line border-t border-line">
-              {access.map((student) => (
-                <li
-                  key={student.student_id}
-                  className="flex flex-wrap items-center justify-between gap-2 py-2.5 text-sm"
-                >
-                  <span className="text-ink-soft">
-                    {student.name}
-                    <span className="ml-2 font-mono text-[11px] text-ink-faint">
-                      {student.external_key}
-                    </span>
-                  </span>
-                  <form action={revokeCourseAccess}>
-                    <input type="hidden" name="courseId" value={course.id} />
-                    <input type="hidden" name="studentId" value={student.student_id} />
-                    <button type="submit" className="btn btn-ghost btn-sm">
-                      Revocar
-                    </button>
-                  </form>
-                </li>
-              ))}
-            </ul>
-          )}
-
-          <GrantAccessForm courseId={course.id} />
-        </section>
       )}
     </div>
   );

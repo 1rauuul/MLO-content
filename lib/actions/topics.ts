@@ -55,15 +55,7 @@ export async function createEvaluation(
 
   const title = String(formData.get("title") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
-  const lessonId = String(formData.get("lessonId") ?? "");
   if (title.length < 3) return { error: "Escribe el título de la evaluación." };
-
-  const [lesson] = await db()<{ id: string }[]>`
-    select id from lessons
-     where id = ${lessonId} and topic_id = ${scope.topic.id}
-       and course_id = ${scope.course.id} and archived_at is null
-     limit 1`;
-  if (!lesson) return { error: "La lección de anclaje no pertenece al subtema." };
 
   const ids = await db()<{ content_id: string }[]>`
     select content_id from evaluations where course_id = ${scope.course.id}`;
@@ -76,7 +68,7 @@ export async function createEvaluation(
       (course_id, lesson_id, topic_id, content_id, title, description,
        question_count, exercise_count, position)
     values
-      (${scope.course.id}, ${lesson.id}, ${scope.topic.id},
+      (${scope.course.id}, ${null}, ${scope.topic.id},
        ${nextId("ev", ids.map((row) => row.content_id))}, ${title}, ${description},
        1, 0, ${next.position})
     returning id`;
@@ -100,22 +92,14 @@ export async function updateEvaluation(
 
   const title = String(formData.get("title") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
-  const lessonId = String(formData.get("lessonId") ?? "");
   if (title.length < 3) return { error: "Escribe el título de la evaluación." };
 
-  const [evaluation] = await db()<{ id: string; lesson_id: string }[]>`
-    select id, lesson_id from evaluations
+  const [evaluation] = await db()<{ id: string }[]>`
+    select id from evaluations
      where id = ${evaluationId} and topic_id = ${scope.topic.id}
        and course_id = ${scope.course.id} and archived_at is null
      limit 1`;
   if (!evaluation) return { error: "La evaluación no existe en el subtema." };
-
-  const [lesson] = await db()<{ id: string }[]>`
-    select id from lessons
-     where id = ${lessonId} and topic_id = ${scope.topic.id}
-       and course_id = ${scope.course.id} and archived_at is null
-     limit 1`;
-  if (!lesson) return { error: "La lección de anclaje no pertenece al subtema." };
 
   const requested = [
     ...new Set(formData.getAll("exerciseIds").map(String).filter(Boolean)),
@@ -137,7 +121,6 @@ export async function updateEvaluation(
       update evaluations
          set title = ${title},
              description = ${description},
-             lesson_id = ${lesson.id},
              exercise_count = ${available.length}
        where id = ${evaluation.id}`;
     await tx`delete from evaluation_exercises where evaluation_id = ${evaluation.id}`;
@@ -163,7 +146,7 @@ export async function saveQuestion(
   const scope = await editableTopic(courseId, topicId);
   if (!scope) return { error: "El subtema no existe en este curso." };
 
-  const [evaluation] = await db()<{ id: string; lesson_id: string }[]>`
+  const [evaluation] = await db()<{ id: string; lesson_id: string | null }[]>`
     select id, lesson_id from evaluations
      where id = ${evaluationId} and topic_id = ${scope.topic.id}
        and course_id = ${scope.course.id} and archived_at is null

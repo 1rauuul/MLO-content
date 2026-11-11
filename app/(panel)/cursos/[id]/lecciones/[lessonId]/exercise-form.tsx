@@ -67,6 +67,8 @@ function draftFrom(item: CoreExercise): ExerciseDraft {
 
 export function ExerciseForm({
   lessonId,
+  courseId,
+  topicId,
   initial,
   onSaved,
   onCancel,
@@ -75,7 +77,9 @@ export function ExerciseForm({
   formId,
   flush = false,
 }: {
-  lessonId: string;
+  lessonId?: string;
+  courseId?: string;
+  topicId?: string;
   initial?: CoreExercise;
   onSaved: () => void;
   onCancel: () => void;
@@ -134,7 +138,9 @@ export function ExerciseForm({
       action={action}
       className={flush ? "space-y-5" : "card space-y-5 border-line-strong p-5"}
     >
-      <input type="hidden" name="lessonId" value={lessonId} />
+      {lessonId && <input type="hidden" name="lessonId" value={lessonId} />}
+      {courseId && <input type="hidden" name="courseId" value={courseId} />}
+      {topicId && <input type="hidden" name="topicId" value={topicId} />}
       <input type="hidden" name="exerciseId" value={initial?.content_id ?? ""} />
       <input type="hidden" name="data" value={JSON.stringify(draft)} />
 
@@ -290,11 +296,11 @@ export function ExerciseForm({
             onChange={(event) => setExample(event.target.checked)}
             className="h-4 w-4"
           />
-          Añadir como ejemplo
+          Agregar también como ejemplo
         </label>
         <p className="text-xs text-ink-muted">
-          El ejercicio se muestra también en la pantalla de ejemplos. El enunciado, la
-          configuración y la explicación se reutilizan.
+          Al activarlo se abre la explicación guiada. Se reutilizan el enunciado y la
+          configuración, y el alumno verá tanto el ejercicio como su ejemplo resuelto.
         </p>
 
         {draft.example && (

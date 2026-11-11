@@ -31,7 +31,7 @@ type LessonRow = { id: string; code: string; title: string; position: number };
 type ActivityRow = {
   id: string;
   content_id: string;
-  lesson_code: string;
+  lesson_code: string | null;
   type: string;
   title: string;
   position: number;
@@ -99,13 +99,13 @@ export default async function TopicPage({
   const examples = await db()<ActivityRow[]>`
     select e.id, e.content_id, l.code as lesson_code, e.type, e.title, e.position
       from examples e
-      join lessons l on l.id = e.lesson_id
+      left join lessons l on l.id = e.lesson_id
      where e.topic_id = ${topic.id} and e.archived_at is null
      order by e.position, e.content_id`;
   const exercises = await db()<ActivityRow[]>`
     select x.id, x.content_id, l.code as lesson_code, x.type, x.prompt as title, x.position
       from exercises x
-      join lessons l on l.id = x.lesson_id
+      left join lessons l on l.id = x.lesson_id
      where x.topic_id = ${topic.id} and x.archived_at is null
      order by x.position, x.content_id`;
   const evaluations = await db()<EvaluationRow[]>`
@@ -170,9 +170,7 @@ export default async function TopicPage({
 
       <section className="card p-5">
         <h2 className="text-sm font-semibold text-ink">Ejemplos</h2>
-        <p className="mt-1 text-sm text-ink-muted">
-          Se editan dentro de la lección de contexto. El subtema los publica ordenados.
-        </p>
+        <p className="mt-1 text-sm text-ink-muted">El subtema los publica ordenados.</p>
         {examples.length === 0 ? (
           <p className="empty mt-3">Todavía no hay ejemplos en este subtema.</p>
         ) : (
@@ -182,7 +180,9 @@ export default async function TopicPage({
                 <span className="text-ink-soft">
                   <span className="badge badge-neutral mr-2">{example.type}</span>
                   {example.title}
-                  <span className="ml-2 font-mono text-xs text-ink-faint">{example.lesson_code}</span>
+                  {example.lesson_code && (
+                    <span className="ml-2 font-mono text-xs text-ink-faint">{example.lesson_code}</span>
+                  )}
                 </span>
                 {canEdit && (
                   <MoveButtons
@@ -198,9 +198,7 @@ export default async function TopicPage({
 
       <section className="card p-5">
         <h2 className="text-sm font-semibold text-ink">Ejercicios</h2>
-        <p className="mt-1 text-sm text-ink-muted">
-          Se editan dentro de la lección de contexto. El subtema los publica ordenados.
-        </p>
+        <p className="mt-1 text-sm text-ink-muted">El subtema los publica ordenados.</p>
         {exercises.length === 0 ? (
           <p className="empty mt-3">Todavía no hay ejercicios en este subtema.</p>
         ) : (
@@ -210,7 +208,9 @@ export default async function TopicPage({
                 <span className="text-ink-soft">
                   <span className="badge badge-neutral mr-2">{exercise.type}</span>
                   {exercise.title}
-                  <span className="ml-2 font-mono text-xs text-ink-faint">{exercise.lesson_code}</span>
+                  {exercise.lesson_code && (
+                    <span className="ml-2 font-mono text-xs text-ink-faint">{exercise.lesson_code}</span>
+                  )}
                 </span>
                 {canEdit && (
                   <MoveButtons
@@ -255,7 +255,6 @@ export default async function TopicPage({
           <CreateEvaluationForm
             courseId={courseId}
             topicId={topic.id}
-            lessons={lessons.map((lesson) => ({ id: lesson.id, code: lesson.code, title: lesson.title }))}
           />
         )}
       </section>

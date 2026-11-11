@@ -24,7 +24,7 @@ export function CreateTopicForm({ courseId, unitId }: { courseId: string; unitId
         aria-label="Resumen del subtema"
         className="field min-w-48 flex-1"
       />
-      <button type="submit" disabled={pending} className="btn btn-secondary btn-sm">
+      <button type="submit" disabled={pending} className="btn btn-primary btn-sm shadow-[var(--shadow-card)]">
         {pending ? "Creando…" : "Crear subtema"}
       </button>
       {state.error && (

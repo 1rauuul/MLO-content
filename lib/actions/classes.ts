@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { getBaseCourseId } from "@/lib/access";
 import { requireTeacher } from "@/lib/auth";
 import { publishClassRelease, requireEditableClass } from "@/lib/classes";
 import { isExtraType, parseExtraPayload } from "@/lib/content/classes";
@@ -53,14 +52,13 @@ export async function createClass(
 ): Promise<ClassResult> {
   const teacher = await requireTeacher();
   const name = String(formData.get("name") ?? "").trim();
-  const courseId =
-    String(formData.get("courseId") ?? "") || (await getBaseCourseId()) || "";
+  const courseId = String(formData.get("courseId") ?? "").trim();
   const capacityRaw = String(formData.get("capacity") ?? "").trim();
   const capacity = capacityRaw === "" ? null : Number(capacityRaw);
 
   if (name.length < 3) return { error: "Escribe un nombre de al menos 3 caracteres." };
   if (name.length > 80) return { error: "El nombre no puede pasar de 80 caracteres." };
-  if (!courseId) return { error: "No hay un contenido base disponible para el grupo." };
+  if (!courseId) return { error: "Elige el curso que se asignará al grupo." };
   if (capacity !== null && (!Number.isInteger(capacity) || capacity < 1)) {
     return { error: "El cupo debe ser un entero positivo o quedar vacío." };
   }

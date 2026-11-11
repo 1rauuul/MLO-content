@@ -45,10 +45,10 @@ type StudioLessonRow = {
 export default async function ContenidoExtraPage({
   searchParams,
 }: {
-  searchParams: Promise<{ extra?: string; classId?: string; tab?: string }>;
+  searchParams: Promise<{ extra?: string; classId?: string; topicId?: string; tab?: string }>;
 }) {
   const teacher = await requireTeacher();
-  const { extra: extraId, classId, tab } = await searchParams;
+  const { extra: extraId, classId, topicId, tab } = await searchParams;
 
   const [classes, lessons, extras, editing] = await Promise.all([
     listEditableClasses(teacher),
@@ -223,9 +223,15 @@ export default async function ContenidoExtraPage({
       </header>
 
       <ContentTabs
-        studio={<ContentStudio groups={studioGroups} />}
+        studio={
+          <ContentStudio
+            groups={studioGroups}
+            initialGroupId={preselected}
+            initialTopicId={topicId}
+          />
+        }
         extras={extrasPanel}
-        initialTab={tab === "extras" || extraId || classId ? "extras" : "studio"}
+        initialTab={tab === "extras" || extraId ? "extras" : "studio"}
       />
     </div>
   );

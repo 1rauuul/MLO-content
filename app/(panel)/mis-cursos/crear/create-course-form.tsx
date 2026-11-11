@@ -16,7 +16,7 @@ export function CreateCourseForm() {
   const [usesBase, setUsesBase] = useState(false);
 
   return (
-    <div className="space-y-6 pb-24">
+    <div className="space-y-6">
       <header>
         <BackLink href="/mis-cursos">Mis cursos</BackLink>
         <h1 className="page-title mt-1">Crea un curso desde cero</h1>
@@ -169,21 +169,6 @@ export function CreateCourseForm() {
         </aside>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface/95 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-3">
-          <p className="hidden text-xs text-ink-muted sm:block">
-            El curso se publica automáticamente al crearlo.
-          </p>
-          <button
-            type="submit"
-            form="create-course"
-            disabled={pending}
-            className="btn btn-primary w-full sm:ml-auto sm:w-auto"
-          >
-            {pending ? "Creando y publicando…" : "Crear curso"}
-          </button>
-        </div>
-      </div>
     </div>
   );
 }

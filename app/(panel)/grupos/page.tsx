@@ -2,12 +2,21 @@ import Link from "next/link";
 
 import { requireTeacher } from "@/lib/auth";
 import { listClasses } from "@/lib/classes";
+import { db } from "@/lib/db";
 
 import { CreateClassForm } from "./create-class-form";
 
 export default async function GruposPage() {
   const teacher = await requireTeacher();
-  const classes = await listClasses(teacher);
+  const [classes, courses] = await Promise.all([
+    listClasses(teacher),
+    db()<{ id: string; title: string }[]>`
+      select id, title
+        from courses
+       where not is_group
+         and (is_base or owner_id = ${teacher.id} or ${teacher.role} = 'admin')
+       order by is_base desc, title`,
+  ]);
 
   return (
     <div className="space-y-6">
@@ -19,7 +28,7 @@ export default async function GruposPage() {
         </p>
       </header>
 
-      <CreateClassForm />
+      <CreateClassForm courses={courses} />
 
       {classes.length === 0 ? (
         <p className="empty">
