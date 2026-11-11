@@ -35,3 +35,9 @@ test("rechaza un arreglo vacío o JSON inválido", () => {
   assert.ok("error" in parseBlocks("[]"));
   assert.ok("error" in parseBlocks("{"));
 });
+
+test("requiere contenido de lectura además de subtítulos", () => {
+  const result = parseBlocks(JSON.stringify([{ type: "h", text: "Solo un encabezado" }]));
+
+  assert.deepEqual(result, { error: "Agrega al menos un párrafo, una lista o una tabla." });
+});

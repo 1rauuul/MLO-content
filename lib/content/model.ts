@@ -1,7 +1,8 @@
 import type { ContentBlock } from "@/lib/content";
+import type { UnitColor } from "./unit-colors";
 
 export type Difficulty = "Fundamental" | "Intermedio" | "Avanzado";
-export type UnitColor = "blue" | "violet" | "green";
+export type { UnitColor } from "./unit-colors";
 export type ExerciseType = "order" | "fill" | "match" | "crossword";
 export type ActivityType = ExerciseType | "mcq";
 

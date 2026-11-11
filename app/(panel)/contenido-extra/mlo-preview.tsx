@@ -19,7 +19,6 @@ const LABELS: Record<StudioContentType, string> = {
 
 export type LessonDraft = {
   title: string;
-  code: string;
   blocks: ContentBlock[];
 };
 
@@ -68,7 +67,7 @@ export function MloTopicPreview({
               <div className="mlo-preview rounded-2xl border border-[#324050] bg-[#1e2835] p-4">
                 <LessonReadingPreview
                   title={lessonDraft.title}
-                  eyebrow={lessonDraft.code ? `Lección ${lessonDraft.code}` : ""}
+                  eyebrow=""
                   body=""
                   codeSample=""
                   contextTitle=""

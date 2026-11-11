@@ -50,9 +50,15 @@ export function sourceCourseIds(
 }
 
 /** El curso interno de un grupo no se publica como curso. */
-export function assertPublishableCourse(input: { is_group: boolean }): void {
+export function assertPublishableCourse(input: {
+  is_group: boolean;
+  archived_at?: Date | string | null;
+}): void {
   if (input.is_group) {
     throw new Error("El contenido interno de un grupo no se publica como curso.");
+  }
+  if (input.archived_at) {
+    throw new Error("El curso está archivado. Restáuralo antes de guardar una nueva versión.");
   }
 }
 

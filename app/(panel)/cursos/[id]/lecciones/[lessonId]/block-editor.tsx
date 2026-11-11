@@ -1,12 +1,87 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import { BLOCK_LABELS, emptyBlock, type BlockType, type ContentBlock } from "@/lib/content";
+import type { ContentBlock } from "@/lib/content";
 
-const buttonClass = "btn btn-secondary btn-sm";
+type Format = "title" | "paragraph" | "subtitle" | "bullets" | "numbers" | "table";
 
-const textareaClass = "field";
+const TOOLS: { format: Format; label: string }[] = [
+  { format: "title", label: "Título" },
+  { format: "paragraph", label: "Párrafo" },
+  { format: "subtitle", label: "Subtítulo" },
+  { format: "bullets", label: "Viñetas" },
+  { format: "numbers", label: "Lista numerada" },
+  { format: "table", label: "Tabla" },
+];
+
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+}
+
+function htmlFromBlocks(blocks: ContentBlock[]): string {
+  return blocks
+    .map((block) => {
+      if (block.type === "p") return `<p>${escapeHtml(block.text)}</p>`;
+      if (block.type === "h") return `<h2>${escapeHtml(block.text)}</h2>`;
+      if (block.type === "bullets") {
+        return `<ul>${block.items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
+      }
+      if (block.type === "numbers") {
+        return `<ol>${block.items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ol>`;
+      }
+      return `<table><thead><tr>${block.header
+        .map((cell) => `<th>${escapeHtml(cell)}</th>`)
+        .join("")}</tr></thead><tbody>${block.rows
+        .map((row) => `<tr>${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join("")}</tr>`)
+        .join("")}</tbody></table>`;
+    })
+    .join("");
+}
+
+function textBlocks(value: string): ContentBlock[] {
+  return value
+    .replaceAll("\u00a0", " ")
+    .split(/\r?\n+/)
+    .map((text) => text.trim())
+    .filter(Boolean)
+    .map((text) => ({ type: "p" as const, text }));
+}
+
+function blocksFromNode(node: Node): ContentBlock[] {
+  if (node.nodeType === Node.TEXT_NODE) return textBlocks(node.textContent ?? "");
+  if (!(node instanceof HTMLElement) || node.tagName === "BR") return [];
+
+  const tag = node.tagName;
+  if (tag === "P") return textBlocks(node.innerText);
+  if (/^H[1-6]$/.test(tag)) {
+    const text = node.innerText.trim();
+    return text ? [{ type: "h", text }] : [];
+  }
+  if (tag === "UL" || tag === "OL") {
+    const items = Array.from(node.children)
+      .filter((item) => item.tagName === "LI")
+      .map((item) => item.textContent?.trim() ?? "")
+      .filter(Boolean);
+    return items.length > 0 ? [{ type: tag === "UL" ? "bullets" : "numbers", items }] : [];
+  }
+  if (tag === "TABLE") {
+    const rows = Array.from((node as HTMLTableElement).rows).map((row) =>
+      Array.from(row.cells).map((cell) => cell.textContent?.trim() ?? ""),
+    );
+    const headerRow = rows.shift() ?? [""];
+    return [{ type: "table", header: headerRow, rows: rows.length > 0 ? rows : [[""]] }];
+  }
+  if (tag === "DIV" && node.children.length === 0) return textBlocks(node.innerText);
+  return Array.from(node.childNodes).flatMap(blocksFromNode);
+}
+
+function blocksFromEditor(editor: HTMLElement): ContentBlock[] {
+  return Array.from(editor.childNodes).flatMap(blocksFromNode);
+}
 
 export function BlockEditor({
   initial,
@@ -17,157 +92,102 @@ export function BlockEditor({
   label?: string;
   onChange?: (blocks: ContentBlock[]) => void;
 }) {
+  const editorRef = useRef<HTMLDivElement>(null);
+  const initialized = useRef(false);
   const [blocks, setBlocks] = useState<ContentBlock[]>(initial);
+
+  useEffect(() => {
+    if (initialized.current || !editorRef.current) return;
+    editorRef.current.innerHTML = htmlFromBlocks(initial);
+    initialized.current = true;
+  }, [initial]);
 
   useEffect(() => {
     onChange?.(blocks);
   }, [blocks, onChange]);
 
-  function replace(index: number, block: ContentBlock) {
-    setBlocks((current) => current.map((item, i) => (i === index ? block : item)));
-  }
+  const syncBlocks = () => {
+    if (editorRef.current) setBlocks(blocksFromEditor(editorRef.current));
+  };
 
-  function move(index: number, delta: number) {
-    setBlocks((current) => {
-      const target = index + delta;
-      if (target < 0 || target >= current.length) return current;
-      const next = [...current];
-      [next[index], next[target]] = [next[target], next[index]];
-      return next;
-    });
-  }
+  const formatSelection = (format: Format) => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    editor.focus();
 
-  function remove(index: number) {
-    setBlocks((current) => current.filter((_, i) => i !== index));
-  }
-
-  function renderEditor(block: ContentBlock, index: number) {
-    switch (block.type) {
-      case "p":
-      case "h":
-        return (
-          <textarea
-            rows={block.type === "h" ? 1 : 4}
-            value={block.text}
-            onChange={(event) => replace(index, { type: block.type, text: event.target.value })}
-            className={textareaClass}
-          />
-        );
-
-      case "bullets":
-      case "numbers":
-        return (
-          <label className="block text-xs text-ink-muted">
-            Un elemento por línea
-            <textarea
-              rows={4}
-              value={block.items.join("\n")}
-              onChange={(event) =>
-                replace(index, { type: block.type, items: event.target.value.split("\n") })
-              }
-              className={textareaClass}
-            />
-          </label>
-        );
-
-      case "table":
-        return (
-          <div className="grid gap-3 sm:grid-cols-2">
-            <label className="block text-xs text-ink-muted">
-              Encabezados (uno por línea)
-              <textarea
-                rows={3}
-                value={block.header.join("\n")}
-                onChange={(event) =>
-                  replace(index, {
-                    type: "table",
-                    header: event.target.value.split("\n"),
-                    rows: block.rows,
-                  })
-                }
-                className={textareaClass}
-              />
-            </label>
-            <label className="block text-xs text-ink-muted">
-              Filas (una por línea, celdas separadas por |)
-              <textarea
-                rows={3}
-                value={block.rows.map((row) => row.join(" | ")).join("\n")}
-                onChange={(event) =>
-                  replace(index, {
-                    type: "table",
-                    header: block.header,
-                    rows: event.target.value
-                      .split("\n")
-                      .map((line) => line.split("|").map((cell) => cell.trim())),
-                  })
-                }
-                className={textareaClass}
-              />
-            </label>
-          </div>
-        );
+    if (format === "table") {
+      document.execCommand(
+        "insertHTML",
+        false,
+        "<table><thead><tr><th>Encabezado 1</th><th>Encabezado 2</th></tr></thead><tbody><tr><td>Dato 1</td><td>Dato 2</td></tr></tbody></table><p><br></p>",
+      );
+    } else if (format === "bullets") {
+      document.execCommand("insertUnorderedList");
+    } else if (format === "numbers") {
+      document.execCommand("insertOrderedList");
+    } else {
+      const tag = format === "title" ? "H2" : format === "subtitle" ? "H3" : "P";
+      document.execCommand("formatBlock", false, tag);
     }
-  }
+    syncBlocks();
+  };
+
+  const pastePlainText = (event: React.ClipboardEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    const html = event.clipboardData
+      .getData("text/plain")
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => `<p>${escapeHtml(line)}</p>`)
+      .join("");
+    document.execCommand("insertHTML", false, html);
+    syncBlocks();
+  };
 
   return (
     <section className="space-y-3">
       <input type="hidden" name="content" value={JSON.stringify(blocks)} />
 
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="mr-1 text-xs text-ink-muted">Agregar bloque:</span>
-        {(Object.keys(BLOCK_LABELS) as BlockType[]).map((type) => (
+      <div className="flex flex-wrap items-center gap-2" aria-label="Formato de contenido">
+        <span className="mr-1 text-xs text-ink-muted">Formato:</span>
+        {TOOLS.map((tool) => (
           <button
-            key={type}
+            key={tool.format}
             type="button"
-            onClick={() => setBlocks((current) => [...current, emptyBlock(type)])}
-            className={buttonClass}
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={() => formatSelection(tool.format)}
+            className="btn btn-secondary btn-sm"
           >
-            + {BLOCK_LABELS[type]}
+            {tool.label}
           </button>
         ))}
       </div>
 
+      <p className="text-xs text-ink-muted">
+        Pega el texto y selecciona un párrafo o una lista para aplicarle formato. El texto se
+        pega sin estilos de Word para conservar el diseño de MLO.
+      </p>
+
+      <div
+        ref={editorRef}
+        contentEditable
+        suppressContentEditableWarning
+        role="textbox"
+        aria-multiline="true"
+        aria-label={label}
+        data-placeholder="Pega o escribe aquí el contenido de la lección…"
+        onInput={syncBlocks}
+        onBlur={syncBlocks}
+        onPaste={pastePlainText}
+        className="min-h-64 rounded-xl border border-line bg-white p-4 text-sm leading-7 text-ink shadow-[inset_0_1px_2px_#1720330a] outline-none empty:before:pointer-events-none empty:before:text-ink-faint empty:before:content-[attr(data-placeholder)] focus:border-accent focus:ring-2 focus:ring-accent-soft [&_h2]:mt-5 [&_h2]:text-xl [&_h2]:font-semibold [&_h3]:mt-4 [&_h3]:text-base [&_h3]:font-semibold [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-3 [&_table]:my-4 [&_table]:w-full [&_table]:border-collapse [&_td]:border [&_td]:border-line [&_td]:p-2 [&_th]:border [&_th]:border-line [&_th]:bg-surface-soft [&_th]:p-2 [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-6"
+      />
+
       {blocks.length === 0 && (
-        <p className="rounded-[var(--radius-control)] border border-dashed border-line-strong p-4 text-sm text-ink-muted">
-          {label} está vacío. Agrega el primer bloque.
+        <p className="text-xs text-ink-faint">
+          Agrega al menos un párrafo, una lista o una tabla antes de crear la lección.
         </p>
       )}
-
-      {blocks.map((block, index) => (
-        <article key={index} className="rounded-xl border border-line bg-surface-soft/40 p-4">
-          <header className="mb-2 flex items-center justify-between gap-2">
-            <span className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-ink-muted">
-              <span className="grid size-5 place-items-center rounded bg-surface font-mono text-[10px] text-ink-faint ring-1 ring-line">
-                {index + 1}
-              </span>
-              {BLOCK_LABELS[block.type]}
-            </span>
-            <div className="flex gap-1">
-              <button
-                type="button"
-                onClick={() => move(index, -1)}
-                className={`${buttonClass} px-2`}
-                aria-label="Subir bloque"
-              >
-                ↑
-              </button>
-              <button
-                type="button"
-                onClick={() => move(index, 1)}
-                className={`${buttonClass} px-2`}
-                aria-label="Bajar bloque"
-              >
-                ↓
-              </button>
-              <button type="button" onClick={() => remove(index)} className={buttonClass}>
-                Quitar
-              </button>
-            </div>
-          </header>
-          {renderEditor(block, index)}
-        </article>
-      ))}
     </section>
   );
 }

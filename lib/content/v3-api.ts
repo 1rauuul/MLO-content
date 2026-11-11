@@ -78,6 +78,7 @@ export async function listAuthorizedCourses(
          limit 1
       ) v2 on true
      where c.status = 'published'
+       and c.archived_at is null
        and not c.is_group
      order by c.is_base desc, c.title`;
 
@@ -150,6 +151,7 @@ export async function getAuthorizedManifest(
            ) as snapshot
       from courses c
      where c.key = ${catalogId}
+       and c.archived_at is null
        and not c.is_group
      limit 1`;
 
@@ -197,6 +199,7 @@ export async function hasV2CatalogAccess(
            ) as has_grant
       from courses c
      where c.key = ${catalogId}
+       and c.archived_at is null
        and not c.is_group
      limit 1`;
 

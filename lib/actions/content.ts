@@ -7,6 +7,7 @@ import { getBaseCourseId, requireEditableCourse } from "@/lib/access";
 import { requireTeacher } from "@/lib/auth";
 import { parseBlocks } from "@/lib/content";
 import { publishCourse } from "@/lib/content/publish";
+import { UNIT_COLORS } from "@/lib/content/unit-colors";
 import { editorCourseIds } from "@/lib/content/x03";
 import { db } from "@/lib/db";
 import { newCourseKey } from "@/lib/ids";
@@ -86,7 +87,7 @@ export async function createUnit(
   if (!["Fundamental", "Intermedio", "Avanzado"].includes(difficulty)) {
     return { error: "Elige una dificultad válida." };
   }
-  if (!["blue", "violet", "green"].includes(color)) {
+  if (!(UNIT_COLORS as readonly string[]).includes(color)) {
     return { error: "Elige un color válido." };
   }
 
@@ -129,22 +130,20 @@ export async function createLesson(
   const course = await requireEditableCourse(teacher, courseId);
 
   const title = String(formData.get("title") ?? "").trim();
-  const code = String(formData.get("code") ?? "").trim();
   const rawContent = String(formData.get("content") ?? "[]").trim();
-  const parsed = rawContent === "[]" ? null : parseBlocks(rawContent);
+  const parsed = parseBlocks(rawContent);
 
   if (title.length < 3) return { error: "Escribe el título de la lección." };
-  if (!/^\d+(\.\d+)?$/.test(code)) {
-    return { error: "Usa un código como 1.5 o 6." };
-  }
-  if (parsed && "error" in parsed) return { error: parsed.error };
+  if ("error" in parsed) return { error: parsed.error };
 
-  const topic = await db()<{ id: string; unit_id: string }[]>`
-    select id, unit_id
-      from topics
-     where id = ${topicId}
-       and course_id = ${course.id}
-       and archived_at is null
+  const topic = await db()<{ id: string; unit_id: string; unit_number: number }[]>`
+    select t.id, t.unit_id, u.number as unit_number
+      from topics t
+      join units u on u.id = t.unit_id
+     where t.id = ${topicId}
+       and t.course_id = ${course.id}
+       and t.archived_at is null
+       and u.archived_at is null
      limit 1`;
 
   if (!topic[0]) return { error: "El subtema no existe en este curso." };
@@ -154,6 +153,16 @@ export async function createLesson(
     course.id,
     await getBaseCourseId(),
   );
+
+  const existingCodes = await db()<{ code: string }[]>`
+    select code
+      from lessons
+     where course_id in ${db()(scope)}`;
+  const prefix = `${topic[0].unit_number}.`;
+  const usedCodes = new Set(existingCodes.map((lesson) => lesson.code));
+  let sequence = 1;
+  while (usedCodes.has(`${prefix}${sequence}`)) sequence += 1;
+  const code = `${prefix}${sequence}`;
 
   const contentId = `l${code}`;
   const clash = await db()<{ id: string }[]>`
@@ -175,7 +184,7 @@ export async function createLesson(
       (course_id, unit_id, topic_id, content_id, code, title, content, position)
     values
       (${course.id}, ${topic[0].unit_id}, ${topic[0].id}, ${contentId}, ${code},
-       ${title}, ${sql.json(parsed && "blocks" in parsed ? parsed.blocks : [])},
+       ${title}, ${sql.json(parsed.blocks)},
        ${positions[0].position})`;
 
   revalidatePath(`/cursos/${courseId}`);

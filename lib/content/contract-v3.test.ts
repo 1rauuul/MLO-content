@@ -43,6 +43,23 @@ test("los fixtures válidos pasan el esquema v3", () => {
   }
 });
 
+test("el contrato v3 acepta los siete colores de unidad", () => {
+  for (const color of ["blue", "violet", "green", "amber", "orange", "rose", "teal"]) {
+    const doc = readJson("valid-course-base-ref.json") as {
+      units: { color: string }[];
+      hash: string;
+      [key: string]: unknown;
+    };
+    doc.units[0].color = color;
+    const content: Record<string, unknown> = { ...doc };
+    delete content.hash;
+    doc.hash = hashValue(content);
+
+    const result = validateRelease(doc);
+    if (!result.ok) assert.fail(`${color}: ${result.error}`);
+  }
+});
+
 test("los fixtures inválidos fallan por el motivo esperado", () => {
   for (const { file, reason } of INVALID) {
     const result = validateRelease(readJson(file));

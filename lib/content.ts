@@ -98,5 +98,9 @@ export function parseBlocks(raw: string): { blocks: ContentBlock[] } | { error: 
     }
   }
 
+  if (!blocks.some((block) => block.type !== "h")) {
+    return { error: "Agrega al menos un párrafo, una lista o una tabla." };
+  }
+
   return { blocks };
 }

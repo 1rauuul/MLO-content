@@ -11,7 +11,7 @@ export function PublishForm({ courseId }: { courseId: string }) {
     <form action={action} className="space-y-3">
       <input type="hidden" name="courseId" value={courseId} />
       <button type="submit" disabled={pending} className="btn btn-primary">
-        {pending ? "Publicando…" : "Publicar nueva versión"}
+        {pending ? "Guardando…" : "Guardar nueva versión"}
       </button>
 
       {state.error && (
@@ -21,7 +21,7 @@ export function PublishForm({ courseId }: { courseId: string }) {
       )}
       {state.version && (
         <p className="form-ok" role="status">
-          Versión {state.version} publicada con {state.lessons} lecciones. Hash{" "}
+          Versión {state.version} guardada con {state.lessons} lecciones. Hash{" "}
           <span className="font-mono text-xs">{state.hash?.slice(0, 12)}</span>.
         </p>
       )}

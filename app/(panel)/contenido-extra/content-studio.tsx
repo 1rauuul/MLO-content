@@ -59,7 +59,7 @@ const TYPE_META: {
   },
 ];
 
-const EMPTY_LESSON: LessonDraft = { title: "", code: "", blocks: [] };
+const EMPTY_LESSON: LessonDraft = { title: "", blocks: [] };
 const EMPTY_EVALUATION: EvaluationDraft = { title: "", description: "" };
 
 export function ContentStudio({
@@ -181,7 +181,7 @@ export function ContentStudio({
             )}
           </div>
 
-          <div className="grid gap-4 p-5 sm:grid-cols-2">
+          <div className="grid gap-4 p-5 sm:grid-cols-2 xl:grid-cols-4">
             <Field label="Grupo">
               <select
                 value={group?.id ?? ""}
@@ -195,6 +195,18 @@ export function ContentStudio({
                   </option>
                 ))}
               </select>
+            </Field>
+
+            <Field label="Curso">
+              <div className={`${fieldClass} flex items-center text-ink-soft`}>
+                {group?.courseTitle ?? "Sin curso de contenido"}
+              </div>
+            </Field>
+
+            <Field label="Unidad">
+              <div className={`${fieldClass} flex items-center text-ink-soft`}>
+                {topic ? `${topic.unitNumber}. ${topic.unitTitle}` : "Sin unidad"}
+              </div>
             </Field>
 
             <Field label="Subtema">
@@ -425,19 +437,7 @@ function LessonStudioForm({
       <input type="hidden" name="courseId" value={group.courseId ?? ""} />
       <input type="hidden" name="topicId" value={topic.id} />
 
-      <div className="grid gap-4 sm:grid-cols-[150px_minmax(0,1fr)]">
-        <Field label="Código" hint="Ej. 1.5">
-          <input
-            name="code"
-            required
-            value={draft.code}
-            onChange={(event) =>
-              setDraft((current) => ({ ...current, code: event.target.value }))
-            }
-            placeholder="1.5"
-            className={fieldClass}
-          />
-        </Field>
+      <div className="max-w-2xl">
         <Field label="Título de la lección">
           <input
             name="title"
@@ -454,10 +454,10 @@ function LessonStudioForm({
       </div>
 
       <div>
-        <p className="eyebrow mb-2">Bloques de lectura</p>
+        <p className="eyebrow mb-2">Contenido de la lección</p>
         <BlockEditor
           initial={[]}
-          label="El contenido de la lección"
+          label="Contenido de la lección"
           onChange={setBlocks}
         />
       </div>

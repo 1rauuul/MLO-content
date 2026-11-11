@@ -1,5 +1,7 @@
+import { redirect } from "next/navigation";
+
 import { BackLink } from "@/app/(panel)/back-link";
-import { unpublish } from "@/lib/actions/publish";
+import { archive } from "@/lib/actions/publish";
 import { requireEditableCourse } from "@/lib/access";
 import { requireTeacher } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -17,6 +19,7 @@ export default async function PublishPage({ params }: { params: Promise<{ id: st
   const teacher = await requireTeacher();
   const { id } = await params;
   const course = await requireEditableCourse(teacher, id);
+  if (course.archived_at) redirect("/mis-cursos");
 
   const rows = await db()<ReleaseRow[]>`
     select version,
@@ -34,7 +37,7 @@ export default async function PublishPage({ params }: { params: Promise<{ id: st
       <header>
         <BackLink href={`/cursos/${course.id}`}>{course.title}</BackLink>
         <div className="mt-1 flex flex-wrap items-center gap-3">
-          <h1 className="page-title">Publicar curso</h1>
+          <h1 className="page-title">Guardar curso</h1>
           <span className="font-mono text-xs text-ink-faint">{course.key}</span>
           <span className="badge badge-neutral">{course.level}</span>
           <span
@@ -49,7 +52,7 @@ export default async function PublishPage({ params }: { params: Promise<{ id: st
             {course.status === "published"
               ? "Publicado"
               : course.status === "unpublished"
-                ? "Despublicado"
+                ? "Sin publicar"
                 : "Borrador"}
           </span>
           {!course.is_base && (
@@ -57,17 +60,17 @@ export default async function PublishPage({ params }: { params: Promise<{ id: st
               {course.uses_base ? "Con contenido base" : "Sin contenido base"}
             </span>
           )}
-          {course.status === "published" && (
-            <form action={unpublish} className="ml-auto">
+          {!course.is_base && (
+            <form action={archive} className="ml-auto">
               <input type="hidden" name="courseId" value={course.id} />
               <button type="submit" className="btn btn-secondary btn-sm">
-                Despublicar
+                Archivar
               </button>
             </form>
           )}
         </div>
         <p className="page-lead">
-          Cada publicación guarda un snapshot inmutable con el contenido base y tus
+          Cada guardado publica un snapshot inmutable con el contenido base y tus
           adiciones.
         </p>
       </header>

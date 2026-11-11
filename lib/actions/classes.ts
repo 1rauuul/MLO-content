@@ -65,7 +65,7 @@ export async function createClass(
 
   const [course] = await db()<{ id: string; is_base: boolean; owner_id: string | null }[]>`
     select id, is_base, owner_id from courses
-     where id = ${courseId} and not is_group
+     where id = ${courseId} and not is_group and archived_at is null
      limit 1`;
   if (!course) return { error: "El curso padre no existe." };
   if (teacher.role !== "admin" && !course.is_base && course.owner_id !== teacher.id) {

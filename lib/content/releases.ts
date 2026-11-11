@@ -14,6 +14,7 @@ export async function getLatestRelease(catalogId: string): Promise<ReleaseSnapsh
       from releases r
       join courses c on c.id = r.course_id
      where c.key = ${catalogId}
+       and c.archived_at is null
      order by r.version desc
      limit 1`;
   return rows[0]?.snapshot ?? null;

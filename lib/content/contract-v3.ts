@@ -1,4 +1,5 @@
 import { hashValue } from "./hash";
+import { UNIT_COLORS } from "./unit-colors";
 
 /*
  * Validador del contrato v3 (DEC-01). No importa el modelo ni la composición
@@ -99,7 +100,7 @@ function assertSequence(items: string[], where: string): void {
 }
 
 const DIFFICULTIES = ["Fundamental", "Intermedio", "Avanzado"] as const;
-const COLORS = ["blue", "violet", "green"] as const;
+const COLORS = UNIT_COLORS;
 const EXERCISE_TYPES = ["order", "fill", "match", "crossword"] as const;
 const ACTIVITY_TYPES = [...EXERCISE_TYPES, "mcq"] as const;
 const EXAMPLE_TYPES = ["fill", "match", "crossword"] as const;

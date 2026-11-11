@@ -14,6 +14,7 @@ export default async function GruposPage() {
       select id, title
         from courses
        where not is_group
+         and archived_at is null
          and (is_base or owner_id = ${teacher.id} or ${teacher.role} = 'admin')
        order by is_base desc, title`,
   ]);

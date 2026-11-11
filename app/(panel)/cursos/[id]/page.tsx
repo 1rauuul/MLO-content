@@ -2,9 +2,10 @@ import Link from "next/link";
 
 import { BackLink } from "@/app/(panel)/back-link";
 import { moveTopic, moveUnit } from "@/lib/actions/content";
-import { unpublish } from "@/lib/actions/publish";
+import { archive } from "@/lib/actions/publish";
 import { canEditCourse, getBaseCourseId, getCourseForRead } from "@/lib/access";
 import { requireTeacher } from "@/lib/auth";
+import { UNIT_COLOR_LABELS } from "@/lib/content/unit-colors";
 import { editorCourseIds } from "@/lib/content/x03";
 import { db } from "@/lib/db";
 
@@ -38,6 +39,16 @@ type ClassRow = {
   content_course_id: string | null;
 };
 
+const UNIT_COLOR_SWATCH: Record<string, string> = {
+  blue: "bg-blue-500",
+  violet: "bg-violet-500",
+  green: "bg-emerald-500",
+  amber: "bg-amber-500",
+  orange: "bg-orange-500",
+  rose: "bg-rose-500",
+  teal: "bg-teal-500",
+};
+
 function MoveButtons({
   action,
   fields,
@@ -68,6 +79,7 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
 
   const course = await getCourseForRead(teacher, id);
   const canEdit = canEditCourse(teacher, course);
+  const isArchived = Boolean(course.archived_at);
   const [coreId] = editorCourseIds(
     course.is_group,
     course.id,
@@ -108,50 +120,51 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
           >
             Referencias
           </Link>
-          {canEdit && !course.is_group && course.status === "published" && (
-            <form action={unpublish} className="ml-auto">
-              <input type="hidden" name="courseId" value={course.id} />
-              <button type="submit" className="btn btn-secondary btn-sm">
-                Despublicar
-              </button>
-            </form>
-          )}
-          {canEdit && !course.is_group && (
-            <Link
-              href={`/cursos/${course.id}/publicar`}
-              className={`btn btn-primary btn-sm ${course.status === "published" ? "" : "ml-auto"}`}
-            >
-              Publicar
-            </Link>
+          {canEdit && !course.is_group && !isArchived && (
+            <div className="ml-auto flex flex-wrap items-center gap-2">
+              {!course.is_base && (
+                <form action={archive}>
+                  <input type="hidden" name="courseId" value={course.id} />
+                  <button type="submit" className="btn btn-secondary btn-sm">
+                    Archivar
+                  </button>
+                </form>
+              )}
+              <Link href={`/cursos/${course.id}/publicar`} className="btn btn-primary btn-sm">
+                Guardar
+              </Link>
+            </div>
           )}
         </div>
         {course.description && <p className="page-lead">{course.description}</p>}
       </header>
 
-      {canEdit && <CreateUnitForm courseId={course.id} />}
+      <div className={canEdit && !isArchived ? "grid gap-6 lg:grid-cols-2 lg:items-start" : ""}>
+        {canEdit && !isArchived && <CreateUnitForm courseId={course.id} />}
 
-      <section className="card p-5">
-        <h2 className="text-sm font-semibold text-ink">Grupos asignados</h2>
-        <p className="mt-1 text-sm text-ink-muted">
-          Estos grupos dependen de este curso para su contenido.
-        </p>
-        {assignedGroups.length === 0 ? (
-          <p className="empty mt-3">Todavía no hay grupos asignados a este curso.</p>
-        ) : (
-          <ul className="mt-3 divide-y divide-line border-t border-line">
-            {assignedGroups.map((group) => (
-              <li key={group.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
-                <Link href={`/grupos/${group.id}`} className="text-ink-soft underline-offset-4 hover:underline">
-                  {group.name}
-                </Link>
-                {group.content_course_id === course.id && (
-                  <span className="text-xs text-ink-faint">Contenido propio</span>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+        <section className="card p-5">
+          <h2 className="text-sm font-semibold text-ink">Grupos asignados</h2>
+          <p className="mt-1 text-sm text-ink-muted">
+            Estos grupos dependen de este curso para su contenido.
+          </p>
+          {assignedGroups.length === 0 ? (
+            <p className="empty mt-3">Todavía no hay grupos asignados a este curso.</p>
+          ) : (
+            <ul className="mt-3 divide-y divide-line border-t border-line">
+              {assignedGroups.map((group) => (
+                <li key={group.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
+                  <Link href={`/grupos/${group.id}`} className="text-ink-soft underline-offset-4 hover:underline">
+                    {group.name}
+                  </Link>
+                  {group.content_course_id === course.id && (
+                    <span className="text-xs text-ink-faint">Contenido propio</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
 
       {units.length === 0 ? (
         <p className="empty">Este curso todavía no tiene unidades.</p>
@@ -160,75 +173,81 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
           {units.map((unit) => {
             const unitTopics = topics.filter((topic) => topic.unit_id === unit.id);
             const isCore = unit.course_id !== course.id;
+            const colorLabel = UNIT_COLOR_LABELS[unit.color as keyof typeof UNIT_COLOR_LABELS] ?? unit.color;
+            const colorSwatch = UNIT_COLOR_SWATCH[unit.color] ?? UNIT_COLOR_SWATCH.blue;
 
             return (
-              <section key={unit.id} className="card p-5">
-                <div className="flex flex-wrap items-center gap-3">
+              <details key={unit.id} className="card group overflow-hidden">
+                <summary className="flex cursor-pointer list-none flex-wrap items-center gap-3 px-5 py-4 [&::-webkit-details-marker]:hidden">
+                  <span className="text-ink-faint transition-transform group-open:rotate-90" aria-hidden="true">
+                    ▸
+                  </span>
                   <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-surface-soft font-mono text-xs font-medium text-ink-soft ring-1 ring-line">
                     {unit.number}
                   </span>
                   <h2 className="text-sm font-semibold text-ink">{unit.title}</h2>
-                  <span className="text-xs text-ink-faint">
-                    {unit.difficulty} · {unit.color}
+                  <span className="inline-flex items-center gap-1.5 text-xs text-ink-faint">
+                    <span className={`size-2 rounded-full ${colorSwatch}`} aria-hidden="true" />
+                    {unit.difficulty} · {colorLabel}
                   </span>
-                  {isCore && (
-                    <span className="text-[11px] text-ink-faint">Contenido base</span>
-                  )}
-                  {canEdit && !isCore && (
-                    <span className="ml-auto">
-                      <MoveButtons
-                        action={moveUnit}
-                        fields={{ courseId: course.id, unitId: unit.id }}
-                      />
-                    </span>
-                  )}
-                </div>
+                  {isCore && <span className="text-[11px] text-ink-faint">Contenido base</span>}
+                  <span className="text-xs text-ink-faint">
+                    {unitTopics.length} {unitTopics.length === 1 ? "subtema" : "subtemas"}
+                  </span>
+                </summary>
 
-                {unit.description && (
-                  <p className="mt-2 text-sm text-ink-muted">{unit.description}</p>
-                )}
+                <div className="border-t border-line px-5 pb-5">
+                  <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
+                    {unit.description && <p className="text-sm text-ink-muted">{unit.description}</p>}
+                    {canEdit && !isArchived && !isCore && (
+                      <MoveButtons action={moveUnit} fields={{ courseId: course.id, unitId: unit.id }} />
+                    )}
+                  </div>
 
-                {unitTopics.length > 0 && (
-                  <ul className="mt-4 divide-y divide-line border-t border-line">
-                    {unitTopics.map((topic, index) => {
-                      const own = topic.course_id === course.id;
-                      return (
-                        <li
-                          key={topic.id}
-                          className="flex flex-wrap items-center justify-between gap-2 py-2.5 text-sm"
-                        >
-                          <span className="text-ink-soft">
-                            <span className="mr-2 font-mono text-xs text-ink-faint">
-                              {unit.number}.{index + 1}
+                  {unitTopics.length > 0 && (
+                    <ul className="mt-4 divide-y divide-line border-t border-line">
+                      {unitTopics.map((topic, index) => {
+                        const own = topic.course_id === course.id;
+                        return (
+                          <li
+                            key={topic.id}
+                            className="flex flex-wrap items-center justify-between gap-2 py-2.5 text-sm"
+                          >
+                            <span className="text-ink-soft">
+                              <span className="mr-2 font-mono text-xs text-ink-faint">
+                                {unit.number}.{index + 1}
+                              </span>
+                              {topic.title}
                             </span>
-                            {topic.title}
-                          </span>
-                          <span className="flex flex-wrap items-center gap-2">
-                            {canEdit && own && (
-                              <>
-                                {course.is_group && (
-                                  <TopicContentLink
-                                    topicId={topic.id}
-                                    groups={assignedGroups
-                                      .filter((group) => group.content_course_id === course.id)
-                                      .map((group) => ({ id: group.id, name: group.name }))}
+                            <span className="flex flex-wrap items-center gap-2">
+                              {canEdit && !isArchived && own && (
+                                <>
+                                  {course.is_group && (
+                                    <TopicContentLink
+                                      courseId={course.id}
+                                      unitId={unit.id}
+                                      topicId={topic.id}
+                                      groups={assignedGroups
+                                        .filter((group) => group.content_course_id === course.id)
+                                        .map((group) => ({ id: group.id, name: group.name }))}
+                                    />
+                                  )}
+                                  <MoveButtons
+                                    action={moveTopic}
+                                    fields={{ courseId: course.id, topicId: topic.id }}
                                   />
-                                )}
-                                <MoveButtons
-                                  action={moveTopic}
-                                  fields={{ courseId: course.id, topicId: topic.id }}
-                                />
-                              </>
-                            )}
-                          </span>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
+                                </>
+                              )}
+                            </span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
 
-                {canEdit && <CreateTopicForm courseId={course.id} unitId={unit.id} />}
-              </section>
+                  {canEdit && !isArchived && <CreateTopicForm courseId={course.id} unitId={unit.id} />}
+                </div>
+              </details>
             );
           })}
         </div>

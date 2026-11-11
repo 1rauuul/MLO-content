@@ -33,8 +33,16 @@ export type PublishOutcome = {
 export async function publishCourse(teacher: Teacher, course: Course): Promise<PublishOutcome> {
   return db().begin(async (tx) => {
     const [current] = await tx<
-      { key: string; title: string; uses_base: boolean; is_base: boolean; is_group: boolean }[]
-    >`select key, title, uses_base, is_base, is_group from courses where id = ${course.id} for update`;
+      {
+        key: string;
+        title: string;
+        uses_base: boolean;
+        is_base: boolean;
+        is_group: boolean;
+        archived_at: Date | null;
+      }[]
+    >`select key, title, uses_base, is_base, is_group, archived_at
+        from courses where id = ${course.id} for update`;
     if (!current) throw new Error("El curso no existe.");
     assertPublishableCourse(current);
 
@@ -352,7 +360,16 @@ export async function publishCourse(teacher: Teacher, course: Course): Promise<P
   });
 }
 
-/** Despublica sin borrar releases ni tocar v2. */
-export async function unpublishCourse(courseId: string): Promise<void> {
-  await db()`update courses set status = 'unpublished' where id = ${courseId}`;
+/** Archiva sin borrar contenido, grupos ni releases existentes. */
+export async function archiveCourse(courseId: string): Promise<void> {
+  await db()`update courses
+      set archived_at = now(), status = 'unpublished'
+    where id = ${courseId} and not is_base and not is_group`;
+}
+
+/** Restaura un curso para edición; se mantiene sin publicar hasta guardar una versión nueva. */
+export async function restoreCourse(courseId: string): Promise<void> {
+  await db()`update courses
+      set archived_at = null, status = 'unpublished'
+    where id = ${courseId} and not is_base and not is_group`;
 }
