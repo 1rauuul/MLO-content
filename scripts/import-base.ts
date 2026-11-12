@@ -1,14 +1,17 @@
 /**
  * Importa el contenido base exportado por MLO (`scripts/export-base.ts`).
- * Es idempotente: reemplaza el contenido del curso `base` y conserva los
- * releases ya publicados como snapshots inmutables.
+ * Es idempotente: reemplaza el contenido del curso `base`, conserva los
+ * snapshots previos y publica una versión nueva para los cursos dependientes.
  *
  *   npm run import:base [ruta]
  */
 import { readFileSync } from "node:fs";
 
+import type { Course } from "../lib/access";
+import type { Teacher } from "../lib/auth";
 import { db } from "../lib/db";
 import type { CoreCourse } from "../lib/content/model";
+import { publishCourse } from "../lib/content/publish";
 
 function required(map: Map<string, string>, key: string, label: string): string {
   const value = map.get(key);
@@ -142,7 +145,8 @@ async function main() {
           (${course.id}, ${lessonContentId},
            ${required(topicIds, evaluation.lesson_content_id, "subtema")},
            ${evaluation.content_id}, ${evaluation.title}, ${evaluation.description},
-           ${evaluation.question_count}, ${evaluation.exercise_count}, ${evaluationIndex})`;
+           ${evaluation.question_count}, ${evaluation.exercise_count}, ${evaluationIndex})
+        returning id`;
       lessonByEvaluation.set(evaluation.content_id, evaluation.lesson_content_id);
       evaluationIds.set(evaluation.content_id, row.id);
     }
@@ -207,10 +211,30 @@ async function main() {
       on conflict do nothing`;
   });
 
+  const [publisher] = await sql<Teacher[]>`
+    select id, name, email, role
+      from teachers
+     where role = 'admin'
+     order by created_at
+     limit 1`;
+  if (!publisher) {
+    throw new Error("Se necesita una cuenta administradora para publicar el contenido base.");
+  }
+
+  const [course] = await sql<Course[]>`
+    select id, key, title, description, level, owner_id, is_base, is_group, uses_base, status,
+           archived_at
+      from courses
+     where key = 'base'
+     limit 1`;
+  if (!course) throw new Error("No se pudo recuperar el curso base importado.");
+  const release = await publishCourse(publisher, course);
+
   console.log(
     `Base importada: ${data.units.length} unidades, ${data.lessons.length} lecciones, ` +
       `${data.evaluations.length} evaluaciones, ${data.exercises.length} ejercicios, ` +
-      `${data.examples.length} ejemplos y ${data.questions.length} preguntas.`,
+      `${data.examples.length} ejemplos y ${data.questions.length} preguntas. ` +
+      `Release v${release.version} publicada.`,
   );
   await db().end({ timeout: 5 });
 }
