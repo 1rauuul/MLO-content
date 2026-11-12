@@ -22,10 +22,25 @@ export type GroupReleaseInput = {
   visibility: "published" | "unpublished";
   courseRef: GroupCourseRef;
   own: CoreCourse;
+  externalTopicContentIds: string[];
   additions: GroupAddition[];
   externalExercises: CoreExercise[];
   externalExamples: CoreExample[];
 };
+
+/** Reescribe los subtemas externos al id publicado del release de curso. */
+function externalTopicId(
+  topicId: string,
+  prefix: string,
+  input: GroupReleaseInput,
+): string {
+  const ownPrefix = `${prefix}-`;
+  if (!topicId.startsWith(ownPrefix)) return topicId;
+  const contentId = topicId.slice(ownPrefix.length);
+  return input.externalTopicContentIds.includes(contentId)
+    ? publishedId(input.catalogId, contentId)
+    : topicId;
+}
 
 /**
  * Release v3 de grupo. Los recursos propios se construyen con el mismo builder
@@ -45,6 +60,15 @@ export function buildGroupRelease(input: GroupReleaseInput): ReleaseV3 {
     course: input.own,
   });
 
+  const remapTopicIds = <T extends { topicId: string }>(items: unknown): T[] =>
+    (items as T[]).map(
+      (item) =>
+        ({
+          ...item,
+          topicId: externalTopicId(item.topicId, prefix, input),
+        }) as T,
+    );
+
   const content = {
     schemaVersion: 3 as const,
     kind: "group" as const,
@@ -60,11 +84,11 @@ export function buildGroupRelease(input: GroupReleaseInput): ReleaseV3 {
     },
     units: own.units,
     topics: own.topics,
-    lessons: own.lessons,
-    evaluations: own.evaluations,
+    lessons: remapTopicIds(own.lessons),
+    evaluations: remapTopicIds(own.evaluations),
     questions: own.questions,
     exercises: [
-      ...(own.exercises as unknown[]),
+      ...remapTopicIds(own.exercises),
       ...input.externalExercises.map((exercise) => ({
         id: `${prefix}-${exercise.content_id}`,
         topicId: publishedId(input.catalogId, exercise.topic_content_id ?? ""),
@@ -79,7 +103,7 @@ export function buildGroupRelease(input: GroupReleaseInput): ReleaseV3 {
       })),
     ],
     examples: [
-      ...(own.examples as unknown[]),
+      ...remapTopicIds(own.examples),
       ...input.externalExamples.map((example) => ({
         id: `${prefix}-${example.content_id}`,
         topicId: publishedId(input.catalogId, example.topic_content_id ?? ""),

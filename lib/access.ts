@@ -91,3 +91,31 @@ export async function getBaseCourseId(): Promise<string | null> {
   const rows = await db()<{ id: string }[]>`select id from courses where is_base limit 1`;
   return rows[0]?.id ?? null;
 }
+
+/**
+ * Cursos cuyos subtemas puede usar un curso al crear contenido. Un curso de
+ * grupo puede adjuntar actividades a los subtemas del curso de su grupo.
+ */
+export async function topicScopeForCourse(course: Course): Promise<string[]> {
+  const baseId = await getBaseCourseId();
+  if (!course.is_group) {
+    return course.uses_base && baseId ? [baseId, course.id] : [course.id];
+  }
+
+  const [parent] = await db()<{ course_id: string; uses_base: boolean }[]>`
+    select c.course_id, p.uses_base
+      from classes c
+      join courses p on p.id = c.course_id
+     where c.content_course_id = ${course.id}
+       and c.archived_at is null
+     limit 1`;
+  if (!parent) return [course.id];
+
+  return [
+    ...new Set([
+      course.id,
+      parent.course_id,
+      ...(parent.uses_base && baseId ? [baseId] : []),
+    ]),
+  ];
+}

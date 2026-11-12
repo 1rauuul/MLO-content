@@ -118,6 +118,7 @@ export function buildX04Fixture(): ReleaseV3 {
     visibility: "published",
     courseRef: { version: 1, hash: hashText("x04-parent-v1") },
     own,
+    externalTopicContentIds: [],
     additions: [
       {
         lessonContentId: "l1.1",

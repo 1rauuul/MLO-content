@@ -8,6 +8,7 @@ import {
   moveExample,
   moveExercise,
 } from "@/lib/actions/topics";
+import { canEditCourse, getCourseForRead, topicScopeForCourse } from "@/lib/access";
 import { requireTeacher } from "@/lib/auth";
 import { db } from "@/lib/db";
 
@@ -27,9 +28,16 @@ type TopicRow = {
   is_base: boolean;
 };
 
-type LessonRow = { id: string; code: string; title: string; position: number };
+type LessonRow = {
+  id: string;
+  course_id: string;
+  code: string;
+  title: string;
+  position: number;
+};
 type ActivityRow = {
   id: string;
+  course_id: string;
   content_id: string;
   lesson_code: string | null;
   type: string;
@@ -38,6 +46,7 @@ type ActivityRow = {
 };
 type EvaluationRow = {
   id: string;
+  course_id: string;
   content_id: string;
   title: string;
   position: number;
@@ -77,49 +86,62 @@ export default async function TopicPage({
   const teacher = await requireTeacher();
   const { id: courseId, topicId } = await params;
 
+  const course = await getCourseForRead(teacher, courseId);
+  const scope = await topicScopeForCourse(course);
   const [topic] = await db()<TopicRow[]>`
     select t.id, t.course_id, t.unit_id, t.title, t.summary,
            c.title as course_title, u.title as unit_title, c.owner_id, c.is_base
       from topics t
       join units u on u.id = t.unit_id
       join courses c on c.id = t.course_id
-     where t.id = ${topicId} and t.course_id = ${courseId}
+     where t.id = ${topicId} and t.course_id in ${db()(scope)}
        and t.archived_at is null
      limit 1`;
   if (!topic) notFound();
 
   const canEdit =
-    teacher.role === "admin" || (!topic.is_base && topic.owner_id === teacher.id);
+    canEditCourse(teacher, course) &&
+    (course.is_group || topic.course_id === course.id);
+  const ownsTopic = topic.course_id === courseId;
 
-  const lessons = await db()<LessonRow[]>`
-    select id, code, title, position
+  const lessonRows = await db()<LessonRow[]>`
+    select id, course_id, code, title, position
       from lessons
      where topic_id = ${topic.id} and archived_at is null
      order by position, code, id`;
-  const examples = await db()<ActivityRow[]>`
-    select e.id, e.content_id, l.code as lesson_code, e.type, e.title, e.position
+  const exampleRows = await db()<ActivityRow[]>`
+    select e.id, e.course_id, e.content_id, l.code as lesson_code, e.type, e.title, e.position
       from examples e
       left join lessons l on l.id = e.lesson_id
      where e.topic_id = ${topic.id} and e.archived_at is null
      order by e.position, e.content_id`;
-  const exercises = await db()<ActivityRow[]>`
-    select x.id, x.content_id, l.code as lesson_code, x.type, x.prompt as title, x.position
+  const exerciseRows = await db()<ActivityRow[]>`
+    select x.id, x.course_id, x.content_id, l.code as lesson_code, x.type, x.prompt as title, x.position
       from exercises x
       left join lessons l on l.id = x.lesson_id
      where x.topic_id = ${topic.id} and x.archived_at is null
      order by x.position, x.content_id`;
-  const evaluations = await db()<EvaluationRow[]>`
-    select e.id, e.content_id, e.title, e.position, e.question_count,
+  const evaluationRows = await db()<EvaluationRow[]>`
+    select e.id, e.course_id, e.content_id, e.title, e.position, e.question_count,
            (select count(*)::int from evaluation_exercises ee
              where ee.evaluation_id = e.id) as exercise_count
       from evaluations e
      where e.topic_id = ${topic.id} and e.archived_at is null
      order by e.position, e.content_id`;
 
+  const visible = <T extends { course_id: string }>(rows: T[]) =>
+    course.is_group ? rows.filter((row) => scope.includes(row.course_id)) : rows;
+  const lessons = visible(lessonRows);
+  const examples = visible(exampleRows);
+  const exercises = visible(exerciseRows);
+  const evaluations = visible(evaluationRows);
+  const canEditRow = (row: { course_id: string }) =>
+    canEdit && (!course.is_group || row.course_id === courseId);
+
   return (
     <div className="space-y-6">
       <header>
-        <BackLink href={`/cursos/${courseId}`}>{topic.course_title}</BackLink>
+        <BackLink href={`/cursos/${topic.course_id}`}>{topic.course_title}</BackLink>
         <div className="mt-1 flex flex-wrap items-center gap-3">
           <h1 className="page-title">{topic.title}</h1>
           <span className="badge badge-neutral">{topic.unit_title}</span>
@@ -128,7 +150,7 @@ export default async function TopicPage({
         {topic.summary && <p className="page-lead">{topic.summary}</p>}
       </header>
 
-      {canEdit && (
+      {canEdit && ownsTopic && (
         <section className="card p-5">
           <h2 className="text-sm font-semibold text-ink">Editar subtema</h2>
           <div className="mt-3">
@@ -149,13 +171,13 @@ export default async function TopicPage({
             {lessons.map((lesson) => (
               <li key={lesson.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5 text-sm">
                 <Link
-                  href={`/cursos/${courseId}/lecciones/${lesson.id}`}
+                  href={`/cursos/${lesson.course_id}/lecciones/${lesson.id}`}
                   className="text-ink-soft underline-offset-4 hover:underline"
                 >
                   <span className="mr-2 font-mono text-xs text-ink-faint">{lesson.code}</span>
                   {lesson.title}
                 </Link>
-                {canEdit && (
+                {canEditRow(lesson) && (
                   <MoveButtons
                     action={moveLesson}
                     fields={{ courseId, lessonId: lesson.id }}
@@ -184,7 +206,7 @@ export default async function TopicPage({
                     <span className="ml-2 font-mono text-xs text-ink-faint">{example.lesson_code}</span>
                   )}
                 </span>
-                {canEdit && (
+                {canEditRow(example) && (
                   <MoveButtons
                     action={moveExample}
                     fields={{ courseId, topicId: topic.id, itemId: example.content_id }}
@@ -212,7 +234,7 @@ export default async function TopicPage({
                     <span className="ml-2 font-mono text-xs text-ink-faint">{exercise.lesson_code}</span>
                   )}
                 </span>
-                {canEdit && (
+                {canEditRow(exercise) && (
                   <MoveButtons
                     action={moveExercise}
                     fields={{ courseId, topicId: topic.id, itemId: exercise.content_id }}
@@ -233,7 +255,7 @@ export default async function TopicPage({
             {evaluations.map((evaluation) => (
               <li key={evaluation.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5 text-sm">
                 <Link
-                  href={`/cursos/${courseId}/temas/${topic.id}/evaluaciones/${evaluation.id}`}
+                  href={`/cursos/${evaluation.course_id}/temas/${topic.id}/evaluaciones/${evaluation.id}`}
                   className="text-ink-soft underline-offset-4 hover:underline"
                 >
                   {evaluation.title}
@@ -241,7 +263,7 @@ export default async function TopicPage({
                     {evaluation.question_count} preguntas · {evaluation.exercise_count} ejercicios
                   </span>
                 </Link>
-                {canEdit && (
+                {canEditRow(evaluation) && (
                   <MoveButtons
                     action={moveEvaluation}
                     fields={{ courseId, topicId: topic.id, itemId: evaluation.content_id }}

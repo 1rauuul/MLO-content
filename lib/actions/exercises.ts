@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
-import { requireEditableCourse, requireEditableLesson } from "@/lib/access";
+import { requireEditableCourse, requireEditableLesson, topicScopeForCourse } from "@/lib/access";
 import { requireTeacher } from "@/lib/auth";
 import { db } from "@/lib/db";
 import type { ExerciseType } from "@/lib/content/model";
@@ -68,9 +68,10 @@ async function editableActivityContext(
   const topicId = String(formData.get("topicId") ?? "").trim();
   if (!courseId || !topicId) return null;
   const course = await requireEditableCourse(teacher, courseId);
+  const scope = await topicScopeForCourse(course);
   const [topic] = await db()<{ id: string }[]>`
     select id from topics
-     where id = ${topicId} and course_id = ${course.id} and archived_at is null
+     where id = ${topicId} and course_id in ${db()(scope)} and archived_at is null
      limit 1`;
   if (!topic) return null;
   return { courseId: course.id, topicId: topic.id, lessonId: null, lessonCode: "" };

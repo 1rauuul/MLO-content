@@ -61,6 +61,53 @@ test("el release de grupo tiene courseRef, additions e ids propios únicos", () 
   assert.deepEqual(evaluation.exerciseIds, ["g-class-demo-gord1"]);
 });
 
+test("adjunta una lección propia a un subtema del curso", () => {
+  const built = buildGroupRelease({
+    catalogId: "demo",
+    groupId: "class-demo",
+    contentCourseId: "course-group-demo",
+    version: 2,
+    publishedAt: "2026-11-06T00:00:00.000Z",
+    name: "Grupo A",
+    visibility: "published",
+    courseRef: { version: 1, hash: hashText("x04-parent-v1") },
+    own: {
+      schemaVersion: 2,
+      title: "Grupo A",
+      units: [],
+      topics: [],
+      lessons: [
+        {
+          content_id: "l-g1",
+          unit_content_id: "u1",
+          topic_content_id: "t1",
+          code: "1.1",
+          title: "Lección del grupo",
+          eyebrow: "",
+          body: "",
+          code_sample: "",
+          context_title: "",
+          context_body: "",
+          synthesis: [],
+          content: [{ type: "p", text: "Contenido" }],
+          position: 0,
+        },
+      ],
+      evaluations: [],
+      exercises: [],
+      examples: [],
+      questions: [],
+    },
+    externalTopicContentIds: ["t1"],
+    additions: [],
+    externalExercises: [],
+    externalExamples: [],
+  });
+  const lesson = (built.lessons as { id: string; topicId: string }[])[0];
+  assert.equal(lesson.id, "g-class-demo-l-g1");
+  assert.equal(lesson.topicId, "demo-t1");
+});
+
 test("el builder conserva extras legacy sobre un subtema del padre", () => {
   const input: GroupReleaseInput = {
     catalogId: "demo",
@@ -82,6 +129,7 @@ test("el builder conserva extras legacy sobre un subtema del padre", () => {
       examples: [],
       questions: [],
     },
+    externalTopicContentIds: [],
     additions: [],
     externalExercises: [
       {

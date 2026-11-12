@@ -106,6 +106,10 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
        order by name`,
   ]);
 
+  const contentGroups = assignedGroups.filter((group) =>
+    course.is_group ? group.content_course_id === course.id : group.course_id === course.id,
+  );
+
   return (
     <div className="space-y-6">
       <header>
@@ -220,23 +224,20 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
                               {topic.title}
                             </span>
                             <span className="flex flex-wrap items-center gap-2">
+                              {canEdit && !isArchived && (
+                                <TopicContentLink
+                                  topicId={topic.id}
+                                  groups={contentGroups.map((group) => ({
+                                    id: group.id,
+                                    name: group.name,
+                                  }))}
+                                />
+                              )}
                               {canEdit && !isArchived && own && (
-                                <>
-                                  {course.is_group && (
-                                    <TopicContentLink
-                                      courseId={course.id}
-                                      unitId={unit.id}
-                                      topicId={topic.id}
-                                      groups={assignedGroups
-                                        .filter((group) => group.content_course_id === course.id)
-                                        .map((group) => ({ id: group.id, name: group.name }))}
-                                    />
-                                  )}
-                                  <MoveButtons
-                                    action={moveTopic}
-                                    fields={{ courseId: course.id, topicId: topic.id }}
-                                  />
-                                </>
+                                <MoveButtons
+                                  action={moveTopic}
+                                  fields={{ courseId: course.id, topicId: topic.id }}
+                                />
                               )}
                             </span>
                           </li>

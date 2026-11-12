@@ -6,13 +6,9 @@ import { useMemo, useState } from "react";
 type AssignedGroup = { id: string; name: string };
 
 export function TopicContentLink({
-  courseId,
-  unitId,
   topicId,
   groups,
 }: {
-  courseId: string;
-  unitId: string;
   topicId: string;
   groups: AssignedGroup[];
 }) {
@@ -20,18 +16,12 @@ export function TopicContentLink({
   const href = useMemo(
     () =>
       groupId
-        ? `/contenido-extra?classId=${encodeURIComponent(groupId)}&courseId=${encodeURIComponent(courseId)}&unitId=${encodeURIComponent(unitId)}&topicId=${encodeURIComponent(topicId)}`
+        ? `/contenido-extra?classId=${encodeURIComponent(groupId)}&topicId=${encodeURIComponent(topicId)}`
         : "/grupos",
-    [courseId, groupId, topicId, unitId],
+    [groupId, topicId],
   );
 
-  if (groups.length === 0) {
-    return (
-      <Link href="/grupos" className="btn btn-secondary btn-sm">
-        Asignar grupo para añadir contenido
-      </Link>
-    );
-  }
+  if (groups.length === 0) return null;
 
   if (groups.length === 1) {
     return (

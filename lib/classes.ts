@@ -498,8 +498,8 @@ export async function publishClassRelease(
       throw new Error("No puedes publicar este grupo.");
     }
 
-    const [parent] = await tx<{ key: string }[]>`
-      select key from courses where id = ${klass.course_id} limit 1`;
+    const [parent] = await tx<{ key: string; uses_base: boolean }[]>`
+      select key, uses_base from courses where id = ${klass.course_id} limit 1`;
     if (!parent) throw new Error("El curso padre del grupo no existe.");
     const [parentRelease] = await tx<{ version: number; hash: string }[]>`
       select version, content_hash as hash
@@ -584,8 +584,8 @@ export async function publishClassRelease(
         from units
        where course_id = ${contentCourseId} and archived_at is null
        order by number, position, content_id`;
-    const topics = await tx<(CoreTopic & { unit_id: string })[]>`
-      select content_id, unit_id, title, summary, position
+    const topics = await tx<(CoreTopic & { id: string; unit_id: string })[]>`
+      select id, content_id, unit_id, title, summary, position
         from topics
        where course_id = ${contentCourseId} and archived_at is null
        order by position, content_id`;
@@ -695,11 +695,17 @@ export async function publishClassRelease(
           select id, content_id from units where course_id = ${contentCourseId}`
       ).map((row) => [row.id, row.content_id]),
     );
+    const [base] = await tx<{ id: string }[]>`
+      select id from courses where is_base limit 1`;
+    const sourceTopicIds = [
+      klass.course_id,
+      ...(parent.uses_base && base ? [base.id] : []),
+    ];
+    const sourceTopics = await tx<{ id: string; content_id: string }[]>`
+      select id, content_id from topics
+       where course_id in ${tx(sourceTopicIds)} and archived_at is null`;
     const topicKey = new Map(
-      (
-        await tx<{ id: string; content_id: string }[]>`
-          select id, content_id from topics where course_id = ${contentCourseId}`
-      ).map((row) => [row.id, row.content_id]),
+      [...topics, ...sourceTopics].map((row) => [row.id, row.content_id]),
     );
     const lessonKey = new Map(
       (
@@ -865,6 +871,9 @@ export async function publishClassRelease(
       visibility: groupVisibility({ archived: Boolean(klass.archived_at) }),
       courseRef: { version: parentRelease.version, hash: parentRelease.hash },
       own,
+      externalTopicContentIds: [
+        ...new Set(sourceTopics.map((topic) => topic.content_id)),
+      ],
       additions: [...additionsByLesson.entries()].map(([lessonContentId, blocks]) => ({
         lessonContentId,
         blocks,

@@ -73,7 +73,7 @@ export function ContentStudio({
 }) {
   const router = useRouter();
   const initialGroup =
-    groups.find((group) => group.courseId && group.topics.length > 0) ??
+    groups.find((group) => group.topics.length > 0) ??
     groups[0] ??
     null;
 
@@ -171,9 +171,9 @@ export function ContentStudio({
                 Elige el grupo y el subtema donde vivirá el contenido.
               </p>
             </div>
-            {group?.courseId && (
+            {group?.sourceCourseId && (
               <Link
-                href={`/cursos/${group.courseId}`}
+                href={`/cursos/${group.sourceCourseId}`}
                 className="btn btn-secondary btn-sm"
               >
                 Abrir curso
@@ -182,6 +182,12 @@ export function ContentStudio({
           </div>
 
           <div className="grid gap-4 p-5 sm:grid-cols-2 xl:grid-cols-4">
+            <Field label="Curso">
+              <div className={`${fieldClass} flex items-center text-ink-soft`}>
+                {group?.courseTitle ?? "Sin curso"}
+              </div>
+            </Field>
+
             <Field label="Grupo">
               <select
                 value={group?.id ?? ""}
@@ -195,12 +201,6 @@ export function ContentStudio({
                   </option>
                 ))}
               </select>
-            </Field>
-
-            <Field label="Curso">
-              <div className={`${fieldClass} flex items-center text-ink-soft`}>
-                {group?.courseTitle ?? "Sin curso de contenido"}
-              </div>
             </Field>
 
             <Field label="Unidad">
@@ -309,7 +309,7 @@ export function ContentStudio({
               <div className="rounded-xl border border-dashed border-line-strong bg-surface-soft/60 p-4 text-sm text-ink-muted">
                 <p>El curso del grupo todavía no tiene unidades ni subtemas.</p>
                 <Link
-                  href={`/cursos/${group.courseId}`}
+                  href={`/cursos/${group.sourceCourseId ?? group.courseId}`}
                   className="btn btn-secondary btn-sm mt-3"
                 >
                   Crear unidad y subtema

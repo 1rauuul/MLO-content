@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { getBaseCourseId, requireEditableCourse } from "@/lib/access";
+import { getBaseCourseId, requireEditableCourse, topicScopeForCourse } from "@/lib/access";
 import { requireTeacher } from "@/lib/auth";
 import { parseBlocks } from "@/lib/content";
 import { publishCourse } from "@/lib/content/publish";
@@ -136,12 +136,13 @@ export async function createLesson(
   if (title.length < 3) return { error: "Escribe el título de la lección." };
   if ("error" in parsed) return { error: parsed.error };
 
+  const topicScope = await topicScopeForCourse(course);
   const topic = await db()<{ id: string; unit_id: string; unit_number: number }[]>`
     select t.id, t.unit_id, u.number as unit_number
       from topics t
       join units u on u.id = t.unit_id
      where t.id = ${topicId}
-       and t.course_id = ${course.id}
+       and t.course_id in ${db()(topicScope)}
        and t.archived_at is null
        and u.archived_at is null
      limit 1`;

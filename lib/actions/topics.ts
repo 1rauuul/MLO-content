@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { requireEditableCourse } from "@/lib/access";
+import { requireEditableCourse, topicScopeForCourse } from "@/lib/access";
 import { requireTeacher } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { parseQuestionInput } from "@/lib/content/validate";
@@ -32,9 +32,10 @@ function nextId(prefix: string, ids: string[]): string {
 async function editableTopic(courseId: string, topicId: string) {
   const teacher = await requireTeacher();
   const course = await requireEditableCourse(teacher, courseId);
+  const scope = await topicScopeForCourse(course);
   const [topic] = await db()<{ id: string; unit_id: string }[]>`
     select id, unit_id from topics
-     where id = ${topicId} and course_id = ${course.id} and archived_at is null
+     where id = ${topicId} and course_id in ${db()(scope)} and archived_at is null
      limit 1`;
   return topic ? { teacher, course, topic } : null;
 }
