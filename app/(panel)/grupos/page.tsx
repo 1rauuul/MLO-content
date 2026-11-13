@@ -51,9 +51,14 @@ export default async function GruposPage() {
                 </span>
               </div>
 
-              {teacher.role === "admin" && (
-                <p className="mt-1 text-xs text-ink-faint">Docente: {klass.teacher_name}</p>
-              )}
+              <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-muted">
+                <span>
+                  Curso: <span className="text-ink-soft">{klass.course_title}</span>
+                </span>
+                {teacher.role === "admin" && (
+                  <span>Docente: {klass.teacher_name}</span>
+                )}
+              </div>
 
               <dl className="mt-auto grid grid-cols-3 gap-2 border-t border-line pt-3 text-sm">
                 <div>

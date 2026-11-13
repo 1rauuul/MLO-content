@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useActionState, useCallback, useEffect, useMemo, useState } from "react";
+import { useActionState, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { createClassContent } from "@/lib/actions/classes";
 import { createLesson, type ActionResult } from "@/lib/actions/content";
@@ -129,11 +129,8 @@ export function ContentStudio({
     courseGroups[0] ??
     null;
   const targetClassIds = selectedGroups.map((group) => group.id);
-  const courseTopics = useMemo(
-    () => selectedGroup?.topics ?? [],
-    [selectedGroup],
-  );
-  const units = useMemo(() => {
+  const courseTopics = selectedGroup?.topics ?? [];
+  const units = (() => {
     const map = new Map<string, { id: string; number: number; title: string }>();
     for (const item of courseTopics) {
       if (!map.has(item.unitId)) {
@@ -145,11 +142,8 @@ export function ContentStudio({
       }
     }
     return [...map.values()].sort((left, right) => left.number - right.number);
-  }, [courseTopics]);
-  const unitTopics = useMemo(
-    () => courseTopics.filter((item) => item.unitId === unitId),
-    [courseTopics, unitId],
-  );
+  })();
+  const unitTopics = courseTopics.filter((item) => item.unitId === unitId);
   const topic = unitTopics.find((item) => item.id === topicId) ?? unitTopics[0] ?? null;
   const activeTopicId = topic?.id ?? "";
 
@@ -216,14 +210,20 @@ export function ContentStudio({
     [handleSaved],
   );
 
+  const activeTopicRef = useRef(activeTopicId);
+  useEffect(() => {
+    activeTopicRef.current = activeTopicId;
+  }, [activeTopicId]);
+
   const onEvaluationCreated = useCallback(
     (evaluationId: string) => {
-      if (activeTopicId) {
-        setCreatedEvaluation({ topicId: activeTopicId, evaluationId });
+      const topicId = activeTopicRef.current;
+      if (topicId) {
+        setCreatedEvaluation({ topicId, evaluationId });
       }
       handleSaved("Evaluación creada.");
     },
-    [activeTopicId, handleSaved],
+    [handleSaved],
   );
 
   return (
@@ -233,7 +233,7 @@ export function ContentStudio({
           <div className="border-b border-line px-5 py-4">
             <h2 className="text-sm font-semibold text-ink">Dónde se publica</h2>
             <p className="mt-0.5 text-xs text-ink-muted">
-              Elige el grupo y el subtema donde vivirá el contenido.
+              Elige el curso, los grupos y el subtema donde vivirá el contenido.
             </p>
           </div>
 
@@ -290,6 +290,16 @@ export function ContentStudio({
               <p className="hint mt-1">
                 Puedes asignar el mismo contenido a varios grupos.
               </p>
+              {selectedGroups.some((group) => !group.courseId) && (
+                <p className="mt-1 text-xs text-warning" role="status">
+                  Sin curso de contenido:{" "}
+                  {selectedGroups
+                    .filter((group) => !group.courseId)
+                    .map((group) => group.name)
+                    .join(", ")}
+                  . El contenido no se creará en esos grupos.
+                </p>
+              )}
             </div>
 
             <Field label="Unidad">
