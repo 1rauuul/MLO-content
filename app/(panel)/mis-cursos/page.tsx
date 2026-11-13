@@ -82,7 +82,9 @@ export default async function MisCursosPage() {
                 </p>
               )}
 
-              <p className="mt-1 font-mono text-xs text-ink-faint">{course.key}</p>
+              {course.is_base && (
+                <p className="mt-1 font-mono text-xs text-ink-faint">{course.key}</p>
+              )}
 
               <div className="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3 text-sm text-ink-muted">
                 <p>
