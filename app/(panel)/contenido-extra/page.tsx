@@ -11,6 +11,7 @@ type StudioTopicRow = {
   id: string;
   course_id: string;
   title: string;
+  unit_id: string;
   unit_number: number;
   unit_title: string;
 };
@@ -47,7 +48,7 @@ export default async function ContenidoExtraPage({
   const topicRows = sourceIds.length
     ? await db()<StudioTopicRow[]>`
         select t.id, t.course_id, t.title,
-               u.number as unit_number, u.title as unit_title
+               t.unit_id, u.number as unit_number, u.title as unit_title
           from topics t
           join units u on u.id = t.unit_id
          where t.course_id in ${db()(sourceIds)}
@@ -70,6 +71,7 @@ export default async function ContenidoExtraPage({
           (topic): StudioTopic => ({
             id: topic.id,
             title: topic.title,
+            unitId: topic.unit_id,
             unitNumber: topic.unit_number,
             unitTitle: topic.unit_title,
           }),

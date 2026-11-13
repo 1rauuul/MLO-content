@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { getBaseCourseId, requireEditableCourse, topicScopeForCourse } from "@/lib/access";
+import { getBaseCourseId, requireEditableCourse, resolveContentTargets } from "@/lib/access";
 import { requireTeacher } from "@/lib/auth";
 import { parseBlocks } from "@/lib/content";
 import { publishCourse } from "@/lib/content/publish";
@@ -127,7 +127,7 @@ export async function createLesson(
   const teacher = await requireTeacher();
   const courseId = String(formData.get("courseId") ?? "");
   const topicId = String(formData.get("topicId") ?? "");
-  const course = await requireEditableCourse(teacher, courseId);
+  const classIds = formData.getAll("classIds").map(String).filter(Boolean);
 
   const title = String(formData.get("title") ?? "").trim();
   const rawContent = String(formData.get("content") ?? "[]").trim();
@@ -136,60 +136,59 @@ export async function createLesson(
   if (title.length < 3) return { error: "Escribe el título de la lección." };
   if ("error" in parsed) return { error: parsed.error };
 
-  const topicScope = await topicScopeForCourse(course);
-  const topic = await db()<{ id: string; unit_id: string; unit_number: number }[]>`
-    select t.id, t.unit_id, u.number as unit_number
-      from topics t
-      join units u on u.id = t.unit_id
-     where t.id = ${topicId}
-       and t.course_id in ${db()(topicScope)}
-       and t.archived_at is null
-       and u.archived_at is null
-     limit 1`;
+  const targets = await resolveContentTargets(teacher, classIds, courseId, topicId);
+  if ("error" in targets) return { error: targets.error };
 
-  if (!topic[0]) return { error: "El subtema no existe en este curso." };
+  const baseId = await getBaseCourseId();
+  try {
+    await db().begin(async (tx) => {
+      for (const target of targets) {
+        const scope = editorCourseIds(target.course.is_group, target.course.id, baseId);
+        const existingCodes = await tx<{ code: string }[]>`
+          select code
+            from lessons
+           where course_id in ${tx(scope)}`;
+        const prefix = `${target.unitNumber}.`;
+        const usedCodes = new Set(existingCodes.map((lesson) => lesson.code));
+        let sequence = 1;
+        while (usedCodes.has(`${prefix}${sequence}`)) sequence += 1;
+        const code = `${prefix}${sequence}`;
 
-  const scope = editorCourseIds(
-    course.is_group,
-    course.id,
-    await getBaseCourseId(),
-  );
+        const contentId = `l${code}`;
+        const clash = await tx<{ id: string }[]>`
+          select id
+            from lessons
+           where course_id in ${tx(scope)}
+             and content_id = ${contentId}
+           limit 1`;
+        if (clash[0]) {
+          throw new Error(`Ya existe una lección con el código ${code}.`);
+        }
 
-  const existingCodes = await db()<{ code: string }[]>`
-    select code
-      from lessons
-     where course_id in ${db()(scope)}`;
-  const prefix = `${topic[0].unit_number}.`;
-  const usedCodes = new Set(existingCodes.map((lesson) => lesson.code));
-  let sequence = 1;
-  while (usedCodes.has(`${prefix}${sequence}`)) sequence += 1;
-  const code = `${prefix}${sequence}`;
+        const [positions] = await tx<{ position: number }[]>`
+          select coalesce(max(position), -1) + 1 as position
+            from lessons
+           where topic_id = ${target.topicId}`;
 
-  const contentId = `l${code}`;
-  const clash = await db()<{ id: string }[]>`
-    select id
-      from lessons
-     where course_id in ${db()(scope)}
-       and content_id = ${contentId}
-     limit 1`;
+        await tx`insert into lessons
+            (course_id, unit_id, topic_id, content_id, code, title, content, position)
+          values
+            (${target.course.id}, ${target.unitId}, ${target.topicId}, ${contentId},
+             ${code}, ${title}, ${tx.json(parsed.blocks)},
+             ${positions.position})`;
+      }
+    });
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error ? error.message : "No se pudo crear la lección.",
+    };
+  }
 
-  if (clash[0]) return { error: `Ya existe una lección con el código ${code}.` };
-
-  const positions = await db()<{ position: number }[]>`
-    select coalesce(max(position), -1) + 1 as position
-      from lessons
-     where topic_id = ${topic[0].id}`;
-
-  const sql = db();
-  await sql`insert into lessons
-      (course_id, unit_id, topic_id, content_id, code, title, content, position)
-    values
-      (${course.id}, ${topic[0].unit_id}, ${topic[0].id}, ${contentId}, ${code},
-       ${title}, ${sql.json(parsed.blocks)},
-       ${positions[0].position})`;
-
-  revalidatePath(`/cursos/${courseId}`);
-  revalidatePath(`/cursos/${courseId}/temas/${topicId}`);
+  for (const target of targets) {
+    revalidatePath(`/cursos/${target.course.id}`);
+    revalidatePath(`/cursos/${target.course.id}/temas/${target.topicId}`);
+  }
   return { ok: true };
 }
 

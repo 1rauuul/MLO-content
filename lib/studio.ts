@@ -1,6 +1,7 @@
 export type StudioTopic = {
   id: string;
   title: string;
+  unitId: string;
   unitNumber: number;
   unitTitle: string;
 };

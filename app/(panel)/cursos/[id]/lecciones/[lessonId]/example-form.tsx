@@ -66,6 +66,7 @@ function draftFrom(item: CoreExample): ExampleDraft {
 export function ExampleForm({
   lessonId,
   courseId,
+  classIds,
   topicId,
   initial,
   onSaved,
@@ -77,6 +78,7 @@ export function ExampleForm({
 }: {
   lessonId?: string;
   courseId?: string;
+  classIds?: string[];
   topicId?: string;
   initial?: CoreExample;
   onSaved: () => void;
@@ -141,6 +143,9 @@ export function ExampleForm({
       {lessonId && <input type="hidden" name="lessonId" value={lessonId} />}
       {courseId && <input type="hidden" name="courseId" value={courseId} />}
       {topicId && <input type="hidden" name="topicId" value={topicId} />}
+      {classIds?.map((classId) => (
+        <input key={classId} type="hidden" name="classIds" value={classId} />
+      ))}
       <input type="hidden" name="exampleId" value={initial?.content_id ?? ""} />
       <input type="hidden" name="alsoExercise" value={alsoExercise ? "on" : ""} />
       <input type="hidden" name="data" value={JSON.stringify(draft)} />

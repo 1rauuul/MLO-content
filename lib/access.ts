@@ -119,3 +119,87 @@ export async function topicScopeForCourse(course: Course): Promise<string[]> {
     ]),
   ];
 }
+
+export type ContentTarget = {
+  course: Course;
+  topicId: string;
+  unitId: string;
+  unitNumber: number;
+};
+
+/** Cursos propios de los grupos seleccionados que el docente puede editar. */
+export async function contentCourseTargets(
+  teacher: Teacher,
+  classIds: string[],
+): Promise<Array<{ classId: string; courseId: string }>> {
+  const unique = [...new Set(classIds.filter(Boolean))];
+  if (unique.length === 0) return [];
+  const rows = await db()<{
+    id: string;
+    teacher_id: string;
+    content_course_id: string | null;
+    archived_at: Date | null;
+  }[]>`
+    select id, teacher_id, content_course_id, archived_at
+      from classes
+     where id in ${db()(unique)}`;
+  const byId = new Map(rows.map((row) => [row.id, row]));
+  return unique
+    .map((id) => byId.get(id))
+    .filter(
+      (row): row is NonNullable<typeof row> =>
+        Boolean(
+          row &&
+            !row.archived_at &&
+            row.content_course_id &&
+            (teacher.role === "admin" || row.teacher_id === teacher.id),
+        ),
+    )
+    .map((row) => ({ classId: row.id, courseId: row.content_course_id! }));
+}
+
+/**
+ * Valida el subtema para cada grupo destino antes de crear contenido. Con
+ * `classIds` usa el curso propio de cada grupo; sin ellos, el curso indicado.
+ */
+export async function resolveContentTargets(
+  teacher: Teacher,
+  classIds: string[],
+  fallbackCourseId: string,
+  topicId: string,
+): Promise<ContentTarget[] | { error: string }> {
+  const courseIds = classIds.length
+    ? (await contentCourseTargets(teacher, classIds)).map((target) => target.courseId)
+    : fallbackCourseId
+      ? [fallbackCourseId]
+      : [];
+  const unique = [...new Set(courseIds)];
+  if (unique.length === 0) {
+    return { error: "Selecciona al menos un grupo con curso de contenido." };
+  }
+
+  const targets: ContentTarget[] = [];
+  for (const courseId of unique) {
+    const course = await requireEditableCourse(teacher, courseId);
+    const scope = await topicScopeForCourse(course);
+    const [topic] = await db()<{ id: string; unit_id: string; unit_number: number }[]>`
+      select t.id, t.unit_id, u.number as unit_number
+        from topics t
+        join units u on u.id = t.unit_id
+       where t.id = ${topicId}
+         and t.course_id in ${db()(scope)}
+         and t.archived_at is null
+         and u.archived_at is null
+       limit 1`;
+    if (!topic) {
+      return { error: "El subtema no existe en uno de los grupos seleccionados." };
+    }
+    targets.push({
+      course,
+      topicId: topic.id,
+      unitId: topic.unit_id,
+      unitNumber: topic.unit_number,
+    });
+  }
+  return targets;
+}

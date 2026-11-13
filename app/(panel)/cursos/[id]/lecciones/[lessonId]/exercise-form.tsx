@@ -68,6 +68,7 @@ function draftFrom(item: CoreExercise): ExerciseDraft {
 export function ExerciseForm({
   lessonId,
   courseId,
+  classIds,
   topicId,
   initial,
   onSaved,
@@ -79,6 +80,7 @@ export function ExerciseForm({
 }: {
   lessonId?: string;
   courseId?: string;
+  classIds?: string[];
   topicId?: string;
   initial?: CoreExercise;
   onSaved: () => void;
@@ -141,6 +143,9 @@ export function ExerciseForm({
       {lessonId && <input type="hidden" name="lessonId" value={lessonId} />}
       {courseId && <input type="hidden" name="courseId" value={courseId} />}
       {topicId && <input type="hidden" name="topicId" value={topicId} />}
+      {classIds?.map((classId) => (
+        <input key={classId} type="hidden" name="classIds" value={classId} />
+      ))}
       <input type="hidden" name="exerciseId" value={initial?.content_id ?? ""} />
       <input type="hidden" name="data" value={JSON.stringify(draft)} />
 

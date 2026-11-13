@@ -72,16 +72,39 @@ export function ContentStudio({
   initialTopicId?: string;
 }) {
   const router = useRouter();
+
+  const courses = useMemo(() => {
+    const map = new Map<string, { id: string; title: string; groups: StudioGroup[] }>();
+    for (const group of groups) {
+      if (!group.sourceCourseId) continue;
+      const existing = map.get(group.sourceCourseId) ?? {
+        id: group.sourceCourseId,
+        title: group.courseTitle ?? group.name,
+        groups: [],
+      };
+      existing.groups.push(group);
+      map.set(group.sourceCourseId, existing);
+    }
+    return [...map.values()];
+  }, [groups]);
+
+  const requestedGroup = groups.find((group) => group.id === initialGroupId);
   const initialGroup =
+    requestedGroup ??
     groups.find((group) => group.topics.length > 0) ??
     groups[0] ??
     null;
+  const requestedTopic = initialGroup?.topics.find((topic) => topic.id === initialTopicId);
+  const initialTopic = requestedTopic ?? initialGroup?.topics[0] ?? null;
 
-  const requestedGroup = groups.find((group) => group.id === initialGroupId);
-  const firstGroup = requestedGroup ?? initialGroup;
-  const requestedTopic = firstGroup?.topics.find((topic) => topic.id === initialTopicId);
-  const [groupId, setGroupId] = useState(firstGroup?.id ?? "");
-  const [topicId, setTopicId] = useState(requestedTopic?.id ?? firstGroup?.topics[0]?.id ?? "");
+  const [courseId, setCourseId] = useState(
+    initialGroup?.sourceCourseId ?? courses[0]?.id ?? "",
+  );
+  const [groupIds, setGroupIds] = useState<string[]>(
+    initialGroup ? [initialGroup.id] : [],
+  );
+  const [unitId, setUnitId] = useState(initialTopic?.unitId ?? "");
+  const [topicId, setTopicId] = useState(initialTopic?.id ?? "");
   const [type, setType] = useState<StudioContentType>("lesson");
   const [version, setVersion] = useState(0);
   const [notice, setNotice] = useState<string | null>(null);
@@ -95,18 +118,40 @@ export function ContentStudio({
     evaluationId: string;
   } | null>(null);
 
-  const group = groups.find((item) => item.id === groupId) ?? groups[0] ?? null;
-  const topic =
-    group?.topics.find((item) => item.id === topicId) ?? group?.topics[0] ?? null;
-
-  const topicsByUnit = useMemo(() => {
-    const units = new Map<string, StudioTopic[]>();
-    for (const item of group?.topics ?? []) {
-      const key = `${item.unitNumber}. ${item.unitTitle}`;
-      units.set(key, [...(units.get(key) ?? []), item]);
+  const courseGroups = useMemo(
+    () => groups.filter((group) => group.sourceCourseId === courseId),
+    [groups, courseId],
+  );
+  const selectedGroups = courseGroups.filter((group) => groupIds.includes(group.id));
+  const selectedGroup =
+    selectedGroups.find((group) => group.courseId) ??
+    selectedGroups[0] ??
+    courseGroups[0] ??
+    null;
+  const targetClassIds = selectedGroups.map((group) => group.id);
+  const courseTopics = useMemo(
+    () => selectedGroup?.topics ?? [],
+    [selectedGroup],
+  );
+  const units = useMemo(() => {
+    const map = new Map<string, { id: string; number: number; title: string }>();
+    for (const item of courseTopics) {
+      if (!map.has(item.unitId)) {
+        map.set(item.unitId, {
+          id: item.unitId,
+          number: item.unitNumber,
+          title: item.unitTitle,
+        });
+      }
     }
-    return [...units.entries()];
-  }, [group]);
+    return [...map.values()].sort((left, right) => left.number - right.number);
+  }, [courseTopics]);
+  const unitTopics = useMemo(
+    () => courseTopics.filter((item) => item.unitId === unitId),
+    [courseTopics, unitId],
+  );
+  const topic = unitTopics.find((item) => item.id === topicId) ?? unitTopics[0] ?? null;
+  const activeTopicId = topic?.id ?? "";
 
   const resetDrafts = () => {
     setVersion((current) => current + 1);
@@ -118,14 +163,29 @@ export function ContentStudio({
     setNotice(null);
   };
 
-  const selectGroup = (id: string) => {
-    const next = groups.find((item) => item.id === id) ?? null;
-    setGroupId(id);
-    setTopicId(
-      next?.topics.some((item) => item.id === topicId)
-        ? topicId
-        : (next?.topics[0]?.id ?? ""),
+  const selectCourse = (id: string) => {
+    const nextGroups = groups.filter((group) => group.sourceCourseId === id);
+    const first = nextGroups[0] ?? null;
+    const firstTopic = first?.topics[0] ?? null;
+    setCourseId(id);
+    setGroupIds(first ? [first.id] : []);
+    setUnitId(firstTopic?.unitId ?? "");
+    setTopicId(firstTopic?.id ?? "");
+    resetDrafts();
+  };
+
+  const toggleGroup = (id: string) => {
+    setGroupIds((current) =>
+      current.includes(id)
+        ? current.filter((item) => item !== id)
+        : [...current, id],
     );
+  };
+
+  const selectUnit = (id: string) => {
+    const first = courseTopics.find((item) => item.unitId === id) ?? null;
+    setUnitId(id);
+    setTopicId(first?.id ?? "");
     resetDrafts();
   };
 
@@ -158,10 +218,12 @@ export function ContentStudio({
 
   const onEvaluationCreated = useCallback(
     (evaluationId: string) => {
-      if (topic) setCreatedEvaluation({ topicId: topic.id, evaluationId });
+      if (activeTopicId) {
+        setCreatedEvaluation({ topicId: activeTopicId, evaluationId });
+      }
       handleSaved("Evaluación creada.");
     },
-    [handleSaved, topic],
+    [activeTopicId, handleSaved],
   );
 
   return (
@@ -175,57 +237,94 @@ export function ContentStudio({
             </p>
           </div>
 
-          <div className="grid gap-4 p-5 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-4 p-5 sm:grid-cols-2">
             <Field label="Curso">
-              <div
-                className="field-readonly"
-                title={group?.courseTitle ?? "Sin curso"}
-              >
-                {group?.courseTitle ?? "Sin curso"}
-              </div>
-            </Field>
-
-            <Field label="Grupo">
               <select
-                value={group?.id ?? ""}
-                onChange={(event) => selectGroup(event.target.value)}
+                value={courseId}
+                onChange={(event) => selectCourse(event.target.value)}
                 className={fieldClass}
               >
-                {groups.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}
-                  </option>
-                ))}
+                {courses.length === 0 ? (
+                  <option value="">Sin cursos</option>
+                ) : (
+                  courses.map((course) => (
+                    <option key={course.id} value={course.id}>
+                      {course.title}
+                    </option>
+                  ))
+                )}
               </select>
             </Field>
 
-            <Field label="Unidad">
-              <div
-                className="field-readonly"
-                title={topic ? `${topic.unitNumber}. ${topic.unitTitle}` : "Sin unidad"}
-              >
-                {topic ? `${topic.unitNumber}. ${topic.unitTitle}` : "Sin unidad"}
+            <div>
+              <p className="field-label">Grupos</p>
+              <div className="mt-1.5 flex min-h-9 flex-wrap items-center gap-2 rounded-[var(--radius-control)] border border-line-strong bg-surface px-2 py-1.5">
+                {courseGroups.length === 0 ? (
+                  <span className="text-sm text-ink-faint">
+                    Sin grupos para este curso
+                  </span>
+                ) : (
+                  courseGroups.map((group) => {
+                    const checked = groupIds.includes(group.id);
+                    return (
+                      <label
+                        key={group.id}
+                        className={`flex cursor-pointer items-center gap-2 rounded-lg border px-2.5 py-1.5 text-sm transition ${
+                          checked
+                            ? "border-ink bg-surface-soft font-medium text-ink"
+                            : "border-line text-ink-soft hover:border-line-strong"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleGroup(group.id)}
+                          className="size-4"
+                        />
+                        {group.name}
+                      </label>
+                    );
+                  })
+                )}
               </div>
+              <p className="hint mt-1">
+                Puedes asignar el mismo contenido a varios grupos.
+              </p>
+            </div>
+
+            <Field label="Unidad">
+              <select
+                value={unitId}
+                onChange={(event) => selectUnit(event.target.value)}
+                disabled={units.length === 0}
+                className={fieldClass}
+              >
+                {units.length === 0 ? (
+                  <option value="">Sin unidades</option>
+                ) : (
+                  units.map((unit) => (
+                    <option key={unit.id} value={unit.id}>
+                      {unit.number}. {unit.title}
+                    </option>
+                  ))
+                )}
+              </select>
             </Field>
 
             <Field label="Subtema">
               <select
                 value={topic?.id ?? ""}
                 onChange={(event) => selectTopic(event.target.value)}
-                disabled={!group || group.topics.length === 0}
+                disabled={unitTopics.length === 0}
                 className={fieldClass}
               >
-                {!group || group.topics.length === 0 ? (
+                {unitTopics.length === 0 ? (
                   <option value="">Sin subtemas</option>
                 ) : (
-                  topicsByUnit.map(([unit, unitTopics]) => (
-                    <optgroup key={unit} label={unit}>
-                      {unitTopics.map((item) => (
-                        <option key={item.id} value={item.id}>
-                          {item.title}
-                        </option>
-                      ))}
-                    </optgroup>
+                  unitTopics.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.title}
+                    </option>
                   ))
                 )}
               </select>
@@ -283,7 +382,7 @@ export function ContentStudio({
               })}
             </div>
 
-            {!group ? (
+            {groups.length === 0 ? (
               <p className="empty">
                 Primero crea un grupo en{" "}
                 <Link href="/grupos" className="link">
@@ -291,24 +390,34 @@ export function ContentStudio({
                 </Link>
                 .
               </p>
-            ) : !group.courseId ? (
+            ) : !courseId ? (
+              <p className="empty">
+                No hay cursos disponibles para tus grupos.
+              </p>
+            ) : selectedGroups.length === 0 ? (
+              <p className="empty">
+                Selecciona al menos un grupo para asignar el contenido.
+              </p>
+            ) : !selectedGroup?.courseId ? (
               <div className="rounded-xl border border-dashed border-line-strong bg-surface-soft/60 p-4 text-sm text-ink-muted">
                 <p>
-                  <strong className="text-ink">{group.name}</strong> todavía no tiene un
-                  curso de contenido propio.
+                  <strong className="text-ink">{selectedGroup?.name}</strong> todavía no
+                  tiene un curso de contenido propio.
                 </p>
-                <form action={createClassContent} className="mt-3">
-                  <input type="hidden" name="classId" value={group.id} />
-                  <button type="submit" className="btn btn-primary btn-sm">
-                    Crear contenido del grupo
-                  </button>
-                </form>
+                {selectedGroup && (
+                  <form action={createClassContent} className="mt-3">
+                    <input type="hidden" name="classId" value={selectedGroup.id} />
+                    <button type="submit" className="btn btn-primary btn-sm">
+                      Crear contenido del grupo
+                    </button>
+                  </form>
+                )}
               </div>
-            ) : group.topics.length === 0 ? (
+            ) : courseTopics.length === 0 ? (
               <div className="rounded-xl border border-dashed border-line-strong bg-surface-soft/60 p-4 text-sm text-ink-muted">
-                <p>El curso del grupo todavía no tiene unidades ni subtemas.</p>
+                <p>El curso todavía no tiene unidades ni subtemas.</p>
                 <Link
-                  href={`/cursos/${group.sourceCourseId ?? group.courseId}`}
+                  href={`/cursos/${selectedGroup.sourceCourseId ?? selectedGroup.courseId}`}
                   className="btn btn-secondary btn-sm mt-3"
                 >
                   Crear unidad y subtema
@@ -321,7 +430,8 @@ export function ContentStudio({
                 {type === "lesson" && (
                   <LessonStudioForm
                     key={`lesson-${topic.id}-${version}`}
-                    group={group}
+                    group={selectedGroup}
+                    classIds={targetClassIds}
                     topic={topic}
                     onDraftChange={setLessonDraft}
                     onSaved={onLessonSaved}
@@ -331,7 +441,8 @@ export function ContentStudio({
                 {type === "example" && (
                   <ExampleForm
                     key={`example-${topic.id}-${version}`}
-                    courseId={group.courseId ?? ""}
+                    courseId={selectedGroup.courseId ?? ""}
+                    classIds={targetClassIds}
                     topicId={topic.id}
                     onSaved={onExampleSaved}
                     onCancel={() => setType("lesson")}
@@ -344,7 +455,8 @@ export function ContentStudio({
                 {type === "exercise" && (
                   <ExerciseForm
                     key={`exercise-${topic.id}-${version}`}
-                    courseId={group.courseId ?? ""}
+                    courseId={selectedGroup.courseId ?? ""}
+                    classIds={targetClassIds}
                     topicId={topic.id}
                     onSaved={onExerciseSaved}
                     onCancel={() => setType("lesson")}
@@ -357,16 +469,17 @@ export function ContentStudio({
                 {type === "evaluation" && (
                   <EvaluationStudioForm
                     key={`evaluation-${topic.id}-${version}`}
-                    group={group}
+                    group={selectedGroup}
+                    classIds={targetClassIds}
                     topic={topic}
                     onDraftChange={setEvaluationDraft}
                     onCreated={onEvaluationCreated}
                   />
                 )}
 
-                {createdEvaluation?.topicId === topic.id && group.courseId && (
+                {createdEvaluation?.topicId === topic.id && selectedGroup.courseId && (
                   <Link
-                    href={`/cursos/${group.courseId}/temas/${topic.id}/evaluaciones/${createdEvaluation.evaluationId}`}
+                    href={`/cursos/${selectedGroup.courseId}/temas/${topic.id}/evaluaciones/${createdEvaluation.evaluationId}`}
                     className="btn btn-secondary btn-sm"
                   >
                     Agregar preguntas a la evaluación →
@@ -403,11 +516,13 @@ export function ContentStudio({
 
 function LessonStudioForm({
   group,
+  classIds,
   topic,
   onDraftChange,
   onSaved,
 }: {
   group: StudioGroup;
+  classIds: string[];
   topic: StudioTopic;
   onDraftChange: (draft: LessonDraft) => void;
   onSaved: () => void;
@@ -435,6 +550,9 @@ function LessonStudioForm({
     >
       <input type="hidden" name="courseId" value={group.courseId ?? ""} />
       <input type="hidden" name="topicId" value={topic.id} />
+      {classIds.map((classId) => (
+        <input key={classId} type="hidden" name="classIds" value={classId} />
+      ))}
 
       <div className="max-w-2xl">
         <Field label="Título de la lección">
@@ -479,11 +597,13 @@ function LessonStudioForm({
 
 function EvaluationStudioForm({
   group,
+  classIds,
   topic,
   onDraftChange,
   onCreated,
 }: {
   group: StudioGroup;
+  classIds: string[];
   topic: StudioTopic;
   onDraftChange: (draft: EvaluationDraft) => void;
   onCreated: (evaluationId: string) => void;
@@ -511,6 +631,9 @@ function EvaluationStudioForm({
       <input type="hidden" name="courseId" value={group.courseId ?? ""} />
       <input type="hidden" name="topicId" value={topic.id} />
       <input type="hidden" name="stay" value="on" />
+      {classIds.map((classId) => (
+        <input key={classId} type="hidden" name="classIds" value={classId} />
+      ))}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Título de la evaluación">

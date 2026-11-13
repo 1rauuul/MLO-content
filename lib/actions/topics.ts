@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { requireEditableCourse, topicScopeForCourse } from "@/lib/access";
+import { requireEditableCourse, resolveContentTargets, topicScopeForCourse } from "@/lib/access";
 import { requireTeacher } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { parseQuestionInput } from "@/lib/content/validate";
@@ -49,36 +49,49 @@ export async function createEvaluation(
   _prev: TopicResult,
   formData: FormData,
 ): Promise<TopicResult> {
+  const teacher = await requireTeacher();
   const courseId = String(formData.get("courseId") ?? "");
   const topicId = String(formData.get("topicId") ?? "");
-  const scope = await editableTopic(courseId, topicId);
-  if (!scope) return { error: "El subtema no existe en este curso." };
+  const classIds = formData.getAll("classIds").map(String).filter(Boolean);
 
   const title = String(formData.get("title") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
   if (title.length < 3) return { error: "Escribe el título de la evaluación." };
 
-  const ids = await db()<{ content_id: string }[]>`
-    select content_id from evaluations where course_id = ${scope.course.id}`;
-  const [next] = await db()<{ position: number }[]>`
-    select coalesce(max(position), -1) + 1 as position
-      from evaluations where topic_id = ${scope.topic.id}`;
+  const targets = await resolveContentTargets(teacher, classIds, courseId, topicId);
+  if ("error" in targets) return { error: targets.error };
 
-  const [created] = await db()<{ id: string }[]>`
-    insert into evaluations
-      (course_id, lesson_id, topic_id, content_id, title, description,
-       question_count, exercise_count, position)
-    values
-      (${scope.course.id}, ${null}, ${scope.topic.id},
-       ${nextId("ev", ids.map((row) => row.content_id))}, ${title}, ${description},
-       1, 0, ${next.position})
-    returning id`;
+  let firstEvaluationId = "";
+  await db().begin(async (tx) => {
+    for (const target of targets) {
+      const ids = await tx<{ content_id: string }[]>`
+        select content_id from evaluations where course_id = ${target.course.id}`;
+      const [next] = await tx<{ position: number }[]>`
+        select coalesce(max(position), -1) + 1 as position
+          from evaluations where topic_id = ${target.topicId}`;
+      const [created] = await tx<{ id: string }[]>`
+        insert into evaluations
+          (course_id, lesson_id, topic_id, content_id, title, description,
+           question_count, exercise_count, position)
+        values
+          (${target.course.id}, ${null}, ${target.topicId},
+           ${nextId("ev", ids.map((row) => row.content_id))}, ${title}, ${description},
+           1, 0, ${next.position})
+        returning id`;
+      if (!firstEvaluationId) firstEvaluationId = created.id;
+    }
+  });
 
-  refreshTopic(scope.course.id, scope.topic.id);
-  if (formData.get("stay") === "on") {
-    return { ok: true, evaluationId: created.id };
+  for (const target of targets) {
+    refreshTopic(target.course.id, target.topicId);
   }
-  redirect(`/cursos/${scope.course.id}/temas/${scope.topic.id}/evaluaciones/${created.id}`);
+  if (formData.get("stay") === "on") {
+    return { ok: true, evaluationId: firstEvaluationId };
+  }
+  const first = targets[0];
+  redirect(
+    `/cursos/${first.course.id}/temas/${first.topicId}/evaluaciones/${firstEvaluationId}`,
+  );
 }
 
 export async function updateEvaluation(
