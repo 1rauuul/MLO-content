@@ -90,6 +90,8 @@ export type ClassPreview = {
   id: string;
   name: string;
   teacher_name: string;
+  course_key: string;
+  course_title: string;
   published_version: number | null;
   published_hash: string | null;
   published_at: Date | null;
@@ -107,6 +109,10 @@ export function classPreviewPayload(preview: ClassPreview) {
       id: preview.id,
       name: preview.name,
       teacherName: preview.teacher_name,
+    },
+    course: {
+      catalogId: preview.course_key,
+      title: preview.course_title,
     },
     published:
       preview.published_version === null
@@ -327,11 +333,13 @@ export async function listBaseLessons(): Promise<BaseLesson[]> {
 export async function getClassPreviewByCode(code: string): Promise<ClassPreview | null> {
   const rows = await db()<ClassPreview[]>`
     select c.id, c.name, t.name as teacher_name,
+           parent.key as course_key, parent.title as course_title,
            r.version as published_version,
            r.content_hash as published_hash,
            r.published_at
       from classes c
       join teachers t on t.id = c.teacher_id
+      join courses parent on parent.id = c.course_id
       left join lateral (
         select version, content_hash, published_at
           from class_releases
@@ -417,7 +425,12 @@ export async function joinClassByCode(
             course_id = excluded.course_id,
             joined_at = now()`;
 
-    // DEC-05: unirse a una clase concede acceso al curso base.
+    // La clase concede acceso a su propio curso (el contenido se descarga con
+    // su manifest v3) y conserva el acceso al base empaquetado.
+    await tx`
+      insert into course_access (course_id, student_id)
+      values (${klass.course_id}, ${student.id})
+      on conflict (course_id, student_id) do nothing`;
     const [base] = await tx<{ id: string }[]>`
       select id from courses where is_base limit 1`;
     if (base) {

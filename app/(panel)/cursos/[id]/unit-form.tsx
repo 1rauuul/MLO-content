@@ -43,7 +43,14 @@ export function CreateUnitForm({ courseId }: { courseId: string }) {
 
           <label className="field-label">
             Título de la unidad
-            <input name="title" required placeholder="Ej. Fundamentos" className={inputClass} />
+            <input
+              name="title"
+              required
+              placeholder="Ej. Fundamentos"
+              aria-invalid={Boolean(state.error)}
+              aria-describedby={state.error ? "unit-form-error" : undefined}
+              className={inputClass}
+            />
           </label>
           <label className="field-label">
             Descripción breve
@@ -92,7 +99,7 @@ export function CreateUnitForm({ courseId }: { courseId: string }) {
           </button>
 
           {state.error && (
-            <p className="form-error" role="alert">
+            <p id="unit-form-error" className="form-error" role="alert">
               {state.error}
             </p>
           )}

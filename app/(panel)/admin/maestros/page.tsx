@@ -29,30 +29,32 @@ export default async function MaestrosPage() {
       <CreateTeacherForm />
 
       <div className="card overflow-hidden">
-        <table className="table-panel">
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>Correo</th>
-              <th>Rol</th>
-            </tr>
-          </thead>
-          <tbody>
-            {teachers.map((teacher) => (
-              <tr key={teacher.id}>
-                <td className="font-medium text-ink">{teacher.name}</td>
-                <td className="text-ink-muted">{teacher.email}</td>
-                <td>
-                  {teacher.role === "admin" ? (
-                    <span className="badge badge-brand">Administrador</span>
-                  ) : (
-                    <span className="badge badge-neutral">Maestro</span>
-                  )}
-                </td>
+        <div className="overflow-x-auto">
+          <table className="table-panel min-w-[560px]">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Correo</th>
+                <th>Rol</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {teachers.map((teacher) => (
+                <tr key={teacher.id}>
+                  <td className="font-medium text-ink">{teacher.name}</td>
+                  <td className="text-ink-muted">{teacher.email}</td>
+                  <td>
+                    {teacher.role === "admin" ? (
+                      <span className="badge badge-brand">Administrador</span>
+                    ) : (
+                      <span className="badge badge-neutral">Maestro</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

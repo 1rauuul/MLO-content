@@ -6,6 +6,7 @@ import { createTopic, type ActionResult } from "@/lib/actions/content";
 
 export function CreateTopicForm({ courseId, unitId }: { courseId: string; unitId: string }) {
   const [state, action, pending] = useActionState<ActionResult, FormData>(createTopic, {});
+  const errorId = `topic-form-error-${unitId}`;
 
   return (
     <form
@@ -19,6 +20,8 @@ export function CreateTopicForm({ courseId, unitId }: { courseId: string; unitId
         required
         placeholder="Título del subtema"
         aria-label="Título del subtema"
+        aria-invalid={Boolean(state.error)}
+        aria-describedby={state.error ? errorId : undefined}
         className="field min-w-0"
       />
       <input
@@ -35,7 +38,7 @@ export function CreateTopicForm({ courseId, unitId }: { courseId: string; unitId
         {pending ? "Creando…" : "Crear subtema"}
       </button>
       {state.error && (
-        <p className="form-error w-full" role="alert">
+        <p id={errorId} className="form-error w-full" role="alert">
           {state.error}
         </p>
       )}

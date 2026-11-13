@@ -1,3 +1,4 @@
+import { BackLink } from "@/app/(panel)/back-link";
 import { getBaseCourseId } from "@/lib/access";
 import { requireTeacher } from "@/lib/auth";
 import { listEditableClasses } from "@/lib/classes";
@@ -76,10 +77,17 @@ export default async function ContenidoExtraPage({
     };
   });
 
+  const selectedClass = classes.find((klass) => klass.id === classId);
+
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="page-title">Contenido de los grupos</h1>
+        <BackLink
+          href={selectedClass ? `/cursos/${selectedClass.course_id}` : "/grupos"}
+        >
+          {selectedClass ? selectedClass.course_title : "Grupos"}
+        </BackLink>
+        <h1 className="page-title mt-1">Contenido adicional</h1>
         <p className="page-lead">
           Crea lecciones, ejemplos, ejercicios y evaluaciones para el curso de tus grupos.
         </p>
@@ -87,7 +95,7 @@ export default async function ContenidoExtraPage({
 
       <ContentStudio
         groups={studioGroups}
-        initialGroupId={classes.find((klass) => klass.id === classId)?.id}
+        initialGroupId={selectedClass?.id}
         initialTopicId={topicId}
       />
     </div>

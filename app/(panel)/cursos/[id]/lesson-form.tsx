@@ -27,6 +27,8 @@ export function CreateLessonForm({
           name="title"
           required
           placeholder="Título de la lección"
+          aria-invalid={Boolean(state.error)}
+          aria-describedby={state.error ? "lesson-form-error" : undefined}
           className={`${inputClass} max-w-xl`}
         />
       </label>
@@ -35,7 +37,7 @@ export function CreateLessonForm({
         {pending ? "Agregando…" : "Agregar lección"}
       </button>
       {state.error && (
-        <p className="form-error w-full" role="alert">
+        <p id="lesson-form-error" className="form-error w-full" role="alert">
           {state.error}
         </p>
       )}

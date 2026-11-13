@@ -26,13 +26,22 @@ export function CreateClassForm({ courses }: { courses: CourseOption[] }) {
             required
             maxLength={80}
             placeholder="Ej. UX · Grupo A"
+            aria-invalid={Boolean(state.error)}
+            aria-describedby={state.error ? "class-form-error" : undefined}
             className="field"
           />
         </label>
 
         <label className="field-label">
           Curso asignado
-          <select name="courseId" required defaultValue="" className="field">
+          <select
+            name="courseId"
+            required
+            defaultValue=""
+            aria-invalid={Boolean(state.error)}
+            aria-describedby={state.error ? "class-form-error" : undefined}
+            className="field"
+          >
             <option value="" disabled>
               Selecciona un curso
             </option>
@@ -61,7 +70,7 @@ export function CreateClassForm({ courses }: { courses: CourseOption[] }) {
       )}
 
       {state.error && (
-        <p className="form-error px-5 pb-5" role="alert">
+        <p id="class-form-error" className="form-error px-5 pb-5" role="alert">
           {state.error}
         </p>
       )}

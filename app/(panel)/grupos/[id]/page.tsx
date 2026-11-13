@@ -5,11 +5,8 @@ import { archiveClass, createClassContent, restoreClass } from "@/lib/actions/cl
 import { getBaseCourseId } from "@/lib/access";
 import { requireTeacher } from "@/lib/auth";
 import {
-  draftClassHash,
-  extraSummary,
   getClassForRead,
   getLatestClassRelease,
-  listClassExtras,
   listClassStudents,
 } from "@/lib/classes";
 import { db } from "@/lib/db";
@@ -17,12 +14,6 @@ import { listInvitations } from "@/lib/invitations/invitations";
 
 import { InvitationHistory, InvitationPanel } from "./invitation-panel";
 import { PublishClassForm } from "./publish-class-form";
-
-const TYPE_LABEL = {
-  lesson: "Lección",
-  example: "Ejemplo",
-  exercise: "Ejercicio",
-} as const;
 
 type GroupTopic = {
   id: string;
@@ -48,15 +39,12 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
   const { id } = await params;
 
   const klass = await getClassForRead(teacher, id);
-  const [last, students, extras, invitations] = await Promise.all([
+  const [last, students, invitations] = await Promise.all([
     getLatestClassRelease(klass.id),
     listClassStudents(klass.id),
-    listClassExtras(klass.id),
     listInvitations(klass.id),
   ]);
 
-  const draftHash = draftClassHash(klass, extras);
-  const pending = last ? draftHash !== last.content_hash : extras.length > 0;
   const [v3] = await db()<{ version: number; content_hash: string }[]>`
     select version, content_hash
       from class_releases_v3
@@ -169,21 +157,29 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
                   Unidades, subtemas, lecciones y actividades del curso y del grupo.
                 </p>
               </div>
-              {klass.content_course_id ? (
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                {klass.content_course_id ? (
+                  <Link
+                    href={`/cursos/${klass.content_course_id}`}
+                    className="btn btn-secondary btn-sm"
+                  >
+                    Editar contenido
+                  </Link>
+                ) : (
+                  <form action={createClassContent}>
+                    <input type="hidden" name="classId" value={klass.id} />
+                    <button type="submit" className="btn btn-secondary btn-sm">
+                      Crear contenido
+                    </button>
+                  </form>
+                )}
                 <Link
-                  href={`/cursos/${klass.content_course_id}`}
-                  className="btn btn-secondary btn-sm"
+                  href={`/contenido-extra?classId=${klass.id}`}
+                  className="btn btn-primary btn-sm"
                 >
-                  Editar contenido
+                  Agregar contenido
                 </Link>
-              ) : (
-                <form action={createClassContent}>
-                  <input type="hidden" name="classId" value={klass.id} />
-                  <button type="submit" className="btn btn-primary btn-sm">
-                    Crear contenido
-                  </button>
-                </form>
-              )}
+              </div>
             </div>
 
             <details open className="group mt-4 border-t border-line pt-4">
@@ -232,7 +228,7 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
                         <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-surface font-mono text-xs font-medium text-ink-soft ring-1 ring-line">
                           {unit.number}
                         </span>
-                        <h3 className="text-sm font-medium text-ink">{unit.title}</h3>
+                        <h3 className="min-w-0 truncate text-sm font-medium text-ink">{unit.title}</h3>
                         <span className="ml-auto shrink-0 text-xs tabular-nums text-ink-faint">
                           {unit.topics.length}{" "}
                           {unit.topics.length === 1 ? "subtema" : "subtemas"}
@@ -261,10 +257,10 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
                             <li key={topic.id}>
                               <Link
                                 href={`/cursos/${klass.content_course_id ?? topic.course_id}/temas/${topic.id}`}
-                                className="flex items-center justify-between gap-3 rounded-md px-2 py-1.5 text-sm text-ink-soft transition-colors hover:bg-surface hover:text-ink"
+                                className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-md px-2 py-1.5 text-sm text-ink-soft transition-colors hover:bg-surface hover:text-ink"
                               >
-                                <span>{topic.title}</span>
-                                <span className="shrink-0 text-xs tabular-nums text-ink-faint">
+                                <span className="min-w-0">{topic.title}</span>
+                                <span className="shrink-0 text-right text-xs tabular-nums text-ink-faint">
                                   {topic.lesson_count}{" "}
                                   {topic.lesson_count === 1 ? "lección" : "lecciones"} ·{" "}
                                   {topic.activity_count}{" "}
@@ -285,104 +281,44 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
           <section className="card p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h2 className="text-sm font-semibold text-ink">Contenido adicional</h2>
-                <p className="mt-1 text-sm text-ink-muted">
-                  {extras.length}{" "}
-                  {extras.length === 1
-                    ? "contenido adicional asignado"
-                    : "contenidos adicionales asignados"}
-                  .
+                <h2 className="text-sm font-semibold text-ink">Publicación</h2>
+                {last ? (
+                  <p className="mt-1 text-sm text-ink-muted">
+                    Versión v2{" "}
+                    <strong className="tabular-nums text-ink-soft">
+                      {last.version}
+                    </strong>{" "}
+                    ·{" "}
+                    <span className="tabular-nums">
+                      {formatDate(last.published_at)}
+                    </span>{" "}
+                    · hash{" "}
+                    <span className="font-mono text-xs">
+                      {last.content_hash.slice(0, 12)}
+                    </span>
+                  </p>
+                ) : (
+                  <p className="mt-1 text-sm text-ink-muted">
+                    Todavía no hay una versión v2 publicada.
+                  </p>
+                )}
+                <p className="mt-1 text-sm tabular-nums text-ink-muted">
+                  {v3
+                    ? `Release v3 de grupo: versión ${v3.version} · hash ${v3.content_hash.slice(0, 12)}.`
+                    : "Release v3 de grupo: pendiente de publicar."}
                 </p>
               </div>
-              <Link
-                href={`/contenido-extra?classId=${klass.id}`}
-                className="btn btn-secondary btn-sm"
-              >
-                Agregar contenido
-              </Link>
-            </div>
-
-            {extras.length === 0 ? (
-              <p className="empty mt-4">
-                Este grupo todavía no tiene contenido adicional.
-              </p>
-            ) : (
-              <ul className="mt-4 divide-y divide-line border-t border-line">
-                {extras.map((extra) => (
-                  <li key={extra.id} className="flex flex-wrap items-start gap-3 py-3">
-                    <span className="text-[10px] font-semibold uppercase tracking-wide text-ink-muted">
-                      {TYPE_LABEL[extra.type]}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-ink">
-                        {extraSummary(extra)}
-                      </p>
-                      <p className="text-xs text-ink-muted">
-                        Lección <span className="font-mono">{extra.lesson_code}</span> ·{" "}
-                        {extra.lesson_title}
-                      </p>
-                      {extra.class_names.length > 0 && (
-                        <p className="text-xs text-ink-faint">
-                          También en: {extra.class_names.join(", ")}
-                        </p>
-                      )}
-                    </div>
-                    <Link
-                      href={`/contenido-extra?extra=${extra.id}`}
-                      className="text-sm text-ink-muted underline-offset-4 hover:text-ink hover:underline"
-                    >
-                      Editar
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-
-            <div className="mt-5 border-t border-line pt-5">
-              <h3 className="text-sm font-semibold text-ink">Publicación</h3>
-              {last ? (
-                <p className="mt-1 text-sm text-ink-muted">
-                  Versión v2{" "}
-                  <strong className="tabular-nums text-ink-soft">
-                    {last.version}
-                  </strong>{" "}
-                  ·{" "}
-                  <span className="tabular-nums">
-                    {formatDate(last.published_at)}
-                  </span>{" "}
-                  · hash{" "}
-                  <span className="font-mono text-xs">
-                    {last.content_hash.slice(0, 12)}
-                  </span>
-                </p>
+              {v3 ? (
+                <span className="inline-flex items-center gap-1.5 text-xs text-positive">
+                  <span className="size-1.5 rounded-full bg-positive" />
+                  Publicado
+                </span>
               ) : (
-                <p className="mt-1 text-sm text-ink-muted">
-                  Todavía no hay una versión publicada.
-                </p>
+                <span className="inline-flex items-center gap-1.5 text-xs text-ink-muted">
+                  <span className="size-1.5 rounded-full bg-ink-faint" />
+                  Sin publicar
+                </span>
               )}
-              <p className="mt-1 text-sm tabular-nums text-ink-muted">
-                {v3
-                  ? `Release v3 de grupo: versión ${v3.version} · hash ${v3.content_hash.slice(0, 12)}.`
-                  : "Release v3 de grupo: pendiente de publicar."}
-              </p>
-              <p className="mt-2">
-                {pending ? (
-                  <span className="inline-flex items-center gap-1.5 text-xs text-warning">
-                    <span className="size-1.5 rounded-full bg-warning" />
-                    Hay cambios sin publicar
-                  </span>
-                ) : last ? (
-                  <span className="inline-flex items-center gap-1.5 text-xs text-positive">
-                    <span className="size-1.5 rounded-full bg-positive" />
-                    Publicado
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1.5 text-xs text-ink-muted">
-                    <span className="size-1.5 rounded-full bg-ink-faint" />
-                    Sin publicar
-                  </span>
-                )}
-              </p>
             </div>
           </section>
         </div>

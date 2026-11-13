@@ -104,8 +104,8 @@ export function QuestionForm({
       <input type="hidden" name="data" value={JSON.stringify(data)} />
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="space-y-1 text-sm">
-          <span className="eyebrow">Tipo de pregunta</span>
+        <label className="field-label">
+          Tipo de pregunta
           <select value={draft.type} onChange={(event) => changeType(event.target.value as Draft["type"])} className="field">
             <option value="mcq">Opción múltiple</option>
             <option value="order">Ordenar</option>
@@ -114,9 +114,15 @@ export function QuestionForm({
             <option value="crossword">Crucigrama</option>
           </select>
         </label>
-        <label className="space-y-1 text-sm sm:col-span-2">
-          <span className="eyebrow">Enunciado</span>
-          <input value={draft.prompt} onChange={(event) => patch({ prompt: event.target.value })} className="field" />
+        <label className="field-label sm:col-span-2">
+          Enunciado
+          <input
+            value={draft.prompt}
+            onChange={(event) => patch({ prompt: event.target.value })}
+            aria-invalid={Boolean(state.error)}
+            aria-describedby={state.error ? "question-form-error" : undefined}
+            className="field"
+          />
         </label>
       </div>
 
@@ -153,16 +159,16 @@ export function QuestionForm({
       {draft.type === "crossword" && (
         <div className="space-y-4">
           <div className="grid gap-3 sm:grid-cols-2">
-            <label className="space-y-1 text-sm"><span className="eyebrow">Filas</span><input type="number" min={1} value={draft.config.crossword?.rows ?? 8} onChange={(event) => patch({ config: { ...draft.config, crossword: { rows: Number(event.target.value), cols: draft.config.crossword?.cols ?? 8, entries: draft.config.crossword?.entries ?? [] } } })} className="field" /></label>
-            <label className="space-y-1 text-sm"><span className="eyebrow">Columnas</span><input type="number" min={1} value={draft.config.crossword?.cols ?? 8} onChange={(event) => patch({ config: { ...draft.config, crossword: { rows: draft.config.crossword?.rows ?? 8, cols: Number(event.target.value), entries: draft.config.crossword?.entries ?? [] } } })} className="field" /></label>
+            <label className="space-y-1 text-sm text-ink-soft"><span>Filas</span><input type="number" min={1} value={draft.config.crossword?.rows ?? 8} onChange={(event) => patch({ config: { ...draft.config, crossword: { rows: Number(event.target.value), cols: draft.config.crossword?.cols ?? 8, entries: draft.config.crossword?.entries ?? [] } } })} className="field" /></label>
+            <label className="space-y-1 text-sm text-ink-soft"><span>Columnas</span><input type="number" min={1} value={draft.config.crossword?.cols ?? 8} onChange={(event) => patch({ config: { ...draft.config, crossword: { rows: draft.config.crossword?.rows ?? 8, cols: Number(event.target.value), entries: draft.config.crossword?.entries ?? [] } } })} className="field" /></label>
           </div>
           <EntriesEditor entries={draft.config.crossword?.entries ?? []} onChange={(entries) => patch({ config: { ...draft.config, crossword: { rows: draft.config.crossword?.rows ?? 8, cols: draft.config.crossword?.cols ?? 8, entries } } })} />
           <TextList label="Palabras extra" values={draft.config.bank ?? []} onChange={(bank: string[]) => patch({ config: { ...draft.config, bank } })} placeholder="PALABRA" />
         </div>
       )}
 
-      <label className="space-y-1 text-sm block">
-        <span className="eyebrow">Explicación al terminar</span>
+      <label className="field-label">
+        Explicación al terminar
         <input value={draft.explanation} onChange={(event) => patch({ explanation: event.target.value })} className="field" />
       </label>
 
@@ -173,7 +179,7 @@ export function QuestionForm({
       <div className="flex flex-wrap items-center gap-3">
         <button type="submit" disabled={pending} className="btn btn-primary btn-sm">{pending ? "Guardando…" : question ? "Guardar pregunta" : "Agregar pregunta"}</button>
         {onDone && <button type="button" onClick={onDone} className="btn btn-secondary btn-sm">Cerrar</button>}
-        {state.error && <p className="form-error" role="alert">{state.error}</p>}
+        {state.error && <p id="question-form-error" className="form-error" role="alert">{state.error}</p>}
         {state.ok && <p className="form-ok" role="status">Pregunta guardada.</p>}
       </div>
     </form>

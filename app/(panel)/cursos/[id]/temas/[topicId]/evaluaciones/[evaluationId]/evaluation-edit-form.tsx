@@ -44,18 +44,26 @@ export function EvaluationEditForm({
         <input type="hidden" name="evaluationId" value={evaluation.id} />
 
         <div className="grid gap-3">
-          <label className="space-y-1 text-sm">
-            <span className="eyebrow">Título</span>
+          <label className="field-label">
+            Título
             <input
               name="title"
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               required
+              aria-invalid={title.trim() === "" || Boolean(state.error)}
+              aria-describedby={
+                state.error
+                  ? "evaluation-edit-error"
+                  : title.trim() === ""
+                    ? "evaluation-title-error"
+                    : undefined
+              }
               className="field"
             />
           </label>
-          <label className="space-y-1 text-sm">
-            <span className="eyebrow">Descripción</span>
+          <label className="field-label">
+            Descripción
             <input
               name="description"
               value={description}
@@ -95,7 +103,7 @@ export function EvaluationEditForm({
         </fieldset>
 
         {title.trim() === "" && (
-          <p className="form-error">
+          <p id="evaluation-title-error" className="form-error" role="status">
             El título es obligatorio para guardar y publicar la evaluación.
           </p>
         )}
@@ -104,7 +112,7 @@ export function EvaluationEditForm({
           <button type="submit" disabled={pending} className="btn btn-primary btn-sm">
             {pending ? "Guardando…" : "Guardar evaluación"}
           </button>
-          {state.error && <p className="form-error" role="alert">{state.error}</p>}
+          {state.error && <p id="evaluation-edit-error" className="form-error" role="alert">{state.error}</p>}
           {state.ok && <p className="form-ok" role="status">Evaluación guardada.</p>}
         </div>
       </form>

@@ -17,6 +17,8 @@ export function LoginForm() {
           required
           autoComplete="email"
           placeholder="tu@correo.com"
+          aria-invalid={Boolean(state.error)}
+          aria-describedby={state.error ? "login-error" : undefined}
           className="field"
         />
       </label>
@@ -27,12 +29,14 @@ export function LoginForm() {
           type="password"
           required
           autoComplete="current-password"
+          aria-invalid={Boolean(state.error)}
+          aria-describedby={state.error ? "login-error" : undefined}
           className="field"
         />
       </label>
 
       {state.error && (
-        <p className="form-error" role="alert">
+        <p id="login-error" className="form-error" role="alert">
           {state.error}
         </p>
       )}

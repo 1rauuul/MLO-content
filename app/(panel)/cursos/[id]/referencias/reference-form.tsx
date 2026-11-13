@@ -70,6 +70,8 @@ export function ReferenceForm({
     ? apa7Text({ content_id: reference?.content_id ?? "ref", ...validation.value })
     : null;
 
+  const errorId = `reference-form-error-${reference?.content_id ?? "new"}`;
+
   return (
     <form action={action} className="card space-y-4 border-line-strong p-5">
       <input type="hidden" name="courseId" value={courseId} />
@@ -77,8 +79,8 @@ export function ReferenceForm({
       <input type="hidden" name="data" value={JSON.stringify(data)} />
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="space-y-1 text-sm sm:col-span-2">
-          <span className="eyebrow">Autores (uno por línea, «Apellido, N.»)</span>
+        <label className="field-label sm:col-span-2">
+          Autores (uno por línea, «Apellido, N.»)
           <textarea
             value={draft.authorsText}
             onChange={(event) => patch({ authorsText: event.target.value })}
@@ -86,8 +88,8 @@ export function ReferenceForm({
             className="field font-mono text-xs"
           />
         </label>
-        <label className="space-y-1 text-sm">
-          <span className="eyebrow">Año (vacío = s. f.)</span>
+        <label className="field-label">
+          Año (vacío = s. f.)
           <input
             type="number"
             min={1000}
@@ -97,8 +99,8 @@ export function ReferenceForm({
             className="field"
           />
         </label>
-        <label className="space-y-1 text-sm">
-          <span className="eyebrow">Edición</span>
+        <label className="field-label">
+          Edición
           <input
             value={draft.edition}
             onChange={(event) => patch({ edition: event.target.value })}
@@ -106,16 +108,18 @@ export function ReferenceForm({
             className="field"
           />
         </label>
-        <label className="space-y-1 text-sm sm:col-span-2">
-          <span className="eyebrow">Título</span>
+        <label className="field-label sm:col-span-2">
+          Título
           <input
             value={draft.title}
             onChange={(event) => patch({ title: event.target.value })}
+            aria-invalid={Boolean(state.error)}
+            aria-describedby={state.error ? errorId : undefined}
             className="field"
           />
         </label>
-        <label className="space-y-1 text-sm sm:col-span-2">
-          <span className="eyebrow">Fuente</span>
+        <label className="field-label sm:col-span-2">
+          Fuente
           <input
             value={draft.source}
             onChange={(event) => patch({ source: event.target.value })}
@@ -123,8 +127,8 @@ export function ReferenceForm({
             className="field"
           />
         </label>
-        <label className="space-y-1 text-sm">
-          <span className="eyebrow">DOI</span>
+        <label className="field-label">
+          DOI
           <input
             value={draft.doi}
             onChange={(event) => patch({ doi: event.target.value })}
@@ -132,8 +136,8 @@ export function ReferenceForm({
             className="field font-mono text-xs"
           />
         </label>
-        <label className="space-y-1 text-sm">
-          <span className="eyebrow">URL</span>
+        <label className="field-label">
+          URL
           <input
             value={draft.url}
             onChange={(event) => patch({ url: event.target.value })}
@@ -152,7 +156,7 @@ export function ReferenceForm({
         <button type="submit" disabled={pending} className="btn btn-primary btn-sm">
           {pending ? "Guardando…" : reference ? "Guardar referencia" : "Agregar referencia"}
         </button>
-        {state.error && <p className="form-error" role="alert">{state.error}</p>}
+        {state.error && <p id={errorId} className="form-error" role="alert">{state.error}</p>}
         {state.ok && <p className="form-ok" role="status">Referencia guardada.</p>}
       </div>
     </form>

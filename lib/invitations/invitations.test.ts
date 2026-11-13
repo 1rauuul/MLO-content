@@ -27,7 +27,7 @@ import {
   type InvitationError,
   type InvitationState,
 } from "./core";
-import { sendInvitationEmail } from "./delivery";
+import { invitationEmailContent, sendInvitationEmail } from "./delivery";
 import { claimInvitation } from "./invitations";
 
 const NOW = new Date("2026-11-06T12:00:00.000Z");
@@ -131,7 +131,7 @@ function memoryStore(state: MemoryState): ClaimStore {
         joinedAt: new Date(),
       });
     },
-    async grantBaseAccess() {},
+    async grantCourseAccess() {},
     async consume(invitationId) {
       for (const row of state.invitations.values()) {
         if (row.id === invitationId) row.used_at = new Date();
@@ -605,14 +605,111 @@ test("un token con formato inválido no abre transacción", async () => {
   assert.equal(transactions, 0);
 });
 
-test("el adaptador de entrega no envía ni afirma envío", () => {
-  assert.deepEqual(
-    sendInvitationEmail({
+test("el correo de invitación incluye el enlace y escapa el HTML", () => {
+  const content = invitationEmailContent({
+    to: "alumno@cualquier-dominio.com",
+    link: buildInvitationLink(generateInvitationToken()),
+    className: "<Grupo & Cía>",
+    courseTitle: "Curso de prueba",
+    teacherName: "Eduardo",
+    expiresAt: new Date("2026-11-09T12:00:00.000Z"),
+  });
+
+  assert.match(content.subject, /Invitación a <Grupo & Cía>/);
+  assert.match(content.text, /mloingenieriasoftware:\/\/join-class\?token=/);
+  assert.ok(content.html.includes("&lt;Grupo &amp; Cía&gt;"));
+  assert.ok(!content.html.includes("<Grupo"));
+});
+
+test("sin credenciales la entrega queda pendiente de configuración", async () => {
+  const apiKey = process.env.EMAIL_PROVIDER_API_KEY;
+  const from = process.env.EMAIL_FROM;
+  delete process.env.EMAIL_PROVIDER_API_KEY;
+  delete process.env.EMAIL_FROM;
+  try {
+    assert.deepEqual(
+      await sendInvitationEmail({
+        to: "alumno@cualquier-dominio.com",
+        link: buildInvitationLink(generateInvitationToken()),
+        className: "Grupo A",
+        courseTitle: "Curso de prueba",
+        teacherName: "Eduardo",
+        expiresAt: new Date("2026-11-09T12:00:00.000Z"),
+      }),
+      { sent: false, reason: "not_configured" },
+    );
+  } finally {
+    if (apiKey === undefined) delete process.env.EMAIL_PROVIDER_API_KEY;
+    else process.env.EMAIL_PROVIDER_API_KEY = apiKey;
+    if (from === undefined) delete process.env.EMAIL_FROM;
+    else process.env.EMAIL_FROM = from;
+  }
+});
+
+test("configurado, envía la invitación a Resend", async () => {
+  const apiKey = process.env.EMAIL_PROVIDER_API_KEY;
+  const from = process.env.EMAIL_FROM;
+  const originalFetch = globalThis.fetch;
+  process.env.EMAIL_PROVIDER_API_KEY = "re_test";
+  process.env.EMAIL_FROM = "MLO <no-reply@test.dev>";
+
+  const captured: { url?: string; init?: RequestInit } = {};
+  globalThis.fetch = (async (url: string | URL | Request, init?: RequestInit) => {
+    captured.url = String(url);
+    captured.init = init;
+    return new Response(JSON.stringify({ id: "email_123" }), { status: 200 });
+  }) as typeof fetch;
+
+  try {
+    const result = await sendInvitationEmail({
       to: "alumno@cualquier-dominio.com",
       link: buildInvitationLink(generateInvitationToken()),
-    }),
-    { sent: false, reason: "not_configured" },
-  );
+      className: "Grupo A",
+      courseTitle: "Curso de prueba",
+      teacherName: "Eduardo",
+      expiresAt: new Date("2026-11-09T12:00:00.000Z"),
+    });
+    assert.deepEqual(result, { sent: true, id: "email_123" });
+    assert.equal(captured.url, "https://api.resend.com/emails");
+    const body = JSON.parse(String(captured.init?.body)) as Record<string, unknown>;
+    assert.equal(body.from, "MLO <no-reply@test.dev>");
+    assert.equal(body.to, "alumno@cualquier-dominio.com");
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (apiKey === undefined) delete process.env.EMAIL_PROVIDER_API_KEY;
+    else process.env.EMAIL_PROVIDER_API_KEY = apiKey;
+    if (from === undefined) delete process.env.EMAIL_FROM;
+    else process.env.EMAIL_FROM = from;
+  }
+});
+
+test("el proveedor rechazado no invalida la invitación", async () => {
+  const apiKey = process.env.EMAIL_PROVIDER_API_KEY;
+  const from = process.env.EMAIL_FROM;
+  const originalFetch = globalThis.fetch;
+  process.env.EMAIL_PROVIDER_API_KEY = "re_test";
+  process.env.EMAIL_FROM = "MLO <no-reply@test.dev>";
+  globalThis.fetch = (async () => new Response("no", { status: 422 })) as typeof fetch;
+
+  try {
+    assert.deepEqual(
+      await sendInvitationEmail({
+        to: "alumno@cualquier-dominio.com",
+        link: buildInvitationLink(generateInvitationToken()),
+        className: "Grupo A",
+        courseTitle: "Curso de prueba",
+        teacherName: "Eduardo",
+        expiresAt: new Date("2026-11-09T12:00:00.000Z"),
+      }),
+      { sent: false, reason: "rejected" },
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (apiKey === undefined) delete process.env.EMAIL_PROVIDER_API_KEY;
+    else process.env.EMAIL_PROVIDER_API_KEY = apiKey;
+    if (from === undefined) delete process.env.EMAIL_FROM;
+    else process.env.EMAIL_FROM = from;
+  }
 });
 
 function readFixture(name: string): Record<string, unknown> {
@@ -656,9 +753,11 @@ test("el fixture de éxito no expone correo, token ni hash", () => {
     "className",
     "courseCatalogId",
     "courseId",
+    "courseName",
     "joinedAt",
     "studentId",
     "teacherName",
   ]);
   assert.equal(membership.courseCatalogId, "base");
+  assert.equal(membership.courseName, "Ingeniería de Software");
 });

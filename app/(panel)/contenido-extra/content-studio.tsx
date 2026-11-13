@@ -121,7 +121,11 @@ export function ContentStudio({
   const selectGroup = (id: string) => {
     const next = groups.find((item) => item.id === id) ?? null;
     setGroupId(id);
-    setTopicId(next?.topics[0]?.id ?? "");
+    setTopicId(
+      next?.topics.some((item) => item.id === topicId)
+        ? topicId
+        : (next?.topics[0]?.id ?? ""),
+    );
     resetDrafts();
   };
 
@@ -164,26 +168,19 @@ export function ContentStudio({
     <div className="editor-preview-grid">
       <div className="space-y-5">
         <section className="card overflow-hidden">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4">
-            <div>
-              <h2 className="text-sm font-semibold text-ink">Dónde se publica</h2>
-              <p className="mt-0.5 text-xs text-ink-muted">
-                Elige el grupo y el subtema donde vivirá el contenido.
-              </p>
-            </div>
-            {group?.sourceCourseId && (
-              <Link
-                href={`/cursos/${group.sourceCourseId}`}
-                className="btn btn-secondary btn-sm"
-              >
-                Abrir curso
-              </Link>
-            )}
+          <div className="border-b border-line px-5 py-4">
+            <h2 className="text-sm font-semibold text-ink">Dónde se publica</h2>
+            <p className="mt-0.5 text-xs text-ink-muted">
+              Elige el grupo y el subtema donde vivirá el contenido.
+            </p>
           </div>
 
           <div className="grid gap-4 p-5 sm:grid-cols-2 xl:grid-cols-4">
             <Field label="Curso">
-              <div className={`${fieldClass} flex items-center text-ink-soft`}>
+              <div
+                className="field-readonly"
+                title={group?.courseTitle ?? "Sin curso"}
+              >
                 {group?.courseTitle ?? "Sin curso"}
               </div>
             </Field>
@@ -197,14 +194,16 @@ export function ContentStudio({
                 {groups.map((item) => (
                   <option key={item.id} value={item.id}>
                     {item.name}
-                    {item.courseTitle ? ` · ${item.courseTitle}` : ""}
                   </option>
                 ))}
               </select>
             </Field>
 
             <Field label="Unidad">
-              <div className={`${fieldClass} flex items-center text-ink-soft`}>
+              <div
+                className="field-readonly"
+                title={topic ? `${topic.unitNumber}. ${topic.unitTitle}` : "Sin unidad"}
+              >
                 {topic ? `${topic.unitNumber}. ${topic.unitTitle}` : "Sin unidad"}
               </div>
             </Field>
@@ -448,6 +447,8 @@ function LessonStudioForm({
               setDraft((current) => ({ ...current, title: event.target.value }))
             }
             placeholder="Ej. Principios de diseño centrado en las personas"
+            aria-invalid={Boolean(state.error)}
+            aria-describedby={state.error ? "studio-lesson-error" : undefined}
             className={fieldClass}
           />
         </Field>
@@ -467,7 +468,7 @@ function LessonStudioForm({
           {pending ? "Creando lección…" : "Crear lección"}
         </button>
         {state.error && (
-          <p className="form-error" role="alert">
+          <p id="studio-lesson-error" className="form-error" role="alert">
             {state.error}
           </p>
         )}
@@ -522,6 +523,8 @@ function EvaluationStudioForm({
               setDraft((current) => ({ ...current, title: event.target.value }))
             }
             placeholder="Ej. Comprueba tu avance"
+            aria-invalid={Boolean(state.error)}
+            aria-describedby={state.error ? "studio-evaluation-error" : undefined}
             className={fieldClass}
           />
         </Field>
@@ -552,7 +555,7 @@ function EvaluationStudioForm({
           {pending ? "Creando evaluación…" : "Crear evaluación"}
         </button>
         {state.error && (
-          <p className="form-error" role="alert">
+          <p id="studio-evaluation-error" className="form-error" role="alert">
             {state.error}
           </p>
         )}

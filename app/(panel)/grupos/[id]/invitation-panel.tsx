@@ -26,6 +26,15 @@ const STATUS_LABEL: Record<
   revoked: { label: "Revocada", badge: "badge-neutral" },
 };
 
+const DELIVERY_FAILURE: Record<
+  Exclude<"sent" | "not_configured" | "rejected" | "network", "sent">,
+  string
+> = {
+  not_configured: "falta configurar el proveedor de correo",
+  rejected: "el proveedor rechazó el envío",
+  network: "no se pudo conectar con el proveedor",
+};
+
 function formatDate(value: string): string {
   return new Date(value).toISOString().slice(0, 16).replace("T", " ");
 }
@@ -61,8 +70,8 @@ export function InvitationPanel({
         válido.
       </p>
       <p className="mt-1 text-xs text-ink-muted">
-        Entrega por correo: <strong>pendiente de configuración</strong>. No se envía
-        ningún correo todavía.
+        Crearemos la invitación y la enviaremos por correo. Si el envío falla, podrás
+        copiar el enlace.
       </p>
 
       <form action={action} className="mt-4 flex flex-wrap items-start gap-3">
@@ -74,7 +83,9 @@ export function InvitationPanel({
           maxLength={254}
           placeholder="correo@cualquier-dominio.com"
           aria-label="Correo del alumno"
-          className="field min-w-64 flex-1"
+          aria-invalid={Boolean(state.error)}
+          aria-describedby={state.error ? "invitation-error" : undefined}
+          className="field min-w-0 flex-1 sm:min-w-64"
         />
         <button
           type="submit"
@@ -89,7 +100,7 @@ export function InvitationPanel({
           </p>
         )}
         {state.error && (
-          <p className="form-error w-full" role="alert">
+          <p id="invitation-error" className="form-error w-full" role="alert">
             {state.error}
           </p>
         )}
@@ -97,12 +108,19 @@ export function InvitationPanel({
 
       {state.invitation && (
         <div className="mt-4 rounded-xl border border-line bg-surface-soft p-4">
-          <p className="form-ok" role="status">
-            Invitación creada para {state.invitation.email}. Entrega pendiente de
-            configuración; no se envió ningún correo.
-          </p>
+          {state.invitation.delivery === "sent" ? (
+            <p className="form-ok" role="status">
+              Invitación enviada a {state.invitation.email}.
+            </p>
+          ) : (
+            <p className="text-sm text-warning" role="status">
+              Invitación creada para {state.invitation.email}, pero no se envió el
+              correo ({DELIVERY_FAILURE[state.invitation.delivery]}). Copia el enlace
+              y compártelo.
+            </p>
+          )}
           <label className="field-label mt-3 block" htmlFor="invitation-link">
-            Enlace de un solo uso (cópialo ahora)
+            Enlace de un solo uso (por si necesitas compartirlo)
           </label>
           <div className="mt-1 flex flex-wrap gap-2">
             <input

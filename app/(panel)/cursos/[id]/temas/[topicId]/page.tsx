@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { BackLink } from "@/app/(panel)/back-link";
+import { MoveButtons } from "@/app/(panel)/move-buttons";
 import { moveLesson } from "@/lib/actions/content";
 import {
   moveEvaluation,
@@ -53,30 +54,6 @@ type EvaluationRow = {
   question_count: number;
   exercise_count: number;
 };
-
-function MoveButtons({
-  action,
-  fields,
-}: {
-  action: (formData: FormData) => Promise<void>;
-  fields: Record<string, string>;
-}) {
-  return (
-    <span className="flex items-center gap-1">
-      {(["up", "down"] as const).map((direction) => (
-        <form action={action} key={direction}>
-          {Object.entries(fields).map(([name, value]) => (
-            <input key={name} type="hidden" name={name} value={value} />
-          ))}
-          <input type="hidden" name="direction" value={direction} />
-          <button type="submit" className="btn btn-ghost btn-sm" aria-label={`Mover ${direction}`}>
-            {direction === "up" ? "↑" : "↓"}
-          </button>
-        </form>
-      ))}
-    </span>
-  );
-}
 
 export default async function TopicPage({
   params,

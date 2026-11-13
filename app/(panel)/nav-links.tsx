@@ -27,7 +27,10 @@ export function NavLinks({ isAdmin }: { isAdmin: boolean }) {
   const pathname = usePathname();
 
   return (
-    <nav className="flex flex-wrap items-center gap-1" aria-label="Secciones">
+    <nav
+      className="-mx-1 flex w-full flex-nowrap items-center gap-1 overflow-x-auto px-1 sm:mx-0 sm:w-auto sm:flex-wrap sm:overflow-visible"
+      aria-label="Secciones"
+    >
       {LINKS.filter((link) => !link.adminOnly || isAdmin).map((link) => {
         const active = link.match.some(
           (base) => pathname === base || pathname.startsWith(`${base}/`),
@@ -38,7 +41,7 @@ export function NavLinks({ isAdmin }: { isAdmin: boolean }) {
             key={link.href}
             href={link.href}
             aria-current={active ? "page" : undefined}
-            className={`nav-link ${active ? "nav-link-active" : ""}`}
+            className={`nav-link shrink-0 ${active ? "nav-link-active" : ""}`}
           >
             {link.label}
             <PendingDot />

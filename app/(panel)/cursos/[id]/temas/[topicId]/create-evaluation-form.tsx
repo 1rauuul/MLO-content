@@ -21,12 +21,18 @@ export function CreateEvaluationForm({
       <input type="hidden" name="courseId" value={courseId} />
       <input type="hidden" name="topicId" value={topicId} />
       <div className="grid gap-3">
-        <label className="space-y-1 text-sm">
-          <span className="eyebrow">Título</span>
-          <input name="title" required className="field" />
+        <label className="field-label">
+          Título
+          <input
+            name="title"
+            required
+            aria-invalid={Boolean(state.error)}
+            aria-describedby={state.error ? "evaluation-form-error" : undefined}
+            className="field"
+          />
         </label>
-        <label className="space-y-1 text-sm">
-          <span className="eyebrow">Descripción</span>
+        <label className="field-label">
+          Descripción
           <input name="description" className="field" />
         </label>
       </div>
@@ -34,7 +40,7 @@ export function CreateEvaluationForm({
         <button type="submit" disabled={pending} className="btn btn-primary btn-sm">
           {pending ? "Creando…" : "Crear evaluación"}
         </button>
-        {state.error && <p className="form-error" role="alert">{state.error}</p>}
+        {state.error && <p id="evaluation-form-error" className="form-error" role="alert">{state.error}</p>}
       </div>
     </form>
   );

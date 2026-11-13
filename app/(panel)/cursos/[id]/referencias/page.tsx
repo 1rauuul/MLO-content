@@ -144,7 +144,7 @@ export default async function ReferencesPage({
                 {canEdit && (
                   <div className="mt-3 flex flex-wrap items-center gap-2">
                     <details>
-                      <summary className="cursor-pointer text-sm text-ink-muted">
+                      <summary className="btn btn-secondary btn-sm cursor-pointer list-none">
                         Editar
                       </summary>
                       <div className="mt-3">
@@ -169,11 +169,25 @@ export default async function ReferencesPage({
         )}
 
         {canEdit && (
-          <details className="card p-5">
-            <summary className="cursor-pointer text-sm font-semibold text-ink">
-              Agregar referencia
+          <details className="card group overflow-hidden">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 [&::-webkit-details-marker]:hidden">
+              <span className="text-sm font-semibold text-ink">
+                Agregar referencia
+              </span>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="size-4 text-ink-faint transition-transform group-open:rotate-180"
+                aria-hidden="true"
+              >
+                <path d="m6 9 6 6 6-6" />
+              </svg>
             </summary>
-            <div className="mt-4">
+            <div className="border-t border-line px-5 py-4">
               <ReferenceForm courseId={course.id} />
             </div>
           </details>

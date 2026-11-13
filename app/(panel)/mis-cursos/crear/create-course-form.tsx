@@ -43,6 +43,8 @@ export function CreateCourseForm() {
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
                 placeholder="Ej. Diseño de experiencias de usuario"
+                aria-invalid={Boolean(state.error)}
+                aria-describedby={state.error ? "course-form-error" : undefined}
                 className="field"
                 autoFocus
               />
@@ -57,6 +59,7 @@ export function CreateCourseForm() {
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
                 placeholder="Qué aprenderán los alumnos en este curso."
+                aria-describedby={state.error ? "course-form-error" : undefined}
                 className="field"
               />
               <span className="hint">Aparece en la biblioteca del alumno.</span>
@@ -68,7 +71,7 @@ export function CreateCourseForm() {
                 <input
                   value="Se genera al crear"
                   disabled
-                  className="field disabled:bg-surface-soft disabled:text-ink-muted"
+                  className="field"
                 />
                 <span className="hint">Se asigna automáticamente al crear el curso.</span>
               </label>
@@ -120,7 +123,7 @@ export function CreateCourseForm() {
             </div>
 
             {state.error && (
-              <p className="form-error" role="alert">
+              <p id="course-form-error" className="form-error" role="alert">
                 {state.error}
               </p>
             )}

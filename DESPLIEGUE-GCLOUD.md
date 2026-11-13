@@ -92,7 +92,7 @@ contener, como mínimo:
 DATABASE_URL
 DATABASE_URL_DIRECT (solo para migraciones controladas)
 SESSION_SECRET / claves de firma de invitaciones
-EMAIL_PROVIDER_API_KEY o credenciales SMTP
+EMAIL_PROVIDER_API_KEY (Resend)
 EMAIL_FROM
 APP_BASE_URL
 MLO_DEEP_LINK_BASE
@@ -114,6 +114,9 @@ desde Secret Manager.
 - El proveedor de correo puede ser SMTP institucional, Resend, SendGrid u otro que
   la institución apruebe; la decisión se mantiene desacoplada del CMS mediante
   configuración y un adaptador de envío.
+- Implementación actual: Resend por HTTP. Requiere `EMAIL_PROVIDER_API_KEY` y un
+  `EMAIL_FROM` verificado. Si faltan, la invitación se crea igual y el panel muestra
+  el enlace para compartirlo manualmente.
 
 ## Flujo de despliegue
 

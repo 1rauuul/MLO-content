@@ -47,6 +47,7 @@ export type ClaimedMembership = {
   teacherName: string;
   courseId: string;
   courseCatalogId: string;
+  courseName: string;
   joinedAt: Date;
   published: { version: number; hash: string; publishedAt: string } | null;
 };
@@ -234,7 +235,11 @@ function postgresClaimAdapter(): ClaimAdapter {
                     joined_at = now()`;
           },
 
-          async grantBaseAccess(studentId) {
+          async grantCourseAccess(studentId, courseId) {
+            await tx`
+              insert into course_access (course_id, student_id)
+              values (${courseId}, ${studentId})
+              on conflict (course_id, student_id) do nothing`;
             const [base] = await tx<{ id: string }[]>`
               select id from courses where is_base limit 1`;
             if (!base) return;
@@ -294,6 +299,7 @@ export async function describeClaimedMembership(
       join_code: string;
       course_id: string;
       course_catalog_id: string;
+      course_name: string;
       teacher_name: string;
       joined_at: Date;
       published_version: number | null;
@@ -302,7 +308,7 @@ export async function describeClaimedMembership(
     }[]
   >`
     select c.id as class_id, c.name as class_name, c.join_code, c.course_id,
-           parent.key as course_catalog_id,
+           parent.key as course_catalog_id, parent.title as course_name,
            t.name as teacher_name, m.joined_at,
            r.version as published_version,
            r.content_hash as published_hash,
@@ -332,6 +338,7 @@ export async function describeClaimedMembership(
     teacherName: row.teacher_name,
     courseId: row.course_id,
     courseCatalogId: row.course_catalog_id,
+    courseName: row.course_name,
     joinedAt: row.joined_at,
     published:
       row.published_version === null || row.published_hash === null

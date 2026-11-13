@@ -25,7 +25,7 @@ export type InvitationResult = {
     email: string;
     expiresAt: string;
     link: string;
-    delivery: "not_configured";
+    delivery: "sent" | "not_configured" | "rejected" | "network";
   };
 };
 export type PublishClassResult = {
@@ -278,10 +278,14 @@ export async function createClassInvitation(
   });
   if (!created.ok) return { error: "No se pudo crear la invitación." };
 
-  // DEC-10: la entrega queda desactivada y el enlace solo se muestra ahora.
-  const delivery = sendInvitationEmail({
+  // Si el envío falla, la invitación y el enlace siguen siendo válidos.
+  const delivery = await sendInvitationEmail({
     to: created.invitation.email,
     link: created.invitation.link,
+    className: klass.name,
+    courseTitle: klass.course_title,
+    teacherName: klass.teacher_name,
+    expiresAt: created.invitation.expiresAt,
   });
 
   revalidatePath(`/grupos/${klass.id}`);
@@ -293,7 +297,7 @@ export async function createClassInvitation(
       email: created.invitation.email,
       expiresAt: created.invitation.expiresAt.toISOString(),
       link: created.invitation.link,
-      delivery: delivery.reason,
+      delivery: delivery.sent ? "sent" : delivery.reason,
     },
   };
 }

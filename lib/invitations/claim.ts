@@ -34,7 +34,7 @@ export type ClaimStore = {
   countActiveMembers(classId: string): Promise<number>;
   upsertStudent(studentKey: string, studentName: string): Promise<string>;
   joinClass(studentId: string, classId: string, courseId: string): Promise<void>;
-  grantBaseAccess(studentId: string): Promise<void>;
+  grantCourseAccess(studentId: string, courseId: string): Promise<void>;
   consume(invitationId: string): Promise<void>;
 };
 
@@ -104,7 +104,7 @@ export async function runInvitationClaim(
     subject.studentName,
   );
   await store.joinClass(studentId, klass.id, klass.course_id);
-  await store.grantBaseAccess(studentId);
+  await store.grantCourseAccess(studentId, klass.course_id);
   await store.consume(invitation.id);
 
   return {

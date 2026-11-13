@@ -14,6 +14,8 @@ export function CreateTeacherForm() {
         required
         placeholder="Nombre"
         aria-label="Nombre"
+        aria-invalid={Boolean(state.error)}
+        aria-describedby={state.error ? "teacher-form-error" : undefined}
         className="field"
       />
       <input
@@ -22,6 +24,8 @@ export function CreateTeacherForm() {
         required
         placeholder="correo@ejemplo.com"
         aria-label="Correo"
+        aria-invalid={Boolean(state.error)}
+        aria-describedby={state.error ? "teacher-form-error" : undefined}
         className="field"
       />
       <input
@@ -31,6 +35,8 @@ export function CreateTeacherForm() {
         minLength={8}
         placeholder="Contraseña (8+)"
         aria-label="Contraseña"
+        aria-invalid={Boolean(state.error)}
+        aria-describedby={state.error ? "teacher-form-error" : undefined}
         className="field"
       />
 
@@ -39,7 +45,7 @@ export function CreateTeacherForm() {
           {pending ? "Creando…" : "Crear maestro"}
         </button>
         {state.error && (
-          <p className="form-error" role="alert">
+          <p id="teacher-form-error" className="form-error" role="alert">
             {state.error}
           </p>
         )}
