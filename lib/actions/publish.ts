@@ -19,8 +19,8 @@ export async function publish(
 
   try {
     const outcome = await publishCourse(teacher, course);
-    revalidatePath(`/cursos/${courseId}/publicar`);
     revalidatePath(`/cursos/${courseId}`);
+    revalidatePath("/mis-cursos");
     return { ...outcome };
   } catch (error) {
     return {
@@ -37,7 +37,6 @@ export async function archive(formData: FormData): Promise<void> {
   if (course.is_base || course.is_group || course.archived_at) return;
 
   await archiveCourse(course.id);
-  revalidatePath(`/cursos/${courseId}/publicar`);
   revalidatePath(`/cursos/${courseId}`);
   revalidatePath("/mis-cursos");
   redirect("/mis-cursos");
@@ -51,7 +50,6 @@ export async function restore(formData: FormData): Promise<void> {
   if (course.is_base || course.is_group || !course.archived_at) return;
 
   await restoreCourse(course.id);
-  revalidatePath(`/cursos/${courseId}/publicar`);
   revalidatePath(`/cursos/${courseId}`);
   revalidatePath("/mis-cursos");
 }

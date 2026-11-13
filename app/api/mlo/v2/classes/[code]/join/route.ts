@@ -37,12 +37,24 @@ export async function POST(
     );
   }
 
-  const preview = await joinClassByCode(
+  const result = await joinClassByCode(
     normalizeJoinCode(code),
     studentKey,
     studentName,
   );
-  if (!preview) {
+
+  if (!result.ok && result.reason === "unpublished") {
+    return Response.json(
+      {
+        error: "unpublished",
+        message:
+          "El grupo todavía no está publicado. Pídele a tu docente que lo publique.",
+      },
+      { status: 409, headers: { ...CORS_HEADERS, "Cache-Control": "no-store" } },
+    );
+  }
+
+  if (!result.ok || !result.preview) {
     return Response.json(
       { error: "not_found", message: "No existe una clase con ese código." },
       { status: 404, headers: { ...CORS_HEADERS, "Cache-Control": "no-store" } },
@@ -50,7 +62,7 @@ export async function POST(
   }
 
   return Response.json(
-    { ...classPreviewPayload(preview), joined: true },
+    { ...classPreviewPayload(result.preview), joined: true },
     { headers: { ...CORS_HEADERS, "Cache-Control": "no-store" } },
   );
 }

@@ -157,19 +157,23 @@ test("el builder conserva extras legacy sobre un subtema del padre", () => {
 
 test("el cupo y la segunda membresía se rechazan en la comprobación pura", () => {
   assert.deepEqual(
-    canJoinGroup({ archived: false, capacity: null, activeMembers: 99, hasActiveMembershipInCourse: false }),
+    canJoinGroup({ archived: false, published: true, capacity: null, activeMembers: 99, hasActiveMembershipInCourse: false }),
     { ok: true },
   );
   assert.deepEqual(
-    canJoinGroup({ archived: true, capacity: null, activeMembers: 0, hasActiveMembershipInCourse: false }),
+    canJoinGroup({ archived: true, published: true, capacity: null, activeMembers: 0, hasActiveMembershipInCourse: false }),
     { ok: false, reason: "archived" },
   );
   assert.deepEqual(
-    canJoinGroup({ archived: false, capacity: 2, activeMembers: 2, hasActiveMembershipInCourse: false }),
+    canJoinGroup({ archived: false, published: false, capacity: null, activeMembers: 0, hasActiveMembershipInCourse: false }),
+    { ok: false, reason: "unpublished" },
+  );
+  assert.deepEqual(
+    canJoinGroup({ archived: false, published: true, capacity: 2, activeMembers: 2, hasActiveMembershipInCourse: false }),
     { ok: false, reason: "full" },
   );
   assert.deepEqual(
-    canJoinGroup({ archived: false, capacity: null, activeMembers: 0, hasActiveMembershipInCourse: true }),
+    canJoinGroup({ archived: false, published: true, capacity: null, activeMembers: 0, hasActiveMembershipInCourse: true }),
     { ok: false, reason: "duplicate" },
   );
 });

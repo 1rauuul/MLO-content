@@ -365,40 +365,58 @@ export async function getClassSnapshotByCode(
   return rows[0]?.snapshot ?? null;
 }
 
+export type JoinClassFailure = {
+  ok: false;
+  reason: "not_found" | "archived" | "unpublished" | "full" | "duplicate";
+};
+
+export type JoinClassResult =
+  | { ok: true; preview: ClassPreview | null }
+  | JoinClassFailure;
+
 export async function joinClassByCode(
   code: string,
   studentKey: string,
   studentName: string,
-): Promise<ClassPreview | null> {
-  const accepted = await (async () => {
-    try {
-      return await db().begin(async (tx) => {
-    const [klass] = await tx<
-      { id: string; course_id: string; capacity: number | null; archived_at: Date | null }[]
-    >`
-      select id, course_id, capacity, archived_at
+): Promise<JoinClassResult> {
+  let outcome: { ok: true } | JoinClassFailure;
+  try {
+    outcome = await db().begin(async (tx) => {
+      const [klass] = await tx<
+        {
+          id: string;
+          course_id: string;
+          capacity: number | null;
+          archived_at: Date | null;
+          published: boolean;
+        }[]
+      >`
+      select id, course_id, capacity, archived_at,
+             exists(
+               select 1 from class_releases r where r.class_id = classes.id
+             ) as published
         from classes
        where join_code = ${code}
        for update`;
-    if (!klass || klass.archived_at) return false;
+      if (!klass) return { ok: false, reason: "not_found" } as const;
 
-    const [student] = await tx<{ id: string }[]>`
+      const [student] = await tx<{ id: string }[]>`
       insert into students (external_key, name)
       values (${studentKey}, ${studentName})
       on conflict (external_key) do update
         set name = excluded.name, updated_at = now()
       returning id`;
 
-    const [current] = await tx<{ active: boolean }[]>`
+      const [current] = await tx<{ active: boolean }[]>`
       select active from class_members
        where class_id = ${klass.id} and student_id = ${student.id}
        limit 1`;
-    if (current?.active) return true;
+      if (current?.active) return { ok: true } as const;
 
-    const [count] = await tx<{ active: number }[]>`
+      const [count] = await tx<{ active: number }[]>`
       select count(*)::int as active from class_members
        where class_id = ${klass.id} and active`;
-    const duplicate = await tx<{ exists: boolean }[]>`
+      const duplicate = await tx<{ exists: boolean }[]>`
       select exists(
         select 1
           from class_members m
@@ -409,15 +427,16 @@ export async function joinClassByCode(
            and m.class_id <> ${klass.id}
       ) as exists`;
 
-    const check = canJoinGroup({
-      archived: Boolean(klass.archived_at),
-      capacity: klass.capacity,
-      activeMembers: count.active,
-      hasActiveMembershipInCourse: duplicate[0]?.exists ?? false,
-    });
-    if (!check.ok) return false;
+      const check = canJoinGroup({
+        archived: Boolean(klass.archived_at),
+        published: klass.published,
+        capacity: klass.capacity,
+        activeMembers: count.active,
+        hasActiveMembershipInCourse: duplicate[0]?.exists ?? false,
+      });
+      if (!check.ok) return check;
 
-    await tx`
+      await tx`
       insert into class_members (class_id, student_id, course_id, active)
       values (${klass.id}, ${student.id}, ${klass.course_id}, true)
       on conflict (class_id, student_id) do update
@@ -425,32 +444,31 @@ export async function joinClassByCode(
             course_id = excluded.course_id,
             joined_at = now()`;
 
-    // La clase concede acceso a su propio curso (el contenido se descarga con
-    // su manifest v3) y conserva el acceso al base empaquetado.
-    await tx`
+      // La clase concede acceso a su propio curso (el contenido se descarga con
+      // su manifest v3) y conserva el acceso al base empaquetado.
+      await tx`
       insert into course_access (course_id, student_id)
       values (${klass.course_id}, ${student.id})
       on conflict (course_id, student_id) do nothing`;
-    const [base] = await tx<{ id: string }[]>`
+      const [base] = await tx<{ id: string }[]>`
       select id from courses where is_base limit 1`;
-    if (base) {
-      await tx`
+      if (base) {
+        await tx`
         insert into course_access (course_id, student_id)
         values (${base.id}, ${student.id})
         on conflict (course_id, student_id) do nothing`;
-    }
-    return true;
-      });
-    } catch (error) {
-      // Carrera entre dos joins del mismo curso: el índice único gana; se
-      // devuelve rechazo controlado y la transacción ya revirtió.
-      if (isUniqueViolation(error)) return null;
-      throw error;
-    }
-  })();
+      }
+      return { ok: true } as const;
+    });
+  } catch (error) {
+    // Carrera entre dos joins del mismo curso: el índice único gana; se
+    // devuelve rechazo controlado y la transacción ya revirtió.
+    if (isUniqueViolation(error)) return { ok: false, reason: "duplicate" };
+    throw error;
+  }
 
-  if (!accepted) return null;
-  return getClassPreviewByCode(code);
+  if (!outcome.ok) return outcome;
+  return { ok: true, preview: await getClassPreviewByCode(code) };
 }
 
 export async function leaveClassByCode(code: string, studentKey: string): Promise<void> {

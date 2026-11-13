@@ -42,15 +42,18 @@ function formatDate(value: string): string {
 export function InvitationPanel({
   classId,
   disabled,
+  published,
 }: {
   classId: string;
   disabled: boolean;
+  published: boolean;
 }) {
   const [state, action, pending] = useActionState<InvitationResult, FormData>(
     createClassInvitation,
     {},
   );
   const [copied, setCopied] = useState(false);
+  const blocked = disabled || !published;
 
   async function copyLink() {
     if (!state.invitation) return;
@@ -89,7 +92,7 @@ export function InvitationPanel({
         />
         <button
           type="submit"
-          disabled={disabled || pending}
+          disabled={blocked || pending}
           className="btn btn-primary"
         >
           {pending ? "Creando…" : "Crear invitación"}
@@ -97,6 +100,12 @@ export function InvitationPanel({
         {disabled && (
           <p className="w-full text-sm text-ink-muted">
             Restaura el grupo para invitar.
+          </p>
+        )}
+        {!disabled && !published && (
+          <p className="w-full text-sm text-ink-muted">
+            Publica el grupo para invitar: los alumnos podrán unirse a partir de la
+            publicación.
           </p>
         )}
         {state.error && (

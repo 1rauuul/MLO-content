@@ -25,6 +25,8 @@ type TopicRow = {
   summary: string;
   course_title: string;
   unit_title: string;
+  unit_number: number;
+  unit_position: number;
   owner_id: string | null;
   is_base: boolean;
 };
@@ -67,7 +69,12 @@ export default async function TopicPage({
   const scope = await topicScopeForCourse(course);
   const [topic] = await db()<TopicRow[]>`
     select t.id, t.course_id, t.unit_id, t.title, t.summary,
-           c.title as course_title, u.title as unit_title, c.owner_id, c.is_base
+           c.title as course_title, u.title as unit_title, u.number as unit_number,
+           (select count(*)::int
+              from topics t2
+             where t2.unit_id = t.unit_id and t2.archived_at is null
+               and (t2.position, t2.id) <= (t.position, t.id)) as unit_position,
+           c.owner_id, c.is_base
       from topics t
       join units u on u.id = t.unit_id
       join courses c on c.id = t.course_id
@@ -120,8 +127,15 @@ export default async function TopicPage({
       <header>
         <BackLink href={`/cursos/${topic.course_id}`}>{topic.course_title}</BackLink>
         <div className="mt-1 flex flex-wrap items-center gap-3">
-          <h1 className="page-title">{topic.title}</h1>
-          <span className="badge badge-neutral">{topic.unit_title}</span>
+          <h1 className="page-title">
+            <span className="mr-2 font-mono text-base text-ink-faint">
+              {topic.unit_number}.{topic.unit_position}
+            </span>
+            {topic.title}
+          </h1>
+          <span className="badge badge-neutral">
+            Unidad {topic.unit_number} · {topic.unit_title}
+          </span>
           {!canEdit && <span className="badge badge-warning">Solo lectura</span>}
         </div>
         {topic.summary && <p className="page-lead">{topic.summary}</p>}

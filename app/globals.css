@@ -70,6 +70,15 @@
     box-shadow: var(--shadow-card);
   }
 
+  dialog.dialog {
+    @apply m-auto w-[min(28rem,calc(100vw-2rem))] rounded-[var(--radius-card)] border border-line bg-surface p-0 text-ink;
+    box-shadow: var(--shadow-lift);
+  }
+
+  dialog.dialog::backdrop {
+    background: rgb(15 23 42 / 0.4);
+  }
+
   .card-hover {
     @apply transition duration-200;
   }

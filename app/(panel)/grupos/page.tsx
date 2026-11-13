@@ -36,57 +36,52 @@ export default async function GruposPage() {
           Todavía no tienes grupos. Crea el primero para generar su código.
         </p>
       ) : (
-        <ul className="grid gap-4 sm:grid-cols-2">
+        <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {classes.map((klass) => (
-            <li key={klass.id} className="card card-hover flex flex-col p-5">
-              <div className="flex flex-wrap items-start justify-between gap-3">
+            <li key={klass.id} className="card card-hover p-3.5">
+              <div className="flex items-start justify-between gap-2">
                 <Link
                   href={`/grupos/${klass.id}`}
-                  className="text-balance text-[15px] font-semibold text-ink underline-offset-4 hover:underline"
+                  className="min-w-0 truncate text-[15px] font-semibold text-ink underline-offset-4 hover:underline"
                 >
                   {klass.name}
                 </Link>
-                <span className="rounded-lg bg-surface-soft px-2 py-1 font-mono text-sm tracking-widest text-ink-soft ring-1 ring-line">
+                <span className="shrink-0 rounded-md bg-surface-soft px-1.5 py-0.5 font-mono text-xs tracking-widest text-ink-soft ring-1 ring-line">
                   {klass.join_code}
                 </span>
               </div>
 
-              <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-muted">
-                <span>
-                  Curso: <span className="text-ink-soft">{klass.course_title}</span>
-                </span>
+              <p className="mt-1 truncate text-xs text-ink-muted">
+                Curso: <span className="text-ink-soft">{klass.course_title}</span>
                 {teacher.role === "admin" && (
-                  <span>Docente: {klass.teacher_name}</span>
+                  <> · Docente: {klass.teacher_name}</>
                 )}
-              </div>
+              </p>
 
-              <dl className="mt-auto grid grid-cols-3 gap-2 border-t border-line pt-3 text-sm">
-                <div>
-                  <dt className="eyebrow">Alumnos</dt>
-                  <dd className="mt-0.5 font-medium tabular-nums text-ink">
+              <p className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-line pt-2.5 text-xs text-ink-muted">
+                <span>
+                  <span className="font-medium tabular-nums text-ink">
                     {klass.student_count}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="eyebrow">Contenido adicional</dt>
-                  <dd className="mt-0.5 font-medium tabular-nums text-ink">
+                  </span>{" "}
+                  {klass.student_count === 1 ? "alumno" : "alumnos"}
+                </span>
+                <span>
+                  <span className="font-medium tabular-nums text-ink">
                     {klass.extra_count}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="eyebrow">Publicado</dt>
-                  <dd className="mt-0.5">
-                    {klass.published_version ? (
-                      <span className="inline-flex items-center gap-1.5 text-ink-soft">
-                        <span className="size-1.5 rounded-full bg-positive" />
-                        <span className="tabular-nums">v{klass.published_version}</span>
-                      </span>
-                    ) : (
-                      <span className="text-ink-faint">—</span>
-                    )}
-                  </dd>
-                </div>
-              </dl>
+                  </span>{" "}
+                  {klass.extra_count === 1 ? "adicional" : "adicionales"}
+                </span>
+                <span className="ml-auto">
+                  {klass.published_version ? (
+                    <span className="inline-flex items-center gap-1.5 text-ink-soft">
+                      <span className="size-1.5 rounded-full bg-positive" />
+                      <span className="tabular-nums">v{klass.published_version}</span>
+                    </span>
+                  ) : (
+                    <span className="text-ink-faint">Sin publicar</span>
+                  )}
+                </span>
+              </p>
             </li>
           ))}
         </ul>

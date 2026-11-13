@@ -271,6 +271,14 @@ export async function createClassInvitation(
     return { error: "Restaura el grupo antes de invitar." };
   }
 
+  const [release] = await db()<{ has_release: boolean }[]>`
+    select exists(
+      select 1 from class_releases where class_id = ${klass.id}
+    ) as has_release`;
+  if (!release?.has_release) {
+    return { error: "Publica el grupo antes de invitar." };
+  }
+
   const created = await createInvitation({
     classId: klass.id,
     email,

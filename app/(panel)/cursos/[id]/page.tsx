@@ -11,6 +11,7 @@ import { editorCourseIds } from "@/lib/content/x03";
 import { db } from "@/lib/db";
 
 import { CreateTopicForm } from "./create-topic-form";
+import { SaveCourseForm } from "./save-course-form";
 import { TopicContentLink } from "./topic-content-link";
 import { CreateUnitForm } from "./unit-form";
 
@@ -113,9 +114,7 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
                   </button>
                 </form>
               )}
-              <Link href={`/cursos/${course.id}/publicar`} className="btn btn-primary btn-sm">
-                Guardar
-              </Link>
+              <SaveCourseForm courseId={course.id} />
             </div>
           )}
         </div>

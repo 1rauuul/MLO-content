@@ -132,7 +132,9 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
           <span className="text-xs text-ink-muted">Curso: {klass.course_title}</span>
           {klass.archived_at && <span className="badge badge-warning">Archivado</span>}
           <div className="ml-auto flex flex-wrap items-start gap-2">
-            {!klass.archived_at && <PublishClassForm classId={klass.id} />}
+            {!klass.archived_at && (
+              <PublishClassForm classId={klass.id} joinCode={klass.join_code} />
+            )}
             <form action={klass.archived_at ? restoreClass : archiveClass}>
               <input type="hidden" name="classId" value={klass.id} />
               <button type="submit" className="btn btn-secondary btn-sm">
@@ -253,13 +255,18 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
                         </p>
                       ) : (
                         <ul className="mx-4 mb-4 space-y-1 border-l border-line pl-4">
-                          {unit.topics.map((topic) => (
+                          {unit.topics.map((topic, index) => (
                             <li key={topic.id}>
                               <Link
                                 href={`/cursos/${klass.content_course_id ?? topic.course_id}/temas/${topic.id}`}
                                 className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-md px-2 py-1.5 text-sm text-ink-soft transition-colors hover:bg-surface hover:text-ink"
                               >
-                                <span className="min-w-0">{topic.title}</span>
+                                <span className="min-w-0">
+                                  <span className="mr-2 font-mono text-xs text-ink-faint">
+                                    {unit.number}.{index + 1}
+                                  </span>
+                                  {topic.title}
+                                </span>
                                 <span className="shrink-0 text-right text-xs tabular-nums text-ink-faint">
                                   {topic.lesson_count}{" "}
                                   {topic.lesson_count === 1 ? "lección" : "lecciones"} ·{" "}
@@ -327,6 +334,7 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
           <InvitationPanel
             classId={klass.id}
             disabled={Boolean(klass.archived_at)}
+            published={Boolean(last)}
           />
 
           <section className="card p-5">

@@ -331,9 +331,9 @@ export function ContentStudio({
                 {unitTopics.length === 0 ? (
                   <option value="">Sin subtemas</option>
                 ) : (
-                  unitTopics.map((item) => (
+                  unitTopics.map((item, index) => (
                     <option key={item.id} value={item.id}>
-                      {item.title}
+                      {item.unitNumber}.{index + 1} {item.title}
                     </option>
                   ))
                 )}

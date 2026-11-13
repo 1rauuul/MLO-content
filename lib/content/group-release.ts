@@ -144,6 +144,7 @@ export function publishedGroupRelease(
 
 export type JoinCheckInput = {
   archived: boolean;
+  published: boolean;
   capacity: number | null;
   activeMembers: number;
   hasActiveMembershipInCourse: boolean;
@@ -151,10 +152,11 @@ export type JoinCheckInput = {
 
 export type JoinCheck =
   | { ok: true }
-  | { ok: false; reason: "archived" | "full" | "duplicate" };
+  | { ok: false; reason: "archived" | "unpublished" | "full" | "duplicate" };
 
 export function canJoinGroup(input: JoinCheckInput): JoinCheck {
   if (input.archived) return { ok: false, reason: "archived" };
+  if (!input.published) return { ok: false, reason: "unpublished" };
   if (input.hasActiveMembershipInCourse) return { ok: false, reason: "duplicate" };
   if (input.capacity !== null && input.activeMembers >= input.capacity) {
     return { ok: false, reason: "full" };
