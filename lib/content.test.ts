@@ -26,8 +26,51 @@ test("rechaza una tabla con filas de otro largo", () => {
   assert.ok("error" in result);
 });
 
+const mediaId = "6f0c7f0a-1a2b-4c3d-8e9f-0123456789ab";
+
+test("acepta imagen y video y normaliza sus campos", () => {
+  const result = parseBlocks(
+    JSON.stringify([
+      { type: "image", mediaId, mime: "image/webp", width: 1280, height: 720, alt: "Diagrama" },
+      { type: "video", url: "https://youtu.be/dQw4w9WgXcQ", title: "Clase" },
+    ]),
+  );
+
+  assert.ok("blocks" in result);
+  assert.equal(result.blocks[0].type, "image");
+  assert.equal((result.blocks[0] as { src: string }).src, `/api/media/${mediaId}`);
+  assert.equal(result.blocks[1].type, "video");
+  assert.equal(
+    (result.blocks[1] as { url: string }).url,
+    "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+  );
+});
+
+test("rechaza imagen sin alt, MIME no permitido y video no YouTube", () => {
+  assert.ok(
+    "error" in
+      parseBlocks(
+        JSON.stringify([
+          { type: "image", mediaId, mime: "image/webp", width: 1, height: 1, alt: "" },
+        ]),
+      ),
+  );
+  assert.ok(
+    "error" in
+      parseBlocks(
+        JSON.stringify([
+          { type: "image", mediaId, mime: "image/svg+xml", width: 1, height: 1, alt: "x" },
+        ]),
+      ),
+  );
+  assert.ok(
+    "error" in
+      parseBlocks(JSON.stringify([{ type: "video", url: "https://vimeo.com/123", title: "x" }])),
+  );
+});
+
 test("rechaza un tipo desconocido y un texto vacío", () => {
-  assert.ok("error" in parseBlocks(JSON.stringify([{ type: "image", src: "x.png" }])));
+  assert.ok("error" in parseBlocks(JSON.stringify([{ type: "audio", src: "x.mp3" }])));
   assert.ok("error" in parseBlocks(JSON.stringify([{ type: "p", text: "   " }])));
 });
 
@@ -39,5 +82,7 @@ test("rechaza un arreglo vacío o JSON inválido", () => {
 test("requiere contenido de lectura además de subtítulos", () => {
   const result = parseBlocks(JSON.stringify([{ type: "h", text: "Solo un encabezado" }]));
 
-  assert.deepEqual(result, { error: "Agrega al menos un párrafo, una lista o una tabla." });
+  assert.deepEqual(result, {
+    error: "Agrega al menos un párrafo, una lista, una tabla, una imagen o un video.",
+  });
 });

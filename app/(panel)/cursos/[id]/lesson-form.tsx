@@ -11,9 +11,11 @@ const inputClass = "field";
 export function CreateLessonForm({
   courseId,
   topicId,
+  allowMedia,
 }: {
   courseId: string;
   topicId: string;
+  allowMedia: boolean;
 }) {
   const [state, action, pending] = useActionState<ActionResult, FormData>(createLesson, {});
 
@@ -32,7 +34,7 @@ export function CreateLessonForm({
           className={`${inputClass} max-w-xl`}
         />
       </label>
-      <BlockEditor initial={[]} />
+      <BlockEditor initial={[]} allowMedia={allowMedia} />
       <button type="submit" disabled={pending} className="btn btn-secondary">
         {pending ? "Agregando…" : "Agregar lección"}
       </button>

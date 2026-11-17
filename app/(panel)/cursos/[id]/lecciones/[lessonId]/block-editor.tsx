@@ -4,6 +4,9 @@ import { useEffect, useRef, useState } from "react";
 
 import type { ContentBlock } from "@/lib/content";
 
+import { htmlFromMediaBlock, mediaBlockFromFigure } from "./media-blocks";
+import { ImagePickerDialog, VideoPickerDialog } from "./media-picker";
+
 type Format = "title" | "paragraph" | "subtitle" | "bullets" | "numbers" | "table";
 
 const TOOLS: { format: Format; label: string }[] = [
@@ -25,6 +28,9 @@ function escapeHtml(value: string): string {
 function htmlFromBlocks(blocks: ContentBlock[]): string {
   return blocks
     .map((block) => {
+      if (block.type === "image" || block.type === "video") {
+        return htmlFromMediaBlock(block);
+      }
       if (block.type === "p") return `<p>${escapeHtml(block.text)}</p>`;
       if (block.type === "h") return `<h2>${escapeHtml(block.text)}</h2>`;
       if (block.type === "bullets") {
@@ -33,6 +39,7 @@ function htmlFromBlocks(blocks: ContentBlock[]): string {
       if (block.type === "numbers") {
         return `<ol>${block.items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ol>`;
       }
+      if (block.type !== "table") return "";
       return `<table><thead><tr>${block.header
         .map((cell) => `<th>${escapeHtml(cell)}</th>`)
         .join("")}</tr></thead><tbody>${block.rows
@@ -56,7 +63,16 @@ function blocksFromNode(node: Node): ContentBlock[] {
   if (!(node instanceof HTMLElement) || node.tagName === "BR") return [];
 
   const tag = node.tagName;
-  if (tag === "P") return textBlocks(node.innerText);
+  if (tag === "FIGURE") {
+    const block = mediaBlockFromFigure(node as HTMLElement);
+    return block ? [block] : [];
+  }
+  if (tag === "P") {
+    if (node.querySelector("[data-block]")) {
+      return Array.from(node.childNodes).flatMap(blocksFromNode);
+    }
+    return textBlocks(node.innerText);
+  }
   if (/^H[1-6]$/.test(tag)) {
     const text = node.innerText.trim();
     return text ? [{ type: "h", text }] : [];
@@ -86,15 +102,19 @@ function blocksFromEditor(editor: HTMLElement): ContentBlock[] {
 export function BlockEditor({
   initial,
   label = "Contenido de la lección",
+  allowMedia = false,
   onChange,
 }: {
   initial: ContentBlock[];
   label?: string;
+  allowMedia?: boolean;
   onChange?: (blocks: ContentBlock[]) => void;
 }) {
   const editorRef = useRef<HTMLDivElement>(null);
   const initialized = useRef(false);
+  const selection = useRef<Range | null>(null);
   const [blocks, setBlocks] = useState<ContentBlock[]>(initial);
+  const [picker, setPicker] = useState<"image" | "video" | null>(null);
 
   useEffect(() => {
     if (initialized.current || !editorRef.current) return;
@@ -108,6 +128,80 @@ export function BlockEditor({
 
   const syncBlocks = () => {
     if (editorRef.current) setBlocks(blocksFromEditor(editorRef.current));
+  };
+
+  const saveSelection = () => {
+    const current = window.getSelection();
+    const editor = editorRef.current;
+    if (!current || current.rangeCount === 0 || !editor) {
+      selection.current = null;
+      return;
+    }
+    const range = current.getRangeAt(0);
+    selection.current = editor.contains(range.commonAncestorContainer)
+      ? range.cloneRange()
+      : null;
+  };
+
+  const insertMedia = (block: ContentBlock) => {
+    if (block.type !== "image" && block.type !== "video") return;
+    const editor = editorRef.current;
+    if (!editor) return;
+    editor.focus();
+    const current = window.getSelection();
+    const range = selection.current;
+    const html = `${htmlFromMediaBlock(block)}<p><br></p>`;
+
+    // Insertar dentro de una lista, tabla o párrafo rompe el parseo: el bloque
+    // debe quedar como hijo directo del editor.
+    const anchor = range?.commonAncestorContainer ?? current?.anchorNode ?? null;
+    const element =
+      anchor instanceof HTMLElement ? anchor : anchor?.parentElement ?? null;
+    const host =
+      element?.closest("li, td, th")?.closest("ul, ol, table") ??
+      element?.closest("p, h1, h2, h3, h4, h5, h6, blockquote, figure") ??
+      null;
+
+    if (host && editor.contains(host)) {
+      host.insertAdjacentHTML("afterend", html);
+      const inserted = host.nextElementSibling;
+      const after = inserted?.nextElementSibling ?? inserted;
+      if (current && after) {
+        const next = document.createRange();
+        next.setStartAfter(after);
+        next.collapse(true);
+        current.removeAllRanges();
+        current.addRange(next);
+      }
+      selection.current = null;
+      setPicker(null);
+      syncBlocks();
+      return;
+    }
+
+    if (current) {
+      current.removeAllRanges();
+      if (range && editor.contains(range.commonAncestorContainer)) {
+        current.addRange(range);
+      } else {
+        const end = document.createRange();
+        end.selectNodeContents(editor);
+        end.collapse(false);
+        current.addRange(end);
+      }
+    }
+    document.execCommand("insertHTML", false, html);
+    selection.current = null;
+    setPicker(null);
+    syncBlocks();
+  };
+
+  const removeMedia = (event: React.MouseEvent<HTMLDivElement>) => {
+    const target = event.target as HTMLElement;
+    if (!target.closest("[data-remove]")) return;
+    event.preventDefault();
+    target.closest("figure")?.remove();
+    syncBlocks();
   };
 
   const formatSelection = (format: Format) => {
@@ -162,12 +256,45 @@ export function BlockEditor({
             {tool.label}
           </button>
         ))}
+        {allowMedia && (
+          <>
+            <button
+              type="button"
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => {
+                saveSelection();
+                setPicker("image");
+              }}
+              className="btn btn-secondary btn-sm"
+            >
+              Imagen
+            </button>
+            <button
+              type="button"
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => {
+                saveSelection();
+                setPicker("video");
+              }}
+              className="btn btn-secondary btn-sm"
+            >
+              Video
+            </button>
+          </>
+        )}
       </div>
 
       <p className="text-xs text-ink-muted">
         Pega el texto y selecciona un párrafo o una lista para aplicarle formato. El texto se
         pega sin estilos de Word para conservar el diseño de MLO.
       </p>
+
+      {allowMedia && (
+        <p className="text-xs text-ink-muted">
+          Las imágenes se guardan con la lección y se ven sin conexión. Los videos se
+          reproducen en MLO y requieren conexión.
+        </p>
+      )}
 
       <div
         ref={editorRef}
@@ -180,13 +307,22 @@ export function BlockEditor({
         onInput={syncBlocks}
         onBlur={syncBlocks}
         onPaste={pastePlainText}
+        onClick={removeMedia}
         className="min-h-64 rounded-xl border border-line bg-white p-4 text-sm leading-7 text-ink shadow-[inset_0_1px_2px_#1720330a] outline-none empty:before:pointer-events-none empty:before:text-ink-faint empty:before:content-[attr(data-placeholder)] focus:border-accent focus:ring-2 focus:ring-accent-soft [&_h2]:mt-5 [&_h2]:text-xl [&_h2]:font-semibold [&_h3]:mt-4 [&_h3]:text-base [&_h3]:font-semibold [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-3 [&_table]:my-4 [&_table]:w-full [&_table]:border-collapse [&_td]:border [&_td]:border-line [&_td]:p-2 [&_th]:border [&_th]:border-line [&_th]:bg-surface-soft [&_th]:p-2 [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-6"
       />
 
       {blocks.length === 0 && (
         <p className="text-xs text-ink-faint">
-          Agrega al menos un párrafo, una lista o una tabla antes de crear la lección.
+          Agrega al menos un párrafo, una lista, una tabla, una imagen o un video antes de
+          crear la lección.
         </p>
+      )}
+
+      {allowMedia && picker === "image" && (
+        <ImagePickerDialog onClose={() => setPicker(null)} onInsert={insertMedia} />
+      )}
+      {allowMedia && picker === "video" && (
+        <VideoPickerDialog onClose={() => setPicker(null)} onInsert={insertMedia} />
       )}
     </section>
   );

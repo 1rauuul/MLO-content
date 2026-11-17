@@ -1,4 +1,5 @@
 import { hashValue } from "./hash";
+import { isImageMime, youtubeVideoId } from "./media";
 import { UNIT_COLORS } from "./unit-colors";
 
 /*
@@ -136,6 +137,32 @@ function parseBlocks(value: unknown, where: string): void {
         }
         cells.forEach((cell, cellIndex) => text(cell, `${at}.rows[${rowIndex}][${cellIndex}]`));
       });
+      return;
+    }
+    if (type === "image") {
+      const src = text(block.src, `${at}.src`);
+      if (!/^https?:\/\/\S+$/i.test(src)) fail(`${at}.src: se esperaba una URL http(s).`);
+      text(block.mediaId, `${at}.mediaId`);
+      if (!isImageMime(block.mime)) fail(`${at}.mime: formato de imagen no permitido.`);
+      if (
+        !Number.isInteger(block.width) ||
+        !Number.isInteger(block.height) ||
+        (block.width as number) < 1 ||
+        (block.height as number) < 1 ||
+        (block.width as number) > 10000 ||
+        (block.height as number) > 10000
+      ) {
+        fail(`${at}: dimensiones de imagen inválidas.`);
+      }
+      text(block.alt, `${at}.alt`);
+      if (block.caption !== undefined) text(block.caption, `${at}.caption`);
+      return;
+    }
+    if (type === "video") {
+      if (typeof block.url !== "string" || !youtubeVideoId(block.url)) {
+        fail(`${at}.url: se esperaba un enlace de YouTube.`);
+      }
+      text(block.title, `${at}.title`);
       return;
     }
     fail(`${at}: tipo de bloque desconocido (${JSON.stringify(type)}).`);

@@ -178,7 +178,13 @@ export default async function TopicPage({
             ))}
           </ul>
         )}
-        {canEdit && <CreateLessonForm courseId={courseId} topicId={topic.id} />}
+        {canEdit && (
+          <CreateLessonForm
+            courseId={courseId}
+            topicId={topic.id}
+            allowMedia={!course.is_base}
+          />
+        )}
       </section>
 
       <section className="card p-5">

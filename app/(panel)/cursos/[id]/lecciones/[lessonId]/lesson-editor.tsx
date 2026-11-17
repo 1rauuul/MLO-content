@@ -25,7 +25,13 @@ export type EditableLesson = {
   content: ContentBlock[];
 };
 
-export function LessonEditor({ lesson }: { lesson: EditableLesson }) {
+export function LessonEditor({
+  lesson,
+  allowMedia,
+}: {
+  lesson: EditableLesson;
+  allowMedia: boolean;
+}) {
   const [state, action, pending] = useActionState<LessonResult, FormData>(updateLesson, {});
   const [draft, setDraft] = useState({
     title: lesson.title,
@@ -151,7 +157,7 @@ export function LessonEditor({ lesson }: { lesson: EditableLesson }) {
 
         <section className="card p-5">
           <h2 className="mb-4 text-sm font-semibold text-ink">Bloques de contenido</h2>
-          <BlockEditor initial={lesson.content} onChange={onBlocks} />
+          <BlockEditor initial={lesson.content} allowMedia={allowMedia} onChange={onBlocks} />
         </section>
 
         <div className="card flex flex-wrap items-center gap-3 p-4">

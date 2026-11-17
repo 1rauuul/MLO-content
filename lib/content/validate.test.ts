@@ -4,6 +4,7 @@ import { join } from "node:path";
 import test from "node:test";
 
 import type { CoreCourse } from "./model";
+import { EXAMPLE_SAMPLES, EXERCISE_SAMPLES } from "./samples";
 import {
   parseExampleInput,
   parseExerciseInput,
@@ -340,4 +341,58 @@ test("parseQuestionInput bloquea preguntas inválidas", () => {
       }),
   );
   assert.ok("error" in parseQuestionInput({ type: "nope", prompt: "x" }));
+});
+
+test("las muestras del editor pasan la validación estricta", () => {
+  for (const sample of Object.values(EXERCISE_SAMPLES)) {
+    const parsed = parseExerciseInput(
+      {
+        type: sample.type,
+        prompt: sample.prompt,
+        instructions: sample.instructions,
+        correctOrder: sample.correctOrder,
+        config: sample.config,
+        explanation: sample.explanation,
+        example: null,
+      },
+      { strict: true },
+    );
+    assert.ok(
+      "value" in parsed,
+      `Muestra ${sample.type}: ${"error" in parsed ? parsed.error : ""}`,
+    );
+  }
+
+  for (const sample of Object.values(EXAMPLE_SAMPLES)) {
+    const parsed =
+      sample.type === "order"
+        ? parseExerciseInput(
+            {
+              type: sample.type,
+              prompt: sample.prompt,
+              instructions: sample.instructions,
+              correctOrder: sample.correctOrder,
+              config: sample.config,
+              explanation: sample.explanation,
+              example: { title: sample.title, steps: sample.steps, hints: sample.hints },
+            },
+            { strict: true },
+          )
+        : parseExampleInput(
+            {
+              type: sample.type,
+              title: sample.title,
+              prompt: sample.prompt,
+              config: sample.config,
+              steps: sample.steps,
+              hints: sample.hints,
+              explanation: sample.explanation,
+            },
+            { strict: true },
+          );
+    assert.ok(
+      "value" in parsed,
+      `Muestra de ejemplo ${sample.type}: ${"error" in parsed ? parsed.error : ""}`,
+    );
+  }
 });

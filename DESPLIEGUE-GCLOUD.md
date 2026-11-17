@@ -34,7 +34,7 @@ Cloud Run ──► Proveedor de correo / SMTP institucional
 | Imágenes de despliegue | Artifact Registry | Almacenar la imagen de contenedor generada en cada despliegue. |
 | Construcción / CI | Cloud Build o GitHub Actions | Ejecutar pruebas, construir y publicar la aplicación. |
 | Observabilidad | Cloud Logging y Cloud Monitoring | Registrar errores, métricas y alertas. |
-| Archivos futuros | Cloud Storage | Guardar recursos multimedia si el producto los incorpora más adelante. |
+| Archivos multimedia | PostgreSQL (`media`) | Las imágenes de lecciones viven en una tabla bytea, una copia por hash. Cloud Storage queda para archivos mayores o video. |
 | Envío diferido de correo | Cloud Tasks (recomendado) | Reintentar invitaciones sin bloquear la acción del maestro. |
 
 ## Aplicación: Cloud Run
@@ -95,6 +95,7 @@ SESSION_SECRET / claves de firma de invitaciones
 EMAIL_PROVIDER_API_KEY (Resend)
 EMAIL_FROM
 APP_BASE_URL
+MEDIA_SECRET (firma las URLs de /api/media)
 MLO_DEEP_LINK_BASE
 ```
 

@@ -3,12 +3,14 @@
 import { useActionState, useEffect, useState } from "react";
 
 import type { CoreExample, ExerciseConfig, ExerciseStep, ExerciseType } from "@/lib/content/model";
+import { EXAMPLE_SAMPLES } from "@/lib/content/samples";
 import { parseExampleInput, parseExerciseInput } from "@/lib/content/validate";
 import { saveExample, type EditorResult } from "@/lib/actions/exercises";
 import { PreviewFrame } from "@/app/(panel)/preview-frame";
 
 import { EntriesEditor, Field, PairsEditor, StepsEditor, TextList, fieldClass } from "./fields";
 import { ExamplePreview } from "./preview";
+import { SampleDialog } from "./sample-dialog";
 
 export type ExampleDraft = {
   type: ExerciseType;
@@ -90,6 +92,7 @@ export function ExampleForm({
 }) {
   const [draft, setDraft] = useState<ExampleDraft>(initial ? draftFrom(initial) : emptyDraft());
   const [alsoExercise, setAlsoExercise] = useState(false);
+  const [sampleOpen, setSampleOpen] = useState(false);
   const [state, action, pending] = useActionState<EditorResult, FormData>(saveExample, {});
 
   useEffect(() => {
@@ -105,6 +108,35 @@ export function ExampleForm({
 
   const changeType = (type: ExerciseType) =>
     patch({ type, config: emptyConfig(type), correctOrder: type === "order" ? ["", ""] : [] });
+
+  const dirty =
+    draft.title.trim() !== "" ||
+    draft.prompt.trim() !== "" ||
+    draft.correctOrder.some((item) => item.trim() !== "") ||
+    (draft.config.sentences ?? []).some((item) => item.trim() !== "") ||
+    (draft.config.bank ?? []).some((item) => item.trim() !== "") ||
+    (draft.config.pairs ?? []).some(
+      (pair) => pair.left.trim() !== "" || pair.right.trim() !== "",
+    ) ||
+    (draft.config.crossword?.entries ?? []).some(
+      (entry) => entry.word.trim() !== "" || entry.clue.trim() !== "",
+    ) ||
+    draft.steps.some((step) => step.text.trim() !== "" || step.why.trim() !== "") ||
+    draft.hints.some((hint) => hint.trim() !== "") ||
+    draft.explanation.trim() !== "";
+
+  const useSample = () => {
+    const sample = EXAMPLE_SAMPLES[draft.type];
+    patch({
+      title: sample.title,
+      prompt: sample.prompt,
+      correctOrder: [...sample.correctOrder],
+      config: sample.config,
+      steps: sample.steps,
+      hints: sample.hints,
+      explanation: sample.explanation,
+    });
+  };
 
   const validation =
     draft.type === "order"
@@ -151,20 +183,31 @@ export function ExampleForm({
       <input type="hidden" name="data" value={JSON.stringify(draft)} />
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Tipo">
-          <select
-            value={draft.type}
-            onChange={(event) => changeType(event.target.value as ExerciseType)}
-            className={fieldClass}
+        <div className="flex flex-wrap items-end gap-3 sm:col-span-2">
+          <div className="w-full sm:max-w-xs">
+            <Field label="Tipo">
+              <select
+                value={draft.type}
+                onChange={(event) => changeType(event.target.value as ExerciseType)}
+                className={fieldClass}
+              >
+                <option value="order">Ordenar</option>
+                <option value="fill">Completar</option>
+                <option value="match">Relacionar</option>
+                <option value="crossword">Crucigrama</option>
+              </select>
+            </Field>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSampleOpen(true)}
+            className="btn btn-secondary mb-px"
           >
-            <option value="order">Ordenar</option>
-            <option value="fill">Completar</option>
-            <option value="match">Relacionar</option>
-            <option value="crossword">Crucigrama</option>
-          </select>
-        </Field>
+            Ver muestra
+          </button>
+        </div>
 
-        <Field label="Título">
+        <Field label="Título" marker="①">
           <input
             value={draft.title}
             onChange={(event) => patch({ title: event.target.value })}
@@ -172,7 +215,7 @@ export function ExampleForm({
           />
         </Field>
 
-        <Field label="Enunciado">
+        <Field label="Enunciado" marker="②">
           <input
             value={draft.prompt}
             onChange={(event) => patch({ prompt: event.target.value })}
@@ -180,7 +223,7 @@ export function ExampleForm({
           />
         </Field>
 
-        <Field label="Explicación" hint="Opcional; se muestra al terminar.">
+        <Field label="Explicación" marker="⑥" hint="Opcional; se muestra al terminar.">
           <input
             value={draft.explanation}
             onChange={(event) => patch({ explanation: event.target.value })}
@@ -192,6 +235,7 @@ export function ExampleForm({
       {draft.type === "order" && (
         <TextList
           label="Secuencia resuelta"
+          marker="③"
           values={draft.correctOrder}
           onChange={(correctOrder) => patch({ correctOrder })}
           placeholder="Elemento en orden"
@@ -203,6 +247,7 @@ export function ExampleForm({
         <div className="space-y-4">
           <TextList
             label="Oraciones"
+            marker="③"
             values={draft.config.sentences ?? []}
             onChange={(sentences) => patch({ config: { ...draft.config, sentences } })}
             placeholder="El {{software}} se mantiene."
@@ -220,6 +265,7 @@ export function ExampleForm({
 
       {draft.type === "match" && (
         <PairsEditor
+          marker="③"
           pairs={draft.config.pairs ?? []}
           onChange={(pairs) => patch({ config: { ...draft.config, pairs } })}
         />
@@ -270,6 +316,7 @@ export function ExampleForm({
             </Field>
           </div>
           <EntriesEditor
+            marker="③"
             entries={draft.config.crossword?.entries ?? []}
             onChange={(entries) =>
               patch({
@@ -330,10 +377,11 @@ export function ExampleForm({
         </fieldset>
       )}
 
-      <StepsEditor steps={draft.steps} onChange={(steps) => patch({ steps })} />
+      <StepsEditor marker="④" steps={draft.steps} onChange={(steps) => patch({ steps })} />
 
       <TextList
         label="Pistas"
+        marker="⑤"
         values={draft.hints}
         onChange={(hints) => patch({ hints })}
         placeholder="Pista"
@@ -386,6 +434,15 @@ export function ExampleForm({
           </p>
         )}
       </div>
+
+      <SampleDialog
+        kind="example"
+        type={draft.type}
+        open={sampleOpen}
+        dirty={dirty}
+        onClose={() => setSampleOpen(false)}
+        onUse={useSample}
+      />
     </form>
   );
 }

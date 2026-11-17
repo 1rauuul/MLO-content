@@ -1,6 +1,7 @@
 import type { ContentBlock } from "../content";
 import type { ReleaseV3 } from "./contract-v3";
 import { hashValue } from "./hash";
+import { publishMediaBlocks } from "./publish-media";
 import type { CoreCourse, CoreExample, CoreExercise } from "./model";
 import { publishedId } from "./serialize";
 import { buildV3Release } from "./v3";
@@ -119,7 +120,7 @@ export function buildGroupRelease(input: GroupReleaseInput): ReleaseV3 {
     ],
     additions: input.additions.map((addition) => ({
       lessonId: publishedId(input.catalogId, addition.lessonContentId),
-      blocks: addition.blocks,
+      blocks: publishMediaBlocks(addition.blocks),
     })),
     references: own.references,
     notices: [],

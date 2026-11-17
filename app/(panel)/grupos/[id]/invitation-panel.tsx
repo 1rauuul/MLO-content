@@ -8,12 +8,15 @@ import {
   type InvitationResult,
 } from "@/lib/actions/classes";
 import type { InvitationStatus } from "@/lib/invitations/core";
+import type { InvitationDeliveryReason } from "@/lib/invitations/delivery";
 
 type InvitationRow = {
   id: string;
   email: string;
   expiresAt: string;
   status: InvitationStatus;
+  sentAt: string | null;
+  deliveryError: InvitationDeliveryReason | null;
 };
 
 const STATUS_LABEL: Record<
@@ -26,10 +29,7 @@ const STATUS_LABEL: Record<
   revoked: { label: "Revocada", badge: "badge-neutral" },
 };
 
-const DELIVERY_FAILURE: Record<
-  Exclude<"sent" | "not_configured" | "rejected" | "network", "sent">,
-  string
-> = {
+const DELIVERY_FAILURE: Record<InvitationDeliveryReason, string> = {
   not_configured: "falta configurar el proveedor de correo",
   rejected: "el proveedor rechazó el envío",
   network: "no se pudo conectar con el proveedor",
@@ -186,6 +186,20 @@ export function InvitationHistory({
                 </p>
                 <p className="text-xs text-ink-muted">
                   Vence <span className="tabular-nums">{formatDate(invitation.expiresAt)}</span>
+                </p>
+                <p className="text-xs">
+                  {invitation.sentAt ? (
+                    <span className="text-positive">
+                      Correo enviado el{" "}
+                      <span className="tabular-nums">{formatDate(invitation.sentAt)}</span>
+                    </span>
+                  ) : invitation.deliveryError ? (
+                    <span className="text-warning">
+                      Correo no enviado ({DELIVERY_FAILURE[invitation.deliveryError]})
+                    </span>
+                  ) : (
+                    <span className="text-ink-faint">Sin registro de envío</span>
+                  )}
                 </p>
               </div>
               <span className={`badge ${STATUS_LABEL[invitation.status].badge}`}>

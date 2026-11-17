@@ -8,12 +8,14 @@ import type {
   ExerciseExample,
   ExerciseType,
 } from "@/lib/content/model";
+import { EXERCISE_SAMPLES } from "@/lib/content/samples";
 import { parseExerciseInput } from "@/lib/content/validate";
 import { saveExercise, type EditorResult } from "@/lib/actions/exercises";
 import { PreviewFrame } from "@/app/(panel)/preview-frame";
 
 import { EntriesEditor, Field, PairsEditor, StepsEditor, TextList, fieldClass } from "./fields";
 import { ExercisePreview } from "./preview";
+import { SampleDialog } from "./sample-dialog";
 
 export type ExerciseDraft = {
   type: ExerciseType;
@@ -93,6 +95,7 @@ export function ExerciseForm({
   const [draft, setDraft] = useState<ExerciseDraft>(
     initial ? draftFrom(initial) : emptyDraft(),
   );
+  const [sampleOpen, setSampleOpen] = useState(false);
   const [state, action, pending] = useActionState<EditorResult, FormData>(saveExercise, {});
 
   useEffect(() => {
@@ -119,6 +122,31 @@ export function ExerciseForm({
         ? draft.example ?? { title: "", steps: [{ text: "", why: "" }], hints: [] }
         : null,
     });
+
+  const dirty =
+    draft.prompt.trim() !== "" ||
+    draft.instructions.trim() !== "" ||
+    draft.correctOrder.some((item) => item.trim() !== "") ||
+    (draft.config.sentences ?? []).some((item) => item.trim() !== "") ||
+    (draft.config.bank ?? []).some((item) => item.trim() !== "") ||
+    (draft.config.pairs ?? []).some(
+      (pair) => pair.left.trim() !== "" || pair.right.trim() !== "",
+    ) ||
+    (draft.config.crossword?.entries ?? []).some(
+      (entry) => entry.word.trim() !== "" || entry.clue.trim() !== "",
+    ) ||
+    draft.explanation.trim() !== "";
+
+  const useSample = () => {
+    const sample = EXERCISE_SAMPLES[draft.type];
+    patch({
+      prompt: sample.prompt,
+      instructions: sample.instructions,
+      correctOrder: [...sample.correctOrder],
+      config: sample.config,
+      explanation: sample.explanation,
+    });
+  };
 
   const validation = parseExerciseInput(
     {
@@ -150,20 +178,31 @@ export function ExerciseForm({
       <input type="hidden" name="data" value={JSON.stringify(draft)} />
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Tipo">
-          <select
-            value={draft.type}
-            onChange={(event) => changeType(event.target.value as ExerciseType)}
-            className={fieldClass}
+        <div className="flex flex-wrap items-end gap-3 sm:col-span-2">
+          <div className="w-full sm:max-w-xs">
+            <Field label="Tipo">
+              <select
+                value={draft.type}
+                onChange={(event) => changeType(event.target.value as ExerciseType)}
+                className={fieldClass}
+              >
+                <option value="order">Ordenar</option>
+                <option value="fill">Completar</option>
+                <option value="match">Relacionar</option>
+                <option value="crossword">Crucigrama</option>
+              </select>
+            </Field>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSampleOpen(true)}
+            className="btn btn-secondary mb-px"
           >
-            <option value="order">Ordenar</option>
-            <option value="fill">Completar</option>
-            <option value="match">Relacionar</option>
-            <option value="crossword">Crucigrama</option>
-          </select>
-        </Field>
+            Ver muestra
+          </button>
+        </div>
 
-        <Field label="Enunciado">
+        <Field label="Enunciado" marker="①">
           <input
             value={draft.prompt}
             onChange={(event) => patch({ prompt: event.target.value })}
@@ -171,7 +210,7 @@ export function ExerciseForm({
           />
         </Field>
 
-        <Field label="Instrucciones" hint="Opcional; MLO muestra este texto bajo el enunciado.">
+        <Field label="Instrucciones" marker="②" hint="Opcional; MLO muestra este texto bajo el enunciado.">
           <input
             value={draft.instructions}
             onChange={(event) => patch({ instructions: event.target.value })}
@@ -179,7 +218,7 @@ export function ExerciseForm({
           />
         </Field>
 
-        <Field label="Explicación" hint="Opcional; se muestra al terminar.">
+        <Field label="Explicación" marker="④" hint="Opcional; se muestra al terminar.">
           <input
             value={draft.explanation}
             onChange={(event) => patch({ explanation: event.target.value })}
@@ -191,6 +230,7 @@ export function ExerciseForm({
       {draft.type === "order" && (
         <TextList
           label="Secuencia correcta"
+          marker="③"
           values={draft.correctOrder}
           onChange={(correctOrder) => patch({ correctOrder })}
           placeholder="Elemento en orden"
@@ -202,6 +242,7 @@ export function ExerciseForm({
         <div className="space-y-4">
           <TextList
             label="Oraciones"
+            marker="③"
             values={draft.config.sentences ?? []}
             onChange={(sentences) => patch({ config: { ...draft.config, sentences } })}
             placeholder="El {{software}} se mantiene."
@@ -219,6 +260,7 @@ export function ExerciseForm({
 
       {draft.type === "match" && (
         <PairsEditor
+          marker="③"
           pairs={draft.config.pairs ?? []}
           onChange={(pairs) => patch({ config: { ...draft.config, pairs } })}
         />
@@ -269,6 +311,7 @@ export function ExerciseForm({
             </Field>
           </div>
           <EntriesEditor
+            marker="③"
             entries={draft.config.crossword?.entries ?? []}
             onChange={(entries) =>
               patch({
@@ -379,6 +422,15 @@ export function ExerciseForm({
           </p>
         )}
       </div>
+
+      <SampleDialog
+        kind="exercise"
+        type={draft.type}
+        open={sampleOpen}
+        dirty={dirty}
+        onClose={() => setSampleOpen(false)}
+        onUse={useSample}
+      />
     </form>
   );
 }

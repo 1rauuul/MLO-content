@@ -15,12 +15,14 @@ import type {
 } from "./claim";
 import {
   INVITATION_MAX_ATTEMPTS,
+  INVITATION_RATE_LIMIT,
   INVITATION_TTL_DAYS,
   buildInvitationLink,
   generateInvitationToken,
   hashInvitationToken,
   invitationClaimError,
   invitationExpiresAt,
+  invitationRateLimited,
   invitationStatus,
   isInvitationToken,
   normalizeInvitationEmail,
@@ -334,6 +336,13 @@ test("la invitación vence a los tres días", () => {
   );
 });
 
+test("el límite de altas por docente se activa al llegar a 60", () => {
+  assert.equal(invitationRateLimited(0), false);
+  assert.equal(invitationRateLimited(INVITATION_RATE_LIMIT - 1), false);
+  assert.equal(invitationRateLimited(INVITATION_RATE_LIMIT), true);
+  assert.equal(invitationRateLimited(INVITATION_RATE_LIMIT + 1), true);
+});
+
 test("el estado muestra usada, revocada, vencida o pendiente", () => {
   assert.equal(
     invitationStatus(invitationState({ used_at: NOW }), NOW),
@@ -605,10 +614,13 @@ test("un token con formato inválido no abre transacción", async () => {
   assert.equal(transactions, 0);
 });
 
-test("el correo de invitación incluye el enlace y escapa el HTML", () => {
+test("el correo de invitación incluye el enlace, el código de la clase y escapa el HTML", () => {
+  const token = generateInvitationToken();
+  const classCode = "A7K2M9";
   const content = invitationEmailContent({
     to: "alumno@cualquier-dominio.com",
-    link: buildInvitationLink(generateInvitationToken()),
+    link: buildInvitationLink(token),
+    classCode,
     className: "<Grupo & Cía>",
     courseTitle: "Curso de prueba",
     teacherName: "Eduardo",
@@ -617,6 +629,13 @@ test("el correo de invitación incluye el enlace y escapa el HTML", () => {
 
   assert.match(content.subject, /Invitación a <Grupo & Cía>/);
   assert.match(content.text, /mloingenieriasoftware:\/\/join-class\?token=/);
+  assert.ok(content.text.includes(classCode));
+  assert.ok(content.html.includes(classCode));
+  assert.match(content.text, /Unirme a una clase/);
+  assert.match(content.text, /código de la clase/);
+  assert.match(content.html, /Código de la clase/);
+  assert.match(content.html, /Docente/);
+  assert.match(content.text, /MLO · Ingeniería de Software/);
   assert.ok(content.html.includes("&lt;Grupo &amp; Cía&gt;"));
   assert.ok(!content.html.includes("<Grupo"));
 });
@@ -631,6 +650,7 @@ test("sin credenciales la entrega queda pendiente de configuración", async () =
       await sendInvitationEmail({
         to: "alumno@cualquier-dominio.com",
         link: buildInvitationLink(generateInvitationToken()),
+        classCode: "A7K2M9",
         className: "Grupo A",
         courseTitle: "Curso de prueba",
         teacherName: "Eduardo",
@@ -664,6 +684,7 @@ test("configurado, envía la invitación a Resend", async () => {
     const result = await sendInvitationEmail({
       to: "alumno@cualquier-dominio.com",
       link: buildInvitationLink(generateInvitationToken()),
+      classCode: "A7K2M9",
       className: "Grupo A",
       courseTitle: "Curso de prueba",
       teacherName: "Eduardo",
@@ -696,6 +717,7 @@ test("el proveedor rechazado no invalida la invitación", async () => {
       await sendInvitationEmail({
         to: "alumno@cualquier-dominio.com",
         link: buildInvitationLink(generateInvitationToken()),
+        classCode: "A7K2M9",
         className: "Grupo A",
         courseTitle: "Curso de prueba",
         teacherName: "Eduardo",

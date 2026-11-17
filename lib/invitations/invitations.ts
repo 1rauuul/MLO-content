@@ -13,12 +13,15 @@ import {
   generateInvitationToken,
   hashInvitationToken,
   invitationExpiresAt,
+  invitationRateLimited,
   invitationStatus,
   isInvitationToken,
   normalizeInvitationEmail,
   INVITATION_MAX_ATTEMPTS,
+  INVITATION_RATE_WINDOW_MINUTES,
   type InvitationStatus,
 } from "./core";
+import type { InvitationDelivery, InvitationDeliveryReason } from "./delivery";
 
 export type CreatedInvitation = {
   id: string;
@@ -36,6 +39,8 @@ export type InvitationListItem = {
   used_at: Date | null;
   revoked_at: Date | null;
   attempt_count: number;
+  sent_at: Date | null;
+  delivery_error: InvitationDeliveryReason | null;
   status: InvitationStatus;
 };
 
@@ -54,7 +59,7 @@ export type ClaimedMembership = {
 
 export type CreateInvitationResult =
   | { ok: true; invitation: CreatedInvitation }
-  | { ok: false; error: "invalid_email" | "not_found" };
+  | { ok: false; error: "invalid_email" | "not_found" | "rate_limited" };
 
 export async function createInvitation(input: {
   classId: string;
@@ -68,6 +73,17 @@ export async function createInvitation(input: {
     const [klass] = await tx<{ course_id: string }[]>`
       select course_id from classes where id = ${input.classId} limit 1`;
     if (!klass) return { ok: false as const, error: "not_found" as const };
+
+    const [recent] = await tx<{ count: number }[]>`
+      select count(*)::int as count
+        from class_invitations
+       where created_by = ${input.createdBy}
+         and created_at > now() - (${INVITATION_RATE_WINDOW_MINUTES} * interval '1 minute')`;
+    // shortcut: dos altas simultáneas del mismo docente pueden exceder el
+    // límite por una; usar un advisory lock si eso llega a importar.
+    if (invitationRateLimited(recent?.count ?? 0)) {
+      return { ok: false as const, error: "rate_limited" as const };
+    }
 
     const token = generateInvitationToken();
     const expiresAt = invitationExpiresAt();
@@ -92,6 +108,18 @@ export async function createInvitation(input: {
   });
 }
 
+export async function recordInvitationDelivery(
+  invitationId: string,
+  delivery: InvitationDelivery,
+): Promise<void> {
+  await db()`
+    update class_invitations
+       set sent_at = case when ${delivery.sent} then now() else null end,
+           delivery_error = ${delivery.sent ? null : delivery.reason},
+           updated_at = now()
+     where id = ${invitationId}`;
+}
+
 export async function listInvitations(
   classId: string,
 ): Promise<InvitationListItem[]> {
@@ -105,9 +133,12 @@ export async function listInvitations(
       used_at: Date | null;
       revoked_at: Date | null;
       attempt_count: number;
+      sent_at: Date | null;
+      delivery_error: InvitationDeliveryReason | null;
     }[]
   >`
-    select id, email, created_at, expires_at, used_at, revoked_at, attempt_count
+    select id, email, created_at, expires_at, used_at, revoked_at,
+           attempt_count, sent_at, delivery_error
       from class_invitations
      where class_id = ${classId}
      order by created_at desc`;

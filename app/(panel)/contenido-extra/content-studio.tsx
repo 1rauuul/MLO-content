@@ -587,6 +587,7 @@ function LessonStudioForm({
         <BlockEditor
           initial={[]}
           label="Contenido de la lección"
+          allowMedia
           onChange={setBlocks}
         />
       </div>

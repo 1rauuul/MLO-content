@@ -84,6 +84,7 @@ export default async function LessonPage({
         exampleCount={examples.length}
         content={
           <LessonEditor
+            allowMedia={!lesson.is_base}
             lesson={{
               id: lesson.id,
               code: lesson.code,

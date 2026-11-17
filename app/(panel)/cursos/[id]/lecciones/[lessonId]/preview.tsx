@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useState } from "react";
@@ -11,6 +12,11 @@ import type {
 } from "@/lib/content/model";
 import type { ContentBlock } from "@/lib/content";
 import {
+  mediaSrc,
+  youtubeThumbnail,
+  youtubeVideoId,
+} from "@/lib/content/media";
+import {
   checkCrossword,
   checkFill,
   checkMatch,
@@ -22,6 +28,8 @@ import {
   type PreviewResult,
 } from "@/lib/content/preview";
 
+import { Marker } from "./fields";
+
 const TYPE_LABEL: Record<ActivityType, string> = {
   order: "Ordenar",
   fill: "Completar",
@@ -30,20 +38,35 @@ const TYPE_LABEL: Record<ActivityType, string> = {
   mcq: "Opción múltiple",
 };
 
+export type PreviewMarkers = Partial<
+  Record<
+    "title" | "prompt" | "instructions" | "activity" | "steps" | "hints" | "explanation",
+    string
+  >
+>;
+
 function Badge({ type }: { type: ActivityType }) {
   return <span className="badge badge-neutral">{TYPE_LABEL[type]}</span>;
 }
 
-function Steps({ steps }: { steps: ExerciseStep[] }) {
+function Steps({ steps, marker }: { steps: ExerciseStep[]; marker?: string }) {
   return (
-    <ol className="preview-steps">
-      {steps.map((step, index) => (
-        <li key={index}>
-          <span className="font-medium text-ink-soft">{step.text}</span>
-          <span className="block text-ink-muted">{step.why}</span>
-        </li>
-      ))}
-    </ol>
+    <div>
+      {marker && (
+        <p className="mb-1 text-xs font-medium text-ink-soft">
+          <Marker>{marker}</Marker>
+          Pasos
+        </p>
+      )}
+      <ol className="preview-steps">
+        {steps.map((step, index) => (
+          <li key={index}>
+            <span className="font-medium text-ink-soft">{step.text}</span>
+            <span className="block text-ink-muted">{step.why}</span>
+          </li>
+        ))}
+      </ol>
+    </div>
   );
 }
 
@@ -107,6 +130,13 @@ function ActivityRunnerState({ type, config, correctOrder, options, answer }: Ac
   const solution = crosswordSolution(config);
   const bank = [...new Set([...holes, ...(config.bank ?? [])])].filter(Boolean);
   const rights = [...new Set((config.pairs ?? []).map((pair) => pair.right))];
+  const crosswordEntries = config.crossword?.entries ?? [];
+  const crosswordLabels = crosswordEntries.map((entry, index) => {
+    const position = crosswordEntries
+      .slice(0, index + 1)
+      .filter((item) => item.direction === entry.direction).length;
+    return `${entry.direction === "across" ? "H" : "V"}${position}`;
+  });
 
   function move(index: number, delta: number) {
     const target = index + delta;
@@ -269,6 +299,24 @@ function ActivityRunnerState({ type, config, correctOrder, options, answer }: Ac
             );
           })}
         </div>
+        {crosswordEntries.length > 0 && (
+          <ul className="mt-2 space-y-1">
+            {crosswordEntries.map((entry, index) => (
+              <li
+                key={index}
+                className="flex items-start gap-2 rounded-md bg-surface-soft px-2 py-1 text-xs"
+              >
+                <span className="font-mono font-semibold text-ink-soft">
+                  {crosswordLabels[index]}
+                </span>
+                <span className="text-ink-muted">{entry.clue}</span>
+                <span className="ml-auto shrink-0 tabular-nums text-ink-faint">
+                  {entry.word.length} letras
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
         <button type="button" className="preview-check" onClick={check}>
           Comprobar
         </button>
@@ -310,6 +358,7 @@ export function ExercisePreview({
   explanation,
   example,
   error,
+  markers,
 }: {
   type: ExerciseType;
   prompt: string;
@@ -319,23 +368,40 @@ export function ExercisePreview({
   explanation: string;
   example: ExerciseExample | null;
   error?: string | null;
+  markers?: PreviewMarkers;
 }) {
   return (
     <div className="space-y-3 card p-4">
       <div className="flex items-center gap-2">
         <Badge type={type} />
-        <p className="font-medium text-ink">{prompt || "Enunciado del ejercicio"}</p>
+        <p className="font-medium text-ink">
+          {markers?.prompt && <Marker>{markers.prompt}</Marker>}
+          {prompt || "Enunciado del ejercicio"}
+        </p>
       </div>
-      {instructions && <p className="text-sm text-ink-muted">{instructions}</p>}
+      {instructions && (
+        <p className="text-sm text-ink-muted">
+          {markers?.instructions && <Marker>{markers.instructions}</Marker>}
+          {instructions}
+        </p>
+      )}
       {error && <p className="form-error">{error}</p>}
-      <ActivityRunner
-        type={type}
-        config={config}
-        correctOrder={correctOrder}
-        options={[]}
-        answer={0}
-      />
-      {explanation && <p className="text-sm text-ink-muted">{explanation}</p>}
+      <div className="space-y-1">
+        {markers?.activity && <Marker>{markers.activity}</Marker>}
+        <ActivityRunner
+          type={type}
+          config={config}
+          correctOrder={correctOrder}
+          options={[]}
+          answer={0}
+        />
+      </div>
+      {explanation && (
+        <p className="text-sm text-ink-muted">
+          {markers?.explanation && <Marker>{markers.explanation}</Marker>}
+          {explanation}
+        </p>
+      )}
       {example && <ExerciseExamplePreview example={example} />}
     </div>
   );
@@ -351,6 +417,7 @@ export function ExamplePreview({
   hints,
   explanation,
   error,
+  markers,
 }: {
   type: ExerciseType;
   title: string;
@@ -361,27 +428,45 @@ export function ExamplePreview({
   hints: string[];
   explanation: string;
   error?: string | null;
+  markers?: PreviewMarkers;
 }) {
   return (
     <div className="space-y-3 card p-4">
       <div className="flex flex-wrap items-center gap-2">
         <Badge type={type} />
-        <p className="font-medium text-ink">{title || "Título del ejemplo"}</p>
+        <p className="font-medium text-ink">
+          {markers?.title && <Marker>{markers.title}</Marker>}
+          {title || "Título del ejemplo"}
+        </p>
       </div>
-      <p className="text-sm text-ink-soft">{prompt}</p>
+      <p className="text-sm text-ink-soft">
+        {markers?.prompt && <Marker>{markers.prompt}</Marker>}
+        {prompt}
+      </p>
       {error && <p className="form-error">{error}</p>}
-      <ActivityRunner
-        type={type}
-        config={config}
-        correctOrder={correctOrder}
-        options={[]}
-        answer={0}
-      />
-      <Steps steps={steps} />
+      <div className="space-y-1">
+        {markers?.activity && <Marker>{markers.activity}</Marker>}
+        <ActivityRunner
+          type={type}
+          config={config}
+          correctOrder={correctOrder}
+          options={[]}
+          answer={0}
+        />
+      </div>
+      <Steps steps={steps} marker={markers?.steps} />
       {hints.length > 0 && (
-        <p className="text-xs text-ink-muted">Pistas: {hints.join(" · ")}</p>
+        <p className="text-xs text-ink-muted">
+          {markers?.hints && <Marker>{markers.hints}</Marker>}
+          Pistas: {hints.join(" · ")}
+        </p>
       )}
-      {explanation && <p className="text-sm text-ink-muted">{explanation}</p>}
+      {explanation && (
+        <p className="text-sm text-ink-muted">
+          {markers?.explanation && <Marker>{markers.explanation}</Marker>}
+          {explanation}
+        </p>
+      )}
     </div>
   );
 }
@@ -481,6 +566,35 @@ export function LessonReadingPreview({
                 </ol>
               );
             }
+            if (block.type === "image") {
+              return (
+                <figure key={index} className="preview-media">
+                  <img src={mediaSrc(block.mediaId)} alt={block.alt} />
+                  {block.caption && <figcaption>{block.caption}</figcaption>}
+                </figure>
+              );
+            }
+            if (block.type === "video") {
+              const videoId = youtubeVideoId(block.url);
+              return (
+                <figure key={index} className="preview-media">
+                  {videoId && <img src={youtubeThumbnail(videoId)} alt="" />}
+                  <figcaption>
+                    <span className="block text-ink-soft">{block.title}</span>
+                    <span className="preview-note">Requiere conexión</span>{" "}
+                    <a
+                      href={block.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="preview-media-link"
+                    >
+                      Ver en YouTube
+                    </a>
+                  </figcaption>
+                </figure>
+              );
+            }
+            if (block.type !== "table") return null;
             return (
               <div key={index} className="overflow-auto">
                 <table>

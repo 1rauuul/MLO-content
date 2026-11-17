@@ -1,5 +1,6 @@
 import { parseBlocks, type ContentBlock } from "../content";
 import { hashValue } from "./hash";
+import { legacyBlocks } from "./legacy-blocks";
 import type { ExerciseConfig, ExerciseStep, ExerciseType } from "./model";
 import {
   parseExampleInput,
@@ -122,7 +123,11 @@ function snapshotBody(
       code: extra.lesson_code,
       extras: [],
     };
-    lesson.extras.push({ id: extra.id, type: extra.type, content: extra.payload });
+    const content =
+      extra.type === "lesson" && "blocks" in extra.payload
+        ? { ...extra.payload, blocks: legacyBlocks(extra.payload.blocks) }
+        : extra.payload;
+    lesson.extras.push({ id: extra.id, type: extra.type, content });
     byLesson.set(extra.lesson_content_id, lesson);
   }
 

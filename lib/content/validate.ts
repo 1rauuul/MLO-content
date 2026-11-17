@@ -1,3 +1,4 @@
+import { isImageMime, youtubeVideoId } from "./media";
 import type {
   ActivityType,
   CoreCourse,
@@ -390,6 +391,37 @@ function validateBlocks(content: unknown, lessonId: string): void {
         if (row.some((cell) => !text(cell))) {
           throw new Error(`${where}: celda vacía.`);
         }
+      }
+      continue;
+    }
+    if (block.type === "image") {
+      if (typeof block.mediaId !== "string" || !block.mediaId) {
+        throw new Error(`${where}: imagen sin identificador.`);
+      }
+      if (!isImageMime(block.mime)) {
+        throw new Error(`${where}: formato de imagen no permitido.`);
+      }
+      if (
+        !Number.isInteger(block.width) ||
+        !Number.isInteger(block.height) ||
+        (block.width as number) < 1 ||
+        (block.height as number) < 1 ||
+        (block.width as number) > 10000 ||
+        (block.height as number) > 10000
+      ) {
+        throw new Error(`${where}: dimensiones de imagen inválidas.`);
+      }
+      if (!text(block.alt)) {
+        throw new Error(`${where}: texto alternativo vacío.`);
+      }
+      continue;
+    }
+    if (block.type === "video") {
+      if (typeof block.url !== "string" || !youtubeVideoId(block.url)) {
+        throw new Error(`${where}: enlace de video inválido.`);
+      }
+      if (!text(block.title)) {
+        throw new Error(`${where}: título de video vacío.`);
       }
       continue;
     }

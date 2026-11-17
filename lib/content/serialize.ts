@@ -13,6 +13,7 @@ import type {
   ActivityType,
 } from "./model";
 import { apa7Text, referenceUrl } from "./references";
+import { legacyBlocks } from "./legacy-blocks";
 
 export type PublishedUnit = {
   id: string;
@@ -163,7 +164,7 @@ export function serializeLesson(input: {
       contextTitle: lesson.context_title,
       contextBody: lesson.context_body,
       synthesis: lesson.synthesis,
-      content: lesson.content,
+      content: legacyBlocks(lesson.content),
       position: lesson.position,
     },
     evaluation: evaluation

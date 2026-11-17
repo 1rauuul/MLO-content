@@ -310,6 +310,7 @@ export function ExtraForm({
             key={initial?.id ?? "lesson-blocks"}
             initial={lessonDraft.blocks}
             label="Bloques del contenido adicional"
+            allowMedia
           />
         </div>
       )}

@@ -11,6 +11,7 @@ import { normalizeInvitationEmail } from "@/lib/invitations/core";
 import { sendInvitationEmail } from "@/lib/invitations/delivery";
 import {
   createInvitation,
+  recordInvitationDelivery,
   revokeInvitation,
 } from "@/lib/invitations/invitations";
 import { newCourseKey, newJoinCode } from "@/lib/ids";
@@ -284,17 +285,31 @@ export async function createClassInvitation(
     email,
     createdBy: teacher.id,
   });
-  if (!created.ok) return { error: "No se pudo crear la invitación." };
+  if (!created.ok) {
+    return created.error === "rate_limited"
+      ? {
+          error:
+            "Hiciste demasiadas invitaciones seguidas. Espera una hora y vuelve a intentarlo.",
+        }
+      : { error: "No se pudo crear la invitación." };
+  }
 
   // Si el envío falla, la invitación y el enlace siguen siendo válidos.
   const delivery = await sendInvitationEmail({
     to: created.invitation.email,
     link: created.invitation.link,
+    classCode: klass.join_code,
     className: klass.name,
     courseTitle: klass.course_title,
     teacherName: klass.teacher_name,
     expiresAt: created.invitation.expiresAt,
   });
+
+  try {
+    await recordInvitationDelivery(created.invitation.id, delivery);
+  } catch {
+    // El correo ya se intentó y la invitación existe; el historial es informativo.
+  }
 
   revalidatePath(`/grupos/${klass.id}`);
 

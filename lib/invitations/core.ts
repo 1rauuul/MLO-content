@@ -4,6 +4,8 @@ export const INVITATION_TTL_DAYS = 3;
 export const INVITATION_MAX_ATTEMPTS = 10;
 export const INVITATION_TOKEN_BYTES = 32;
 export const INVITATION_TOKEN_PATTERN = /^[A-Za-z0-9_-]{43}$/;
+export const INVITATION_RATE_LIMIT = 60;
+export const INVITATION_RATE_WINDOW_MINUTES = 60;
 
 export type InvitationError =
   | "invalid"
@@ -53,6 +55,10 @@ export function normalizeInvitationEmail(raw: string): string | null {
 
 export function invitationExpiresAt(now: Date = new Date()): Date {
   return new Date(now.getTime() + INVITATION_TTL_DAYS * 24 * 60 * 60 * 1000);
+}
+
+export function invitationRateLimited(recentCount: number): boolean {
+  return recentCount >= INVITATION_RATE_LIMIT;
 }
 
 export function invitationStatus(

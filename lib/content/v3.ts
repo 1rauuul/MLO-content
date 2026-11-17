@@ -1,5 +1,6 @@
 import type { ReleaseV3 } from "./contract-v3";
 import { hashValue } from "./hash";
+import { publishMediaBlocks } from "./publish-media";
 import type { CoreCourse, CoreQuestion, CoreTopic } from "./model";
 import { publishedId, serializeReference, type PublishedReference } from "./serialize";
 
@@ -218,7 +219,7 @@ export function buildV3Release(input: V3ReleaseInput): ReleaseV3 {
       title: lesson.title,
       eyebrow: lesson.eyebrow,
       body: lesson.body,
-      content: lesson.content,
+      content: publishMediaBlocks(lesson.content),
       position: lesson.position,
       ...withReferenceIds(lesson.reference_content_ids),
     })),

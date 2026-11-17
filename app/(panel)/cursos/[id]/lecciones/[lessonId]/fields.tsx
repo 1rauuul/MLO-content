@@ -4,17 +4,32 @@ import type { CrosswordEntry, ExerciseStep, MatchPair } from "@/lib/content/mode
 
 export const fieldClass = "field";
 
+/** Chip ① ② ③ que liga un campo del formulario con la muestra. */
+export function Marker({ children }: { children: React.ReactNode }) {
+  return (
+    <span
+      aria-hidden="true"
+      className="mr-1.5 inline-grid size-4 shrink-0 place-items-center rounded-full bg-accent-soft align-middle text-[10px] font-semibold leading-none text-accent ring-1 ring-accent/20"
+    >
+      {children}
+    </span>
+  );
+}
+
 export function Field({
   label,
   hint,
+  marker,
   children,
 }: {
   label: string;
   hint?: string;
+  marker?: string;
   children: React.ReactNode;
 }) {
   return (
     <label className="field-label">
+      {marker && <Marker>{marker}</Marker>}
       {label}
       {children}
       {hint && <span className="hint">{hint}</span>}
@@ -53,19 +68,24 @@ export function TextList({
   onChange,
   placeholder,
   hint,
+  marker,
 }: {
   label: string;
   values: string[];
   onChange: (values: string[]) => void;
   placeholder?: string;
   hint?: string;
+  marker?: string;
 }) {
   const update = (index: number, value: string) =>
     onChange(values.map((item, position) => (position === index ? value : item)));
 
   return (
     <div className="space-y-2">
-      <p className="text-sm text-ink-soft">{label}</p>
+      <p className="text-sm text-ink-soft">
+        {marker && <Marker>{marker}</Marker>}
+        {label}
+      </p>
       {hint && <p className="hint">{hint}</p>}
       {values.map((value, index) => (
         <div key={index} className="flex gap-2">
@@ -86,9 +106,11 @@ export function TextList({
 export function PairsEditor({
   pairs,
   onChange,
+  marker,
 }: {
   pairs: MatchPair[];
   onChange: (pairs: MatchPair[]) => void;
+  marker?: string;
 }) {
   const update = (index: number, key: keyof MatchPair, value: string) =>
     onChange(
@@ -99,7 +121,10 @@ export function PairsEditor({
 
   return (
     <div className="space-y-2">
-      <p className="text-sm text-ink-soft">Pares</p>
+      <p className="text-sm text-ink-soft">
+        {marker && <Marker>{marker}</Marker>}
+        Pares
+      </p>
       {pairs.map((pair, index) => (
         <div key={index} className="flex flex-wrap gap-2 sm:flex-nowrap">
           <input
@@ -129,9 +154,11 @@ export function PairsEditor({
 export function StepsEditor({
   steps,
   onChange,
+  marker,
 }: {
   steps: ExerciseStep[];
   onChange: (steps: ExerciseStep[]) => void;
+  marker?: string;
 }) {
   const update = (index: number, key: keyof ExerciseStep, value: string) =>
     onChange(
@@ -142,7 +169,10 @@ export function StepsEditor({
 
   return (
     <div className="space-y-2">
-      <p className="text-sm text-ink-soft">Pasos del ejemplo</p>
+      <p className="text-sm text-ink-soft">
+        {marker && <Marker>{marker}</Marker>}
+        Pasos del ejemplo
+      </p>
       {steps.map((step, index) => (
         <div
           key={index}
@@ -179,9 +209,11 @@ export function StepsEditor({
 export function EntriesEditor({
   entries,
   onChange,
+  marker,
 }: {
   entries: CrosswordEntry[];
   onChange: (entries: CrosswordEntry[]) => void;
+  marker?: string;
 }) {
   const update = <K extends keyof CrosswordEntry>(
     index: number,
@@ -196,7 +228,10 @@ export function EntriesEditor({
 
   return (
     <div className="space-y-3">
-      <p className="text-sm text-ink-soft">Entradas del crucigrama</p>
+      <p className="text-sm text-ink-soft">
+        {marker && <Marker>{marker}</Marker>}
+        Entradas del crucigrama
+      </p>
       {entries.map((entry, index) => (
         <div
           key={index}

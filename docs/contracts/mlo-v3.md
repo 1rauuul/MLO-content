@@ -600,7 +600,7 @@ rechaza completo.
 
 ### 9.1 Bloques de contenido
 
-Solo existen cinco tipos. Un tipo desconocido invalida la lección.
+Solo existen siete tipos. Un tipo desconocido invalida la lección.
 
 ```json
 { "type": "p", "text": "Párrafo" }
@@ -608,6 +608,21 @@ Solo existen cinco tipos. Un tipo desconocido invalida la lección.
 { "type": "bullets", "items": ["Punto A", "Punto B"] }
 { "type": "numbers", "items": ["Paso 1", "Paso 2"] }
 { "type": "table", "header": ["Concepto", "Definición"], "rows": [["A", "B"]] }
+{
+  "type": "image",
+  "src": "https://cms.example.com/api/media/<uuid>?sig=<firma>",
+  "mediaId": "<uuid>",
+  "mime": "image/webp",
+  "width": 1280,
+  "height": 720,
+  "alt": "Diagrama de arquitectura",
+  "caption": "Figura 1"
+}
+{
+  "type": "video",
+  "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+  "title": "Clase de introducción"
+}
 ```
 
 - `p` y `h`: `text` no vacío.
@@ -615,7 +630,16 @@ Solo existen cinco tipos. Un tipo desconocido invalida la lección.
 - `table`: `header` es `string[]` no vacío; `rows` es `string[][]` no vacío; cada
   fila tiene exactamente la misma cantidad de celdas que el encabezado y
   ninguna celda vacía.
-- No hay bloques de imagen ni de enlace.
+- `image`: `src` es una URL absoluta http(s) firmada por el CMS; `mediaId` es el
+  UUID de la imagen; `mime` es `image/jpeg`, `image/png` o `image/webp`;
+  `width`/`height` son enteros positivos; `alt` no vacío; `caption` opcional.
+  El consumidor debe descargar la imagen y conservarla junto con el release para
+  mostrarla sin conexión; si la descarga falla, puede usar `src` mientras haya
+  red.
+- `video`: `url` es un enlace de YouTube (`watch?v=`, `youtu.be`, `shorts` o
+  `embed`) y `title` no está vacío. El consumidor muestra una miniatura
+  (`https://i.ytimg.com/vi/<id>/hqdefault.jpg`) y reproduce el video dentro de
+  la app; el video requiere conexión.
 
 ### 9.2 Ejercicios y ejemplos
 

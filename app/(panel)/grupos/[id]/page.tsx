@@ -383,6 +383,8 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
               email: invitation.email,
               expiresAt: invitation.expires_at.toISOString(),
               status: invitation.status,
+              sentAt: invitation.sent_at?.toISOString() ?? null,
+              deliveryError: invitation.delivery_error,
             }))}
           />
         </div>

@@ -75,6 +75,10 @@
     box-shadow: var(--shadow-lift);
   }
 
+  dialog.dialog-wide {
+    @apply w-[min(42rem,calc(100vw-2rem))];
+  }
+
   dialog.dialog::backdrop {
     background: rgb(15 23 42 / 0.4);
   }
@@ -426,6 +430,22 @@
     @apply text-xs text-ink-faint;
   }
 
+  .preview-media {
+    @apply my-3 overflow-hidden rounded-lg border border-line bg-white;
+  }
+
+  .preview-media img {
+    @apply max-h-64 w-full object-contain;
+  }
+
+  .preview-media figcaption {
+    @apply px-3 py-2 text-xs text-ink-muted;
+  }
+
+  .preview-media-link {
+    @apply font-medium text-accent underline-offset-4 hover:underline;
+  }
+
 }
 
 @keyframes notice-in {
@@ -492,6 +512,19 @@
   background: #263447;
   border-color: #324050;
   color: #f4f7fb;
+}
+
+.mlo-preview .preview-media {
+  border-color: #324050;
+  background: #172033;
+}
+
+.mlo-preview .preview-media figcaption {
+  color: #9cabbc;
+}
+
+.mlo-preview .preview-media-link {
+  color: #7fa4ff;
 }
 
 .mlo-preview .preview-match-row {

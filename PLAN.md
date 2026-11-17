@@ -19,7 +19,7 @@ aplica en el teléfono sin actualizar la app.
 | Contenido del maestro | Solo **adiciones**; no puede editar ni borrar el core |
 | Publicación | Snapshot inmutable (`release`) que compone core + adiciones |
 | Ids publicados | `{key}-{contentId}`; el core conserva sus ids |
-| Multimedia | Pospuesta: el contrato v2 no tiene bloque de imagen |
+| Multimedia | Imágenes en Postgres con URL firmada y caché offline en MLO; video de YouTube embebido (requiere conexión) |
 | Acceso | Admin gestiona todo y el core; maestro solo sus cursos y clases |
 | Registro | Sin registro público; el admin crea las cuentas |
 | Clases | Un maestro crea varias; código de 6 fijo desde la creación; el alumno puede estar en varias |
@@ -308,7 +308,6 @@ versión 1. El curso `IS-AGDC-2026` quedó con 1 unidad (renumerada `u6`) y 1 le
 
 ## 6. Fuera de alcance
 
-- Multimedia (el contrato v2 no admite imágenes).
 - PWA.
 - Borradores e historial por documento.
 - Que el maestro modifique el core en su curso.
@@ -402,4 +401,6 @@ Variables en `.env.local` (no versionado): `DATABASE_URL`, `DATABASE_URL_DIRECT`
 | 2026-10-27 | M4A implementado: clases con código fijo, contenido extra por clase, publicación por snapshot, alumnos por UUID y endpoints de clases. Migración aplicada, 30 tests en verde, E2E con dos clases y contenido compartido verificado. Datos de prueba limpiados. |
 | 2026-10-27 | MLO adaptado: identidad `external_key`, caché de clases, perfil con varias clases, contenido extra en lecciones/práctica/ejemplos y respaldo v4 con reconciliación de duplicados. 363 tests de MLO, fixture real del panel validado y datos temporales del panel eliminados. Falta la prueba en dispositivo en `hybrid`. |
 | 2026-11-13 | Flujo del doc «CMS flujo»: **Guardar** publica el curso y confirma en un pop up (se eliminó `/cursos/[id]/publicar`); **Publicar grupo** confirma en un pop up; cards de grupos compactas (3 columnas, orden por más nuevos); numeración `unidad.subtema` en grupo, cabecera del subtema y selector de Contenido adicional; la unión a un grupo y las invitaciones exigen una publicación previa (`409 unpublished`, mensaje propio en MLO). 128 tests del panel y 23 del contrato de MLO en verde. |
+| 2026-11-16 | Invitaciones por correo: código de respaldo en el correo (texto y HTML), historial de entrega persistido (`sent_at`/`delivery_error`) y límite de 60 altas por hora y docente. Migración `20261116000000_invitation_delivery_rate.sql` aplicada. 130 tests en verde. |
 | 2026-11-16 | Evaluaciones arregladas: faltaba aplicar `20261111000001_topic_direct_activities.sql` en la base (lesson_id seguía NOT NULL), así que crear evaluación/pregunta fallaba con `23502`. Migración aplicada y verificada; la base ya acepta actividades directas al subtema. Además `createEvaluation`/`saveQuestion` devuelven el error al formulario y la publicación rechaza una evaluación sin preguntas. 129 tests en verde. |
+| 2026-11-16 | Referencia visual en el editor de ejercicios y ejemplos: botón **Ver muestra** con una actividad completa por tipo (ordenar, completar, relacionar, crucigrama), chips ①–⑥ ligados a los campos y **Usar esta muestra** para copiarla al formulario. Las muestras viven en `lib/content/samples.ts` y un test las valida con las reglas estrictas de publicación. La vista previa del crucigrama ahora muestra las pistas con H1/V1. 131 tests en verde. |
