@@ -232,6 +232,20 @@ test("la publicación acepta evaluaciones solo de preguntas", () => {
   assert.throws(() => validateCatalogForPublish(invalid));
 });
 
+test("la publicación rechaza una evaluación sin preguntas", () => {
+  const evaluation = fixture.evaluations[0];
+  const empty: CoreCourse = {
+    ...fixture,
+    questions: fixture.questions.filter(
+      (question) => question.evaluation_content_id !== evaluation.content_id,
+    ),
+  };
+  assert.throws(
+    () => validateCatalogForPublish(empty),
+    /necesita al menos una pregunta/,
+  );
+});
+
 test("parseQuestionInput acepta mcq, order, fill, match y crossword", () => {  const mcq = parseQuestionInput({
     type: "mcq",
     prompt: "¿Cuál?",

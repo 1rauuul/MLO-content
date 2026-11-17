@@ -557,7 +557,15 @@ export function validateCatalogForPublish(course: CoreCourse): void {
     if ("error" in parsed) throw new Error(`Ejemplo ${example.content_id}: ${parsed.error}`);
   }
 
+  const evaluationsWithQuestions = new Set(
+    course.questions.map((question) => question.evaluation_content_id),
+  );
   for (const evaluation of course.evaluations) {
+    if (!evaluationsWithQuestions.has(evaluation.content_id)) {
+      throw new Error(
+        `Evaluación ${evaluation.content_id}: necesita al menos una pregunta.`,
+      );
+    }
     if (
       !Number.isInteger(evaluation.question_count) ||
       evaluation.question_count <= 0 ||
