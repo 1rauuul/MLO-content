@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   /* config options here */
   experimental: {
     agentFeedback: true,
+    agentUpgrade: "security",
   },
   // Panel autenticado y 100% dinámico: PPR no aporta y obligaría a Suspense en
   // cada lectura de cookies. Se usa el modelo de render clásico.
