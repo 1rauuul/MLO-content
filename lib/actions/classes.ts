@@ -7,7 +7,10 @@ import { requireTeacher } from "@/lib/auth";
 import { publishClassRelease, requireEditableClass } from "@/lib/classes";
 import { isExtraType, parseExtraPayload } from "@/lib/content/classes";
 import { db } from "@/lib/db";
-import { normalizeInvitationEmail } from "@/lib/invitations/core";
+import {
+  buildInvitationWebLink,
+  normalizeInvitationEmail,
+} from "@/lib/invitations/core";
 import { sendInvitationEmail } from "@/lib/invitations/delivery";
 import {
   createInvitation,
@@ -15,6 +18,7 @@ import {
   revokeInvitation,
 } from "@/lib/invitations/invitations";
 import { newCourseKey, newJoinCode } from "@/lib/ids";
+import { appBaseUrl } from "@/lib/media/signing";
 
 export type ClassResult = { error?: string };
 export type ExtraResult = { error?: string; ok?: boolean };
@@ -295,9 +299,13 @@ export async function createClassInvitation(
   }
 
   // Si el envío falla, la invitación y el enlace siguen siendo válidos.
+  const webLink = buildInvitationWebLink(
+    appBaseUrl(),
+    created.invitation.token,
+  );
   const delivery = await sendInvitationEmail({
     to: created.invitation.email,
-    link: created.invitation.link,
+    link: webLink,
     classCode: klass.join_code,
     className: klass.name,
     courseTitle: klass.course_title,
@@ -319,7 +327,7 @@ export async function createClassInvitation(
       id: created.invitation.id,
       email: created.invitation.email,
       expiresAt: created.invitation.expiresAt.toISOString(),
-      link: created.invitation.link,
+      link: webLink,
       delivery: delivery.sent ? "sent" : delivery.reason,
     },
   };

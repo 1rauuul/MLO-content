@@ -57,6 +57,16 @@ export type ClaimedMembership = {
   published: { version: number; hash: string; publishedAt: string } | null;
 };
 
+export type InvitationPreview = {
+  className: string;
+  courseTitle: string;
+  teacherName: string;
+  classCode: string;
+  expiresAt: Date;
+  status: InvitationStatus;
+  archived: boolean;
+};
+
 export type CreateInvitationResult =
   | { ok: true; invitation: CreatedInvitation }
   | { ok: false; error: "invalid_email" | "not_found" | "rate_limited" };
@@ -147,6 +157,48 @@ export async function listInvitations(
     ...row,
     status: invitationStatus(row, now),
   }));
+}
+
+export async function getInvitationPreview(
+  token: string,
+): Promise<InvitationPreview | null> {
+  if (!isInvitationToken(token)) return null;
+
+  const [row] = await db()<
+    {
+      class_name: string;
+      course_title: string;
+      teacher_name: string;
+      join_code: string;
+      expires_at: Date;
+      used_at: Date | null;
+      revoked_at: Date | null;
+      attempt_count: number;
+      archived_at: Date | null;
+    }[]
+  >`
+    select c.name as class_name, co.title as course_title,
+           t.name as teacher_name, c.join_code, c.archived_at,
+           i.expires_at, i.used_at, i.revoked_at, i.attempt_count
+      from class_invitations i
+      join classes c on c.id = i.class_id
+      join courses co on co.id = i.course_id
+      join teachers t on t.id = c.teacher_id
+     where i.token_hash = ${hashInvitationToken(token)}
+     limit 1`;
+
+  if (!row) return null;
+  if (row.attempt_count >= INVITATION_MAX_ATTEMPTS) return null;
+
+  return {
+    className: row.class_name,
+    courseTitle: row.course_title,
+    teacherName: row.teacher_name,
+    classCode: row.join_code,
+    expiresAt: row.expires_at,
+    status: invitationStatus(row),
+    archived: row.archived_at !== null,
+  };
 }
 
 export async function revokeInvitation(

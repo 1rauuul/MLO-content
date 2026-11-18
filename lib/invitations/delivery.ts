@@ -55,7 +55,7 @@ export function invitationEmailContent(email: InvitationEmail): {
       ``,
       `${email.teacherName} te invitó al grupo "${email.className}" del curso "${email.courseTitle}" en MLO.`,
       ``,
-      `Abre este enlace desde tu dispositivo para unirte:`,
+      `Abre este enlace para unirte:`,
       email.link,
       ``,
       `Si el enlace no abre la aplicación, entra a MLO, elige "Unirme a una clase" y escribe el código de la clase:`,
@@ -138,7 +138,7 @@ export function invitationEmailContent(email: InvitationEmail): {
                       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                         <tr>
                           <td align="center" style="background:#0f172a;border-radius:9px;">
-                            <a href="${link}" style="display:block;padding:14px 20px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.2;font-weight:700;color:#ffffff;text-decoration:none;">Abrir MLO y unirme</a>
+                            <a href="${link}" style="display:block;padding:14px 20px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.2;font-weight:700;color:#ffffff;text-decoration:none;">Abrir invitación</a>
                           </td>
                         </tr>
                       </table>
@@ -146,7 +146,7 @@ export function invitationEmailContent(email: InvitationEmail): {
                   </tr>
                   <tr>
                     <td style="padding:16px 32px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.5;color:#5b6776;">
-                      Si el botón no abre la aplicación, copia este enlace:<br>
+                      Si el botón no abre, copia este enlace:<br>
                       <a href="${link}" style="color:#315fec;text-decoration:underline;word-break:break-all;">${link}</a>
                     </td>
                   </tr>

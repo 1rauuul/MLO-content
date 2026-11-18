@@ -18,6 +18,7 @@ import {
   INVITATION_RATE_LIMIT,
   INVITATION_TTL_DAYS,
   buildInvitationLink,
+  buildInvitationWebLink,
   generateInvitationToken,
   hashInvitationToken,
   invitationClaimError,
@@ -296,6 +297,10 @@ test("el hash es SHA-256 estable y no contiene el token", () => {
   assert.equal(
     buildInvitationLink(token),
     `mloingenieriasoftware://join-class?token=${token}`,
+  );
+  assert.equal(
+    buildInvitationWebLink("https://cms.test/", token),
+    `https://cms.test/join?token=${token}`,
   );
 });
 
@@ -617,9 +622,10 @@ test("un token con formato inválido no abre transacción", async () => {
 test("el correo de invitación incluye el enlace, el código de la clase y escapa el HTML", () => {
   const token = generateInvitationToken();
   const classCode = "A7K2M9";
+  const webLink = buildInvitationWebLink("https://cms.test", token);
   const content = invitationEmailContent({
     to: "alumno@cualquier-dominio.com",
-    link: buildInvitationLink(token),
+    link: webLink,
     classCode,
     className: "<Grupo & Cía>",
     courseTitle: "Curso de prueba",
@@ -628,7 +634,8 @@ test("el correo de invitación incluye el enlace, el código de la clase y escap
   });
 
   assert.match(content.subject, /Invitación a <Grupo & Cía>/);
-  assert.match(content.text, /mloingenieriasoftware:\/\/join-class\?token=/);
+  assert.ok(content.text.includes(webLink));
+  assert.ok(content.html.includes(webLink));
   assert.ok(content.text.includes(classCode));
   assert.ok(content.html.includes(classCode));
   assert.match(content.text, /Unirme a una clase/);
@@ -649,7 +656,7 @@ test("sin credenciales la entrega queda pendiente de configuración", async () =
     assert.deepEqual(
       await sendInvitationEmail({
         to: "alumno@cualquier-dominio.com",
-        link: buildInvitationLink(generateInvitationToken()),
+        link: buildInvitationWebLink("https://cms.test", generateInvitationToken()),
         classCode: "A7K2M9",
         className: "Grupo A",
         courseTitle: "Curso de prueba",
@@ -683,7 +690,7 @@ test("configurado, envía la invitación a Resend", async () => {
   try {
     const result = await sendInvitationEmail({
       to: "alumno@cualquier-dominio.com",
-      link: buildInvitationLink(generateInvitationToken()),
+      link: buildInvitationWebLink("https://cms.test", generateInvitationToken()),
       classCode: "A7K2M9",
       className: "Grupo A",
       courseTitle: "Curso de prueba",
@@ -716,7 +723,7 @@ test("el proveedor rechazado no invalida la invitación", async () => {
     assert.deepEqual(
       await sendInvitationEmail({
         to: "alumno@cualquier-dominio.com",
-        link: buildInvitationLink(generateInvitationToken()),
+        link: buildInvitationWebLink("https://cms.test", generateInvitationToken()),
         classCode: "A7K2M9",
         className: "Grupo A",
         courseTitle: "Curso de prueba",

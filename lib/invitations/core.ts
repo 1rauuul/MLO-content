@@ -75,6 +75,11 @@ export function buildInvitationLink(token: string): string {
   return `mloingenieriasoftware://join-class?token=${encodeURIComponent(token)}`;
 }
 
+/** Enlace HTTPS para abrir la invitación desde cualquier cliente de correo. */
+export function buildInvitationWebLink(baseUrl: string, token: string): string {
+  return `${baseUrl.replace(/\/+$/, "")}/join?token=${encodeURIComponent(token)}`;
+}
+
 /**
  * Primer error estable del reclamo. El límite de intentos se evalúa antes que
  * el estado para no revelar si el token existe cuando ya se agotó.
