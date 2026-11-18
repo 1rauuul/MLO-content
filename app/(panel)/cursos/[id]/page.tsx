@@ -60,6 +60,7 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
   const isArchived = Boolean(course.archived_at);
   const [coreId] = editorCourseIds(
     course.is_group,
+    course.uses_base,
     course.id,
     await getBaseCourseId(),
   );

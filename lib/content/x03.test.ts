@@ -118,16 +118,21 @@ test("v2 elige una evaluación primaria por lección", () => {
   );
 });
 
-test("el editor de un grupo no compone con el curso base", () => {
-  assert.deepEqual(editorCourseIds(true, "group-course", "base-id"), [
-    "group-course",
-  ]);
-  assert.deepEqual(editorCourseIds(false, "course", "base-id"), [
+test("el editor compone con el contenido base solo si el curso lo declara", () => {
+  assert.deepEqual(
+    editorCourseIds(true, true, "group-course", "base-id"),
+    ["group-course"],
+  );
+  assert.deepEqual(editorCourseIds(false, true, "course", "base-id"), [
     "base-id",
     "course",
   ]);
-  assert.deepEqual(editorCourseIds(false, "course", null), ["course"]);
-  assert.deepEqual(editorCourseIds(false, "course", "course"), ["course"]);
+  // Regresión: un curso creado sin "Cargar contenido base" no debe ver el base.
+  assert.deepEqual(editorCourseIds(false, false, "course", "base-id"), [
+    "course",
+  ]);
+  assert.deepEqual(editorCourseIds(false, true, "course", null), ["course"]);
+  assert.deepEqual(editorCourseIds(false, true, "course", "course"), ["course"]);
 });
 
 test("reordenar devuelve el vecino correcto y no inventa filas", () => {

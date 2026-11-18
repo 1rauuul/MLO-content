@@ -6,19 +6,18 @@ import { createUnit, type ActionResult } from "@/lib/actions/content";
 
 const inputClass = "field";
 const COLOR_OPTIONS = [
-  { value: "blue", label: "Azul", swatch: "bg-blue-500" },
-  { value: "violet", label: "Violeta", swatch: "bg-violet-500" },
-  { value: "green", label: "Verde", swatch: "bg-emerald-500" },
-  { value: "amber", label: "Ámbar", swatch: "bg-amber-500" },
-  { value: "orange", label: "Naranja", swatch: "bg-orange-500" },
-  { value: "rose", label: "Rosa", swatch: "bg-rose-500" },
-  { value: "teal", label: "Turquesa", swatch: "bg-teal-500" },
+  { value: "blue", label: "Azul" },
+  { value: "violet", label: "Violeta" },
+  { value: "green", label: "Verde" },
+  { value: "amber", label: "Ámbar" },
+  { value: "orange", label: "Naranja" },
+  { value: "rose", label: "Rosa" },
+  { value: "teal", label: "Turquesa" },
 ] as const;
 
 export function CreateUnitForm({ courseId }: { courseId: string }) {
   const [state, action, pending] = useActionState<ActionResult, FormData>(createUnit, {});
   const [open, setOpen] = useState(false);
-  const [color, setColor] = useState<(typeof COLOR_OPTIONS)[number]["value"]>("blue");
 
   return (
     <section className="card overflow-hidden">
@@ -66,32 +65,16 @@ export function CreateUnitForm({ courseId }: { courseId: string }) {
               <option value="Avanzado">Avanzado</option>
               </select>
             </label>
-            <div>
-              <p className="field-label">Color de identificación</p>
-              <input type="hidden" name="color" value={color} />
-              <div className="mt-1 grid grid-cols-2 gap-1.5" role="radiogroup" aria-label="Color de identificación">
-                {COLOR_OPTIONS.map((option) => {
-                  const selected = color === option.value;
-                  return (
-                    <button
-                      type="button"
-                      key={option.value}
-                      role="radio"
-                      aria-checked={selected}
-                      onClick={() => setColor(option.value)}
-                      className={`flex items-center gap-2 rounded-lg border px-2.5 py-2 text-left text-xs font-medium transition ${
-                        selected
-                          ? "border-ink bg-surface-soft text-ink ring-1 ring-ink"
-                          : "border-line bg-white text-ink-muted hover:border-ink-soft"
-                      }`}
-                    >
-                      <span className={`size-3 rounded-full ${option.swatch}`} aria-hidden="true" />
-                      {option.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+            <label className="field-label">
+              Color de identificación
+              <select name="color" defaultValue="blue" className={inputClass}>
+                {COLOR_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
 
           <button type="submit" disabled={pending} className="btn btn-primary justify-self-start">

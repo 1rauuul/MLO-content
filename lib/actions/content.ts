@@ -93,6 +93,7 @@ export async function createUnit(
 
   const scope = editorCourseIds(
     course.is_group,
+    course.uses_base,
     course.id,
     await getBaseCourseId(),
   );
@@ -143,7 +144,12 @@ export async function createLesson(
   try {
     await db().begin(async (tx) => {
       for (const target of targets) {
-        const scope = editorCourseIds(target.course.is_group, target.course.id, baseId);
+        const scope = editorCourseIds(
+          target.course.is_group,
+          target.course.uses_base,
+          target.course.id,
+          baseId,
+        );
         const existingCodes = await tx<{ code: string }[]>`
           select code
             from lessons
@@ -264,6 +270,7 @@ export async function createTopic(
 
   const scope = editorCourseIds(
     course.is_group,
+    course.uses_base,
     course.id,
     await getBaseCourseId(),
   );

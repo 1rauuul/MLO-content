@@ -1,12 +1,16 @@
 import type { CoreTopic } from "./model";
 
-/** Alcance del editor: el curso interno de un grupo nunca compone con el base. */
+/**
+ * Alcance del editor: un grupo o un curso que no declara contenido base no
+ * compone con el base. `uses_base` es la fuente de verdad, igual que al publicar.
+ */
 export function editorCourseIds(
   isGroup: boolean,
+  usesBase: boolean,
   courseId: string,
   baseId: string | null,
 ): string[] {
-  if (isGroup || !baseId || baseId === courseId) return [courseId];
+  if (isGroup || !usesBase || !baseId || baseId === courseId) return [courseId];
   return [baseId, courseId];
 }
 
