@@ -6,6 +6,7 @@ import { deleteQuestion, moveQuestion } from "@/lib/actions/topics";
 import { requireTeacher } from "@/lib/auth";
 import type { CoreQuestion } from "@/lib/content/model";
 import { db } from "@/lib/db";
+import { backTo } from "@/lib/navigation";
 
 import { EvaluationEditForm } from "./evaluation-edit-form";
 import { QuestionForm } from "./question-form";
@@ -51,11 +52,15 @@ function MoveButtons({
 
 export default async function EvaluationPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string; topicId: string; evaluationId: string }>;
+  searchParams: Promise<{ volver?: string | string[] }>;
 }) {
   const teacher = await requireTeacher();
   const { id: courseId, topicId, evaluationId } = await params;
+  const { volver } = await searchParams;
+  const back = backTo(volver);
 
   const [evaluation] = await db()<EvaluationRow[]>`
     select e.id, e.content_id, e.topic_id, e.lesson_id, e.title, e.description,
@@ -91,8 +96,8 @@ export default async function EvaluationPage({
   return (
     <div className="space-y-6">
       <header>
-        <BackLink href={`/cursos/${courseId}/temas/${topicId}`}>
-          {evaluation.topic_title}
+        <BackLink href={back ?? `/cursos/${courseId}/temas/${topicId}`}>
+          {back ? "Volver al contenido" : evaluation.topic_title}
         </BackLink>
         <div className="mt-1 flex flex-wrap items-center gap-3">
           <h1 className="page-title">{evaluation.title}</h1>

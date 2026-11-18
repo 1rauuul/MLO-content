@@ -30,7 +30,7 @@ export function htmlFromMediaBlock(block: ImageBlock | VideoBlock): string {
       ` data-alt="${escapeAttr(block.alt)}"`,
       ` data-caption="${escapeAttr(block.caption ?? "")}"`,
       ` class="my-3 flex flex-col gap-2 rounded-xl border border-line bg-surface-soft p-3">`,
-      `<img src="${mediaSrc(block.mediaId)}" alt="${escapeAttr(block.alt)}" class="max-h-80 w-full rounded-lg bg-white object-contain">`,
+      `<img src="${mediaSrc(block.mediaId)}" alt="${escapeAttr(block.alt)}" class="max-h-80 w-full rounded-lg bg-white p-2 object-contain">`,
       caption,
       REMOVE_BUTTON,
       "</figure>",

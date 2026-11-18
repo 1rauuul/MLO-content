@@ -4,6 +4,52 @@ Registro legible de los cambios de producto. El estado detallado del panel vive 
 `PLAN.md`; los contratos, en `docs/contracts/`; y la cronología de la app en
 `MLO-Ingenieria-software/docs/estado/linea-de-tiempo.md`.
 
+## 2026-11-18 · Editor de contenido del grupo y seguimiento de cambios
+
+### Panel (`mlo-teachers`)
+
+- **Editar contenido del grupo.** Nueva pantalla `/grupos/[id]/contenido` con todas las
+  lecciones, ejemplos, ejercicios y evaluaciones del grupo, numerados por unidad y subtema.
+- **Editores propios del grupo.** Ejemplos y ejercicios se editan en
+  `/grupos/[id]/contenido/{ejemplos|ejercicios}/[id]`, con la misma vista previa interactiva de
+  la lección.
+- **Vista previa interactiva en Contenido adicional.** El editor muestra la actividad
+  (ordenar, completar, relacionar, crucigrama) funcionando antes de guardar.
+- **Cambios pendientes.** La tabla `class_content_changes` (con triggers sobre lecciones,
+  ejemplos, ejercicios, evaluaciones, unidades y subtemas) registra qué subtemas cambiaron desde
+  la última publicación. La tarjeta **Versión del grupo** muestra el último cambio y los
+  subtemas pendientes.
+- **Editar estructura desde el grupo.** Unidades y subtemas se editan con `unit-edit-form` y el
+  modo `?vista=estructura&volver=…`; los enlaces conservan la ruta de vuelta con `backTo`.
+- **Confirmaciones centradas.** Los pop ups de **Guardar curso** y **Publicar grupo** centran el
+  mensaje y simplifican el texto.
+- **Invitaciones.** Página HTTPS `/join` para abrir la invitación y enlace para abrir MLO local
+  desde el correo. Corregido el color del selector de curso.
+- **Pruebas.** 145/145, `lint`, `tsc` y `build` en verde; migraciones de cambios de contenido
+  aplicadas en la base.
+
+### App (`MLO-Ingenieria-software`)
+
+- **Portada.** Slides de bienvenida con los logos de CINVESTAV (`SplashSlides`), splash nativo
+  retirado y `versionCode` 6.
+- **Perfil.** Ajuste **Mostrar curso base** persistente; la lista de clases y la unión a clase
+  pasaron a la pantalla del curso.
+- **Curso.** Botón **Salir del curso** con confirmación y limpieza de la clase activa.
+- **Lección.** Se eliminó el paginado Concepto/Síntesis: todo el contenido se lee en una sola
+  pantalla, con el contenido extra de las clases debajo.
+- **Medios.** Las imágenes se muestran con marco y fondo suave; el campo para unirse a una clase
+  acepta el código en mayúsculas y lo centra.
+- **Contenido de grupos.** Una unidad del curso padre vuelve a mostrarse si un grupo agrega una
+  lección bajo ella (`applyV3Content`).
+- **Pruebas.** 581/581 y TypeScript limpio.
+
+| Verificación | Resultado |
+|---|---|
+| `npm test` (panel) | 145/145 |
+| `npm run lint` + `tsc` + `build` (panel) | Sin errores |
+| `npx jest` (app) | 581/581 |
+| `tsc` (app) | Sin errores |
+
 ## 2026-11-17 · Medios en lecciones, invitaciones y editor de actividades
 
 ### Panel (`mlo-teachers`)

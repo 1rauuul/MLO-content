@@ -32,6 +32,8 @@
 @layer base {
   :root {
     color-scheme: light;
+    /* Escala base del panel: los tamaños rem de Tailwind crecen con esto. */
+    font-size: 18px;
   }
 
   body {
@@ -311,7 +313,7 @@
   }
 
   .preview-body {
-    @apply text-sm leading-relaxed text-ink-muted;
+    @apply text-justify text-sm leading-relaxed text-ink-muted;
   }
 
   .preview-prose {
@@ -320,6 +322,12 @@
 
   .preview-prose h2 {
     @apply pt-1 text-sm font-semibold text-ink;
+  }
+
+  .preview-prose p,
+  .preview-prose li,
+  .preview-prose td {
+    @apply text-justify;
   }
 
   .preview-prose ul {
@@ -435,7 +443,7 @@
   }
 
   .preview-media img {
-    @apply max-h-64 w-full object-contain;
+    @apply max-h-64 w-full object-contain p-2;
   }
 
   .preview-media figcaption {

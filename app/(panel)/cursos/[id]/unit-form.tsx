@@ -6,18 +6,21 @@ import { createUnit, type ActionResult } from "@/lib/actions/content";
 
 const inputClass = "field";
 const COLOR_OPTIONS = [
-  { value: "blue", label: "Azul" },
-  { value: "violet", label: "Violeta" },
-  { value: "green", label: "Verde" },
-  { value: "amber", label: "Ámbar" },
-  { value: "orange", label: "Naranja" },
-  { value: "rose", label: "Rosa" },
-  { value: "teal", label: "Turquesa" },
+  { value: "blue", label: "Azul", swatch: "bg-blue-500" },
+  { value: "violet", label: "Violeta", swatch: "bg-violet-500" },
+  { value: "green", label: "Verde", swatch: "bg-emerald-500" },
+  { value: "amber", label: "Ámbar", swatch: "bg-amber-500" },
+  { value: "orange", label: "Naranja", swatch: "bg-orange-500" },
+  { value: "rose", label: "Rosa", swatch: "bg-rose-500" },
+  { value: "teal", label: "Turquesa", swatch: "bg-teal-500" },
 ] as const;
 
 export function CreateUnitForm({ courseId }: { courseId: string }) {
   const [state, action, pending] = useActionState<ActionResult, FormData>(createUnit, {});
   const [open, setOpen] = useState(false);
+  const [color, setColor] = useState<(typeof COLOR_OPTIONS)[number]["value"]>("blue");
+  const selectedColor =
+    COLOR_OPTIONS.find((option) => option.value === color) ?? COLOR_OPTIONS[0];
 
   return (
     <section className="card overflow-hidden">
@@ -66,8 +69,21 @@ export function CreateUnitForm({ courseId }: { courseId: string }) {
               </select>
             </label>
             <label className="field-label">
-              Color de identificación
-              <select name="color" defaultValue="blue" className={inputClass}>
+              <span className="flex items-center gap-2">
+                Color de identificación
+                <span
+                  className={`size-3 rounded-full ${selectedColor.swatch}`}
+                  aria-hidden="true"
+                />
+              </span>
+              <select
+                name="color"
+                value={color}
+                onChange={(event) =>
+                  setColor(event.target.value as (typeof COLOR_OPTIONS)[number]["value"])
+                }
+                className={inputClass}
+              >
                 {COLOR_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}

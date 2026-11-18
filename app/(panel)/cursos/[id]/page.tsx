@@ -9,11 +9,15 @@ import { requireTeacher } from "@/lib/auth";
 import { UNIT_COLOR_LABELS } from "@/lib/content/unit-colors";
 import { editorCourseIds } from "@/lib/content/x03";
 import { db } from "@/lib/db";
+import { backTo } from "@/lib/navigation";
 
 import { CreateTopicForm } from "./create-topic-form";
 import { SaveCourseForm } from "./save-course-form";
+import { StopPropagation } from "./stop-propagation";
 import { TopicContentLink } from "./topic-content-link";
+import { TopicEditForm } from "./temas/[topicId]/topic-edit-form";
 import { CreateUnitForm } from "./unit-form";
+import { UnitEditToggle } from "./unit-edit-toggle";
 
 type UnitRow = {
   id: string;
@@ -51,13 +55,22 @@ const UNIT_COLOR_SWATCH: Record<string, string> = {
   teal: "bg-teal-500",
 };
 
-export default async function CoursePage({ params }: { params: Promise<{ id: string }> }) {
+export default async function CoursePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ volver?: string | string[]; vista?: string | string[] }>;
+}) {
   const teacher = await requireTeacher();
   const { id } = await params;
+  const { volver, vista } = await searchParams;
 
   const course = await getCourseForRead(teacher, id);
   const canEdit = canEditCourse(teacher, course);
   const isArchived = Boolean(course.archived_at);
+  const isStructure = vista === "estructura";
+  const back = backTo(volver);
   const [coreId] = editorCourseIds(
     course.is_group,
     course.uses_base,
@@ -94,18 +107,15 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
   return (
     <div className="space-y-6">
       <header>
-        <BackLink href="/mis-cursos">Mis cursos</BackLink>
+        <BackLink href={back ?? "/mis-cursos"}>
+          {back ? "Volver al grupo" : "Mis cursos"}
+        </BackLink>
         <div className="mt-1 flex flex-wrap items-center gap-3">
           <h1 className="page-title">{course.title}</h1>
           {course.is_group && <span className="badge badge-neutral">Grupo</span>}
+          {isStructure && <span className="badge badge-neutral">Estructura</span>}
           {!canEdit && <span className="badge badge-warning">Solo lectura</span>}
-          <Link
-            href={`/cursos/${course.id}/referencias`}
-            className="btn btn-secondary btn-sm"
-          >
-            Referencias
-          </Link>
-          {canEdit && !course.is_group && !isArchived && (
+          {canEdit && !course.is_group && !isArchived && !isStructure && (
             <div className="ml-auto flex flex-wrap items-center gap-2">
               {!course.is_base && (
                 <form action={archive}>
@@ -122,55 +132,67 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
         {course.description && <p className="page-lead">{course.description}</p>}
       </header>
 
-      <div className={canEdit && !isArchived ? "grid gap-6 lg:grid-cols-2 lg:items-start" : ""}>
-        {canEdit && !isArchived && <CreateUnitForm courseId={course.id} />}
+      {!isStructure && (
+        <div
+          className={
+            canEdit && !isArchived ? "grid gap-6 lg:grid-cols-2 lg:items-start" : ""
+          }
+        >
+          {canEdit && !isArchived && <CreateUnitForm courseId={course.id} />}
 
-        <details className="card group overflow-hidden">
-          <summary className="flex cursor-pointer list-none items-start gap-3 px-5 py-4 [&::-webkit-details-marker]:hidden">
-            <div>
-              <h2 className="text-sm font-semibold text-ink">Grupos asignados</h2>
-              <p className="mt-0.5 text-xs text-ink-muted">
-                Estos grupos dependen de este curso para su contenido.
-              </p>
+          <details className="card group overflow-hidden">
+            <summary className="flex cursor-pointer list-none items-start gap-3 px-5 py-4 [&::-webkit-details-marker]:hidden">
+              <div>
+                <h2 className="text-sm font-semibold text-ink">Grupos asignados</h2>
+                <p className="mt-0.5 text-xs text-ink-muted">
+                  Estos grupos dependen de este curso para su contenido.
+                </p>
+              </div>
+              <span className="ml-auto flex shrink-0 items-center gap-2 pt-0.5 text-xs tabular-nums text-ink-muted">
+                {assignedGroups.length}{" "}
+                {assignedGroups.length === 1 ? "grupo" : "grupos"}
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="size-4 transition-transform group-open:rotate-180"
+                  aria-hidden="true"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </span>
+            </summary>
+
+            <div className="border-t border-line px-5 pb-5">
+              {assignedGroups.length === 0 ? (
+                <p className="empty mt-3">Todavía no hay grupos asignados a este curso.</p>
+              ) : (
+                <ul className="mt-1 max-h-64 divide-y divide-line overflow-y-auto">
+                  {assignedGroups.map((group) => (
+                    <li
+                      key={group.id}
+                      className="flex items-center justify-between gap-3 py-2.5 text-sm"
+                    >
+                      <Link
+                        href={`/grupos/${group.id}`}
+                        className="text-ink-soft underline-offset-4 hover:underline"
+                      >
+                        {group.name}
+                      </Link>
+                      {group.content_course_id === course.id && (
+                        <span className="text-xs text-ink-faint">Contenido propio</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
-            <span className="ml-auto flex shrink-0 items-center gap-2 pt-0.5 text-xs tabular-nums text-ink-muted">
-              {assignedGroups.length}{" "}
-              {assignedGroups.length === 1 ? "grupo" : "grupos"}
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="size-4 transition-transform group-open:rotate-180"
-                aria-hidden="true"
-              >
-                <path d="m6 9 6 6 6-6" />
-              </svg>
-            </span>
-          </summary>
-
-          <div className="border-t border-line px-5 pb-5">
-            {assignedGroups.length === 0 ? (
-              <p className="empty mt-3">Todavía no hay grupos asignados a este curso.</p>
-            ) : (
-              <ul className="mt-1 max-h-64 divide-y divide-line overflow-y-auto">
-                {assignedGroups.map((group) => (
-                  <li key={group.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
-                    <Link href={`/grupos/${group.id}`} className="text-ink-soft underline-offset-4 hover:underline">
-                      {group.name}
-                    </Link>
-                    {group.content_course_id === course.id && (
-                      <span className="text-xs text-ink-faint">Contenido propio</span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </details>
-      </div>
+          </details>
+        </div>
+      )}
 
       {units.length === 0 ? (
         <p className="empty">Este curso todavía no tiene unidades.</p>
@@ -200,21 +222,98 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
                   <span className="text-xs text-ink-faint">
                     {unitTopics.length} {unitTopics.length === 1 ? "subtema" : "subtemas"}
                   </span>
+                  {isStructure && canEdit && !isArchived && !isCore && (
+                    <StopPropagation className="ml-auto">
+                      <MoveButtons
+                        action={moveUnit}
+                        fields={{ courseId: course.id, unitId: unit.id }}
+                      />
+                    </StopPropagation>
+                  )}
                 </summary>
 
                 <div className="border-t border-line px-5 pb-5">
-                  <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
-                    {unit.description && <p className="text-sm text-ink-muted">{unit.description}</p>}
-                    {canEdit && !isArchived && !isCore && (
-                      <MoveButtons action={moveUnit} fields={{ courseId: course.id, unitId: unit.id }} />
-                    )}
-                  </div>
+                  {isStructure ? (
+                    !isCore && canEdit && !isArchived ? (
+                      <UnitEditToggle
+                        courseId={course.id}
+                        unit={{
+                          id: unit.id,
+                          title: unit.title,
+                          description: unit.description,
+                        }}
+                      />
+                    ) : (
+                      unit.description && (
+                        <p className="mt-3 text-sm text-ink-muted">{unit.description}</p>
+                      )
+                    )
+                  ) : (
+                    <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
+                      {unit.description && (
+                        <p className="text-sm text-ink-muted">{unit.description}</p>
+                      )}
+                      {canEdit && !isArchived && !isCore && (
+                        <MoveButtons
+                          action={moveUnit}
+                          fields={{ courseId: course.id, unitId: unit.id }}
+                        />
+                      )}
+                    </div>
+                  )}
 
                   {unitTopics.length > 0 && (
                     <ul className="mt-4 divide-y divide-line border-t border-line">
                       {unitTopics.map((topic, index) => {
                         const own = topic.course_id === course.id;
-                        return (
+                        const canEditTopic = canEdit && !isArchived && own;
+                        return isStructure && canEditTopic ? (
+                          <li key={topic.id}>
+                            <details className="group/topic">
+                              <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-2 rounded-md px-2 py-2.5 text-sm transition-colors hover:bg-surface [&::-webkit-details-marker]:hidden">
+                                <span className="min-w-0 text-ink-soft">
+                                  <span className="mr-2 font-mono text-xs text-ink-faint">
+                                    {unit.number}.{index + 1}
+                                  </span>
+                                  {topic.title}
+                                </span>
+                                <span className="flex flex-wrap items-center gap-2">
+                                  <StopPropagation>
+                                    <MoveButtons
+                                      action={moveTopic}
+                                      fields={{ courseId: course.id, topicId: topic.id }}
+                                    />
+                                  </StopPropagation>
+                                  <span className="flex items-center gap-1 text-xs text-ink-faint">
+                                    Editar
+                                    <svg
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      strokeWidth="2"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      className="size-3.5 transition-transform group-open/topic:rotate-180"
+                                      aria-hidden="true"
+                                    >
+                                      <path d="m6 9 6 6 6-6" />
+                                    </svg>
+                                  </span>
+                                </span>
+                              </summary>
+                              <div className="px-2 pb-3">
+                                <TopicEditForm
+                                  courseId={course.id}
+                                  topic={{
+                                    id: topic.id,
+                                    title: topic.title,
+                                    summary: topic.summary,
+                                  }}
+                                />
+                              </div>
+                            </details>
+                          </li>
+                        ) : (
                           <li
                             key={topic.id}
                             className="flex flex-wrap items-center justify-between gap-2 py-2.5 text-sm"
@@ -226,13 +325,13 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
                               {topic.title}
                             </span>
                             <span className="flex flex-wrap items-center gap-2">
-                              {canEdit && !isArchived && contentGroup && (
+                              {canEdit && !isArchived && contentGroup && !isStructure && (
                                 <TopicContentLink
                                   topicId={topic.id}
                                   classId={contentGroup.id}
                                 />
                               )}
-                              {canEdit && !isArchived && own && (
+                              {canEditTopic && (
                                 <MoveButtons
                                   action={moveTopic}
                                   fields={{ courseId: course.id, topicId: topic.id }}
@@ -245,7 +344,7 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
                     </ul>
                   )}
 
-                  {canEdit && !isArchived && <CreateTopicForm courseId={course.id} unitId={unit.id} />}
+                  {canEdit && !isArchived && !isStructure && <CreateTopicForm courseId={course.id} unitId={unit.id} />}
                 </div>
               </details>
             );

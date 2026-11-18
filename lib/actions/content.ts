@@ -224,20 +224,9 @@ export async function updateLesson(
   const parsed = parseBlocks(String(formData.get("content") ?? ""));
   if ("error" in parsed) return { error: parsed.error };
 
-  const synthesis = String(formData.get("synthesis") ?? "")
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean);
-
   const sql = db();
   await sql`update lessons
        set title = ${title},
-           eyebrow = ${String(formData.get("eyebrow") ?? "").trim()},
-           body = ${String(formData.get("body") ?? "").trim()},
-           code_sample = ${String(formData.get("codeSample") ?? "").trim()},
-           context_title = ${String(formData.get("contextTitle") ?? "").trim()},
-           context_body = ${String(formData.get("contextBody") ?? "").trim()},
-           synthesis = ${sql.json(synthesis)},
            content = ${sql.json(parsed.blocks)}
      where id = ${lessonId}`;
 
@@ -326,6 +315,34 @@ export async function updateTopic(
 
   revalidatePath(`/cursos/${courseId}`);
   revalidatePath(`/cursos/${courseId}/temas/${topicId}`);
+  return {};
+}
+
+export async function updateUnit(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
+  const teacher = await requireTeacher();
+  const courseId = String(formData.get("courseId") ?? "");
+  const unitId = String(formData.get("unitId") ?? "");
+  const course = await requireEditableCourse(teacher, courseId);
+
+  const title = String(formData.get("title") ?? "").trim();
+  const description = String(formData.get("description") ?? "").trim();
+  if (title.length < 3) return { error: "Escribe el título de la unidad." };
+
+  const existing = await db()<{ id: string }[]>`
+    select id from units
+     where id = ${unitId} and course_id = ${course.id}
+     limit 1`;
+  if (!existing[0]) return { error: "La unidad no existe en este curso." };
+
+  await db()`
+    update units
+       set title = ${title}, description = ${description}
+     where id = ${unitId}`;
+
+  revalidatePath(`/cursos/${courseId}`);
   return {};
 }
 

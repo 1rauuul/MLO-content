@@ -26,6 +26,7 @@ import type {
   CoreTopic,
   CoreUnit,
 } from "./content/model";
+import { getBaseCourseId } from "./access";
 import { db } from "./db";
 import { newCourseKey } from "./ids";
 
@@ -202,6 +203,18 @@ export async function requireEditableClass(teacher: Teacher, id: string): Promis
   const klass = await getClassForRead(teacher, id);
   if (!canEditClass(teacher, klass)) notFound();
   return klass;
+}
+
+/** Cursos que componen el contenido visible de un grupo. */
+export async function classContentScope(klass: Classroom): Promise<string[]> {
+  const [parent] = await db()<{ uses_base: boolean }[]>`
+    select uses_base from courses where id = ${klass.course_id} limit 1`;
+  const baseId = parent?.uses_base ? await getBaseCourseId() : null;
+  return [
+    klass.course_id,
+    ...(baseId ? [baseId] : []),
+    ...(klass.content_course_id ? [klass.content_course_id] : []),
+  ];
 }
 
 export async function getLatestClassRelease(classId: string): Promise<ClassReleaseInfo | null> {
@@ -471,12 +484,70 @@ export async function joinClassByCode(
   return { ok: true, preview: await getClassPreviewByCode(code) };
 }
 
+/** El acceso al curso se retira solo si lo concedió la clase y no queda otra membresía. */
+export function revokesCourseAccess(input: {
+  isBase: boolean;
+  remainingActiveMemberships: number;
+  grantedByTeacher: boolean;
+}): boolean {
+  return (
+    !input.isBase &&
+    input.remainingActiveMemberships === 0 &&
+    !input.grantedByTeacher
+  );
+}
+
 export async function leaveClassByCode(code: string, studentKey: string): Promise<void> {
-  await db()`
+  await db().begin(async (tx) => {
+    const [target] = await tx<
+      { class_id: string; student_id: string; course_id: string }[]
+    >`
+    select c.id as class_id, s.id as student_id, c.course_id
+      from classes c
+      join students s on s.external_key = ${studentKey}
+     where c.join_code = ${code}
+     limit 1`;
+    if (!target) return;
+
+    await tx`
     update class_members
        set active = false
-     where class_id = (select id from classes where join_code = ${code})
-       and student_id = (select id from students where external_key = ${studentKey})`;
+     where class_id = ${target.class_id}
+       and student_id = ${target.student_id}`;
+
+    const [remaining] = await tx<{ count: number }[]>`
+    select count(*)::int as count
+      from class_members
+     where student_id = ${target.student_id}
+       and course_id = ${target.course_id}
+       and active`;
+    const [course] = await tx<{ is_base: boolean }[]>`
+    select is_base from courses where id = ${target.course_id} limit 1`;
+    const [access] = await tx<{ granted_by: string | null }[]>`
+    select granted_by from course_access
+     where student_id = ${target.student_id}
+       and course_id = ${target.course_id}
+     limit 1`;
+
+    if (
+      !course ||
+      !revokesCourseAccess({
+        isBase: course.is_base,
+        remainingActiveMemberships: remaining?.count ?? 0,
+        grantedByTeacher: Boolean(access?.granted_by),
+      })
+    ) {
+      return;
+    }
+
+    // El acceso lo concedió el join de la clase (granted_by null); los accesos
+    // directos de un docente se conservan.
+    await tx`
+    delete from course_access
+     where student_id = ${target.student_id}
+       and course_id = ${target.course_id}
+       and granted_by is null`;
+  });
 }
 
 export type PublishClassOutcome = {
@@ -923,6 +994,11 @@ export async function publishClassRelease(
       values
         (${classId}, ${Number(release.version)}, ${String(release.hash)}, ${publishedAt},
          ${teacher.id}, ${tx.json({ release } as never)})`;
+
+    await tx`
+      delete from class_content_changes
+       where class_id = ${classId}
+         and changed_at <= ${publishedAt}`;
 
     return {
       version,

@@ -35,26 +35,12 @@ export function LessonEditor({
   const [state, action, pending] = useActionState<LessonResult, FormData>(updateLesson, {});
   const [draft, setDraft] = useState({
     title: lesson.title,
-    eyebrow: lesson.eyebrow,
-    body: lesson.body,
-    codeSample: lesson.codeSample,
-    contextTitle: lesson.contextTitle,
-    contextBody: lesson.contextBody,
-    synthesisText: lesson.synthesis.join("\n"),
     content: lesson.content,
   });
-
-  const patch = (values: Partial<typeof draft>) =>
-    setDraft((current) => ({ ...current, ...values }));
 
   const onBlocks = useCallback((content: ContentBlock[]) => {
     setDraft((current) => (current.content === content ? current : { ...current, content }));
   }, []);
-
-  const synthesis = draft.synthesisText
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean);
 
   const errors = [
     ...(draft.title.trim() ? [] : ["El título es obligatorio."]),
@@ -76,7 +62,9 @@ export function LessonEditor({
                 name="title"
                 required
                 value={draft.title}
-                onChange={(event) => patch({ title: event.target.value })}
+                onChange={(event) =>
+                  setDraft((current) => ({ ...current, title: event.target.value }))
+                }
                 className={fieldClass}
               />
             </label>
@@ -88,70 +76,6 @@ export function LessonEditor({
               </p>
               <span className="hint">No cambia: los ids publicados dependen de él.</span>
             </div>
-
-            <label className="field-label sm:col-span-2">
-              Subtítulo (eyebrow)
-              <input
-                name="eyebrow"
-                value={draft.eyebrow}
-                onChange={(event) => patch({ eyebrow: event.target.value })}
-                className={fieldClass}
-              />
-            </label>
-
-            <label className="field-label sm:col-span-2">
-              Resumen
-              <textarea
-                name="body"
-                rows={3}
-                value={draft.body}
-                onChange={(event) => patch({ body: event.target.value })}
-                className={fieldClass}
-              />
-            </label>
-
-            <label className="field-label">
-              Título del contexto
-              <input
-                name="contextTitle"
-                value={draft.contextTitle}
-                onChange={(event) => patch({ contextTitle: event.target.value })}
-                className={fieldClass}
-              />
-            </label>
-
-            <label className="field-label sm:row-span-2">
-              Texto del contexto
-              <textarea
-                name="contextBody"
-                rows={4}
-                value={draft.contextBody}
-                onChange={(event) => patch({ contextBody: event.target.value })}
-                className={fieldClass}
-              />
-            </label>
-
-            <label className="field-label sm:col-span-2">
-              Ejemplo de código (opcional)
-              <textarea
-                name="codeSample"
-                rows={4}
-                value={draft.codeSample}
-                onChange={(event) => patch({ codeSample: event.target.value })}
-                className={`${fieldClass} font-mono`}
-              />
-            </label>
-
-            <label className="field-label sm:col-span-2">
-              Síntesis (una idea por línea)
-              <textarea
-                name="synthesis"
-                rows={4}
-                value={draft.synthesisText}
-                onChange={(event) => patch({ synthesisText: event.target.value })}
-                className={fieldClass}
-              />
-            </label>
           </div>
         </section>
 
@@ -181,12 +105,12 @@ export function LessonEditor({
         <PreviewFrame label="MLO · Lección">
           <LessonReadingPreview
             title={draft.title}
-            eyebrow={draft.eyebrow}
-            body={draft.body}
-            codeSample={draft.codeSample}
-            contextTitle={draft.contextTitle}
-            contextBody={draft.contextBody}
-            synthesis={synthesis}
+            eyebrow={lesson.eyebrow}
+            body={lesson.body}
+            codeSample={lesson.codeSample}
+            contextTitle={lesson.contextTitle}
+            contextBody={lesson.contextBody}
+            synthesis={lesson.synthesis}
             blocks={draft.content}
             errors={errors}
           />

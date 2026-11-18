@@ -1,6 +1,6 @@
 # Plan del proyecto — MLO · Maestros
 
-> Estado al **2026-10-27**. Este documento es la fuente de verdad del avance.
+> Estado al **2026-11-18**. El detalle reciente vive en `HISTORIAL.md`; este documento conserva el estado por hitos.
 
 ## 1. Objetivo
 
@@ -404,3 +404,4 @@ Variables en `.env.local` (no versionado): `DATABASE_URL`, `DATABASE_URL_DIRECT`
 | 2026-11-16 | Invitaciones por correo: código de respaldo en el correo (texto y HTML), historial de entrega persistido (`sent_at`/`delivery_error`) y límite de 60 altas por hora y docente. Migración `20261116000000_invitation_delivery_rate.sql` aplicada. 130 tests en verde. |
 | 2026-11-16 | Evaluaciones arregladas: faltaba aplicar `20261111000001_topic_direct_activities.sql` en la base (lesson_id seguía NOT NULL), así que crear evaluación/pregunta fallaba con `23502`. Migración aplicada y verificada; la base ya acepta actividades directas al subtema. Además `createEvaluation`/`saveQuestion` devuelven el error al formulario y la publicación rechaza una evaluación sin preguntas. 129 tests en verde. |
 | 2026-11-16 | Referencia visual en el editor de ejercicios y ejemplos: botón **Ver muestra** con una actividad completa por tipo (ordenar, completar, relacionar, crucigrama), chips ①–⑥ ligados a los campos y **Usar esta muestra** para copiarla al formulario. Las muestras viven en `lib/content/samples.ts` y un test las valida con las reglas estrictas de publicación. La vista previa del crucigrama ahora muestra las pistas con H1/V1. 131 tests en verde. |
+| 2026-11-18 | Editor de contenido del grupo: lista unificada de lecciones, ejemplos, ejercicios y evaluaciones; editores propios con vista previa interactiva; `class_content_changes` con triggers y tarjeta de versión con subtemas pendientes; edición de estructura desde el grupo; enlaces de vuelta seguros y pop ups centrados. En la app: portada con logos CINVESTAV, perfil con "Mostrar curso base", salir del curso, lección de una sola pantalla y unidad de grupo restaurada. 145 tests del panel y 581 de la app. |

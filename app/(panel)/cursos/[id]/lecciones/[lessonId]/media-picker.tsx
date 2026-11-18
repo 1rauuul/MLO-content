@@ -84,7 +84,7 @@ function Overlay({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="card w-full max-w-lg space-y-4 p-5"
+        className="card max-h-[calc(100dvh-2rem)] w-full max-w-lg space-y-4 overflow-y-auto overscroll-contain p-5"
       >
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-sm font-semibold text-ink">{title}</h2>
@@ -201,7 +201,7 @@ export function ImagePickerDialog({
           <img
             src={preview}
             alt=""
-            className="max-h-56 w-full rounded-lg border border-line bg-white object-contain"
+            className="max-h-48 w-full rounded-lg border border-line bg-white object-contain"
           />
         )}
 
@@ -300,7 +300,7 @@ export function VideoPickerDialog({
           <img
             src={youtubeThumbnail(videoId)}
             alt=""
-            className="max-h-56 w-full rounded-lg border border-line object-cover"
+            className="max-h-48 w-full rounded-lg border border-line object-cover"
           />
         )}
 

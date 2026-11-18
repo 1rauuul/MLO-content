@@ -23,10 +23,14 @@ export function SaveCourseForm({ courseId }: { courseId: string }) {
           {state.error}
         </p>
       )}
-      <ResultDialog open={open} title="Curso guardado" onClose={() => setDismissed(state)}>
-        Versión {state.version} guardada con {state.lessons}{" "}
-        {state.lessons === 1 ? "lección" : "lecciones"}. El contenido ya está disponible
-        en MLO.
+      <ResultDialog
+        open={open}
+        title="Curso guardado"
+        centerTitle
+        onClose={() => setDismissed(state)}
+      >
+        <p>Estructura del curso guardada</p>
+        <p className="mt-2">Siguiente paso: añade un grupo a este curso.</p>
       </ResultDialog>
     </>
   );

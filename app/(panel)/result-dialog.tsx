@@ -9,6 +9,8 @@ export function ResultDialog({
   children,
   footer,
   wide = false,
+  centerTitle = false,
+  centered = false,
 }: {
   open: boolean;
   title: string;
@@ -16,6 +18,8 @@ export function ResultDialog({
   children: React.ReactNode;
   footer?: React.ReactNode;
   wide?: boolean;
+  centerTitle?: boolean;
+  centered?: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
 
@@ -29,9 +33,19 @@ export function ResultDialog({
   return (
     <dialog ref={ref} onClose={onClose} className={wide ? "dialog dialog-wide" : "dialog"}>
       <div className="p-5">
-        <h2 className="text-base font-semibold text-ink">{title}</h2>
-        <div className="mt-2 text-sm leading-relaxed text-ink-muted">{children}</div>
-        <div className="mt-5 flex flex-wrap items-center justify-end gap-2">
+        <h2
+          className={`font-semibold text-ink ${centerTitle || centered ? "text-center text-lg" : "text-base"}`}
+        >
+          {title}
+        </h2>
+        <div
+          className={`mt-2 text-sm leading-relaxed text-ink-muted ${centered ? "text-center" : ""}`}
+        >
+          {children}
+        </div>
+        <div
+          className={`mt-5 flex flex-wrap items-center gap-2 ${centered ? "justify-center" : "justify-end"}`}
+        >
           {footer ?? (
             <button
               type="button"

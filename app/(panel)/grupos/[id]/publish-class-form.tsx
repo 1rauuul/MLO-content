@@ -32,9 +32,13 @@ export function PublishClassForm({
           {state.error}
         </p>
       )}
-      <ResultDialog open={open} title="Grupo publicado" onClose={() => setDismissed(state)}>
-        Versión {state.version} publicada. El grupo ya está disponible en MLO y los
-        alumnos pueden unirse con el código{" "}
+      <ResultDialog
+        open={open}
+        title="Grupo publicado"
+        centered
+        onClose={() => setDismissed(state)}
+      >
+        El grupo ya está disponible en el MLO y los alumnos pueden unirse con el código{" "}
         <span className="font-mono text-ink">{joinCode}</span>.
       </ResultDialog>
     </>

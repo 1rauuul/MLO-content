@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { classPreviewPayload } from "./classes";
+import { classPreviewPayload, revokesCourseAccess } from "./classes";
 
 test("la vista previa de la clase incluye el curso asignado en el CMS", () => {
   const payload = classPreviewPayload({
@@ -19,4 +19,39 @@ test("la vista previa de la clase incluye el curso asignado en el CMS", () => {
   assert.equal(payload.class.name, "Grupo A 2");
   assert.deepEqual(payload.course, { catalogId: "k7f3q", title: "Curso 2" });
   assert.equal(payload.published, null);
+});
+
+test("revoca el acceso al curso al salir de la clase", () => {
+  assert.equal(
+    revokesCourseAccess({
+      isBase: false,
+      remainingActiveMemberships: 0,
+      grantedByTeacher: false,
+    }),
+    true,
+  );
+  assert.equal(
+    revokesCourseAccess({
+      isBase: false,
+      remainingActiveMemberships: 1,
+      grantedByTeacher: false,
+    }),
+    false,
+  );
+  assert.equal(
+    revokesCourseAccess({
+      isBase: true,
+      remainingActiveMemberships: 0,
+      grantedByTeacher: false,
+    }),
+    false,
+  );
+  assert.equal(
+    revokesCourseAccess({
+      isBase: false,
+      remainingActiveMemberships: 0,
+      grantedByTeacher: true,
+    }),
+    false,
+  );
 });

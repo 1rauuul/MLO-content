@@ -243,21 +243,25 @@ export function BlockEditor({
     <section className="space-y-3">
       <input type="hidden" name="content" value={JSON.stringify(blocks)} />
 
-      <div className="flex flex-wrap items-center gap-2" aria-label="Formato de contenido">
-        <span className="mr-1 text-xs text-ink-muted">Formato:</span>
-        {TOOLS.map((tool) => (
-          <button
-            key={tool.format}
-            type="button"
-            onMouseDown={(event) => event.preventDefault()}
-            onClick={() => formatSelection(tool.format)}
-            className="btn btn-secondary btn-sm"
-          >
-            {tool.label}
-          </button>
-        ))}
+      <div className="sticky top-14 z-20 -mx-1 space-y-2 rounded-xl border border-line bg-surface/95 p-2 shadow-sm backdrop-blur">
+        <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Formato de texto">
+          <span className="mr-1 text-xs text-ink-muted">Texto:</span>
+          {TOOLS.map((tool) => (
+            <button
+              key={tool.format}
+              type="button"
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => formatSelection(tool.format)}
+              className="btn btn-secondary btn-sm"
+            >
+              {tool.label}
+            </button>
+          ))}
+        </div>
+
         {allowMedia && (
-          <>
+          <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Insertar contenido">
+            <span className="mr-1 text-xs text-ink-muted">Insertar:</span>
             <button
               type="button"
               onMouseDown={(event) => event.preventDefault()}
@@ -280,7 +284,7 @@ export function BlockEditor({
             >
               Video
             </button>
-          </>
+          </div>
         )}
       </div>
 
@@ -308,7 +312,7 @@ export function BlockEditor({
         onBlur={syncBlocks}
         onPaste={pastePlainText}
         onClick={removeMedia}
-        className="min-h-64 rounded-xl border border-line bg-white p-4 text-sm leading-7 text-ink shadow-[inset_0_1px_2px_#1720330a] outline-none empty:before:pointer-events-none empty:before:text-ink-faint empty:before:content-[attr(data-placeholder)] focus:border-accent focus:ring-2 focus:ring-accent-soft [&_h2]:mt-5 [&_h2]:text-xl [&_h2]:font-semibold [&_h3]:mt-4 [&_h3]:text-base [&_h3]:font-semibold [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-3 [&_table]:my-4 [&_table]:w-full [&_table]:border-collapse [&_td]:border [&_td]:border-line [&_td]:p-2 [&_th]:border [&_th]:border-line [&_th]:bg-surface-soft [&_th]:p-2 [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-6"
+        className="min-h-64 rounded-xl border border-line bg-white p-4 text-sm leading-7 text-ink shadow-[inset_0_1px_2px_#1720330a] outline-none empty:before:pointer-events-none empty:before:text-ink-faint empty:before:content-[attr(data-placeholder)] focus:border-accent focus:ring-2 focus:ring-accent-soft [&_h2]:mt-5 [&_h2]:text-xl [&_h2]:font-semibold [&_h3]:mt-4 [&_h3]:text-base [&_h3]:font-semibold [&_li]:text-justify [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-3 [&_p]:text-justify [&_table]:my-4 [&_table]:w-full [&_table]:border-collapse [&_td]:border [&_td]:border-line [&_td]:p-2 [&_td]:text-justify [&_th]:border [&_th]:border-line [&_th]:bg-surface-soft [&_th]:p-2 [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-6"
       />
 
       {blocks.length === 0 && (

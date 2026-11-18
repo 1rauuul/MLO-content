@@ -17,7 +17,6 @@ import { PublishClassForm } from "./publish-class-form";
 
 type GroupTopic = {
   id: string;
-  course_id: string;
   title: string;
   lesson_count: number;
   activity_count: number;
@@ -34,6 +33,79 @@ function formatDate(value: Date): string {
   return new Date(value).toISOString().slice(0, 16).replace("T", " ");
 }
 
+type PublishedTopic = { label: string; activities: number };
+
+function VersionCard({
+  status,
+  tone,
+  date,
+  topics,
+}: {
+  status: string;
+  tone: "positive" | "warning";
+  date: Date;
+  topics: PublishedTopic[];
+}) {
+  return (
+    <section className="card p-5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <h2 className="text-sm font-semibold text-ink">Versión del grupo</h2>
+        <span
+          className={`inline-flex items-center gap-1.5 text-xs ${
+            tone === "positive" ? "text-positive" : "text-warning"
+          }`}
+        >
+          <span
+            className={`size-1.5 rounded-full ${
+              tone === "positive" ? "bg-positive" : "bg-warning"
+            }`}
+          />
+          {status}
+        </span>
+      </div>
+      <p className="mt-1 text-sm text-ink-muted">
+        Último cambio: <span className="tabular-nums">{formatDate(date)}</span>
+      </p>
+      <PublishedTopics topics={topics} />
+    </section>
+  );
+}
+
+function PublishedTopics({ topics }: { topics: PublishedTopic[] }) {
+  if (topics.length === 0) {
+    return <p className="mt-2 text-sm text-ink-muted">Todavía no hay subtemas.</p>;
+  }
+
+  const visible = topics.slice(0, 3);
+  const rest = topics.slice(3);
+
+  const renderItem = (topic: PublishedTopic) => (
+    <li key={topic.label}>
+      <span className="font-mono text-xs text-ink-faint">{topic.label}</span> ·{" "}
+      {topic.activities} {topic.activities === 1 ? "actividad" : "actividades"}
+    </li>
+  );
+
+  return (
+    <div className="mt-2">
+      <ul className="space-y-1 text-sm text-ink-muted">
+        {visible.map(renderItem)}
+      </ul>
+      {rest.length > 0 && (
+        <details className="group/more mt-1">
+          <summary className="cursor-pointer list-none text-xs text-ink-muted hover:text-ink [&::-webkit-details-marker]:hidden">
+            <span className="group-open/more:hidden">Mostrar más</span>
+            <span className="hidden group-open/more:inline">Mostrar menos</span>
+          </summary>
+          <ul className="mt-1 space-y-1 text-sm text-ink-muted">
+            {rest.map(renderItem)}
+          </ul>
+        </details>
+      )}
+    </div>
+  );
+}
+
 export default async function ClassPage({ params }: { params: Promise<{ id: string }> }) {
   const teacher = await requireTeacher();
   const { id } = await params;
@@ -45,16 +117,36 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
     listInvitations(klass.id),
   ]);
 
-  const [v3] = await db()<{ version: number; content_hash: string }[]>`
-    select version, content_hash
+  const [v3] = await db()<{ published_at: Date }[]>`
+    select published_at
       from class_releases_v3
      where class_id = ${klass.id}
      order by version desc
      limit 1`;
 
-  const [parentCourse] = await db()<{ uses_base: boolean }[]>`
-    select uses_base from courses where id = ${klass.course_id} limit 1`;
+  const changeRows = v3
+    ? await db()<{ topic_id: string; changed_at: Date }[]>`
+        select topic_id, max(changed_at) as changed_at
+          from class_content_changes
+         where class_id = ${klass.id}
+           and changed_at > ${v3.published_at}
+         group by topic_id
+         order by changed_at desc`
+    : await db()<{ topic_id: string; changed_at: Date }[]>`
+        select topic_id, max(changed_at) as changed_at
+          from class_content_changes
+         where class_id = ${klass.id}
+         group by topic_id
+         order by changed_at desc`;
+
+  const [parentCourse] = await db()<
+    { uses_base: boolean; owner_id: string | null; is_base: boolean }[]
+  >`
+    select uses_base, owner_id, is_base from courses where id = ${klass.course_id} limit 1`;
   const baseId = parentCourse?.uses_base ? await getBaseCourseId() : null;
+  const canEditStructure =
+    parentCourse &&
+    (teacher.role === "admin" || (!parentCourse.is_base && parentCourse.owner_id === teacher.id));
   const scope = [
     klass.course_id,
     ...(baseId ? [baseId] : []),
@@ -71,7 +163,6 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
     {
       id: string;
       unit_id: string;
-      course_id: string;
       title: string;
       lesson_count: number;
       example_count: number;
@@ -79,7 +170,7 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
       evaluation_count: number;
     }[]
   >`
-    select t.id, t.unit_id, t.course_id, t.title,
+    select t.id, t.unit_id, t.title,
            (select count(*)::int
               from lessons l
              where l.topic_id = t.id and l.archived_at is null
@@ -107,7 +198,6 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
       .filter((topic) => topic.unit_id === unit.id)
       .map((topic) => ({
         id: topic.id,
-        course_id: topic.course_id,
         title: topic.title,
         lesson_count: topic.lesson_count,
         activity_count:
@@ -116,6 +206,16 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
   }));
 
   const topicCount = units.reduce((total, unit) => total + unit.topics.length, 0);
+  const publishedTopics = units.flatMap((unit) =>
+    unit.topics.map((topic, index) => ({
+      id: topic.id,
+      label: `${unit.number}.${index + 1}`,
+      activities: topic.activity_count,
+    })),
+  );
+  const changedTopicIds = new Set(changeRows.map((row) => row.topic_id));
+  const pendingTopics = publishedTopics.filter((topic) => changedTopicIds.has(topic.id));
+  const pendingChangedAt = changeRows[0]?.changed_at ?? null;
 
   return (
     <div className="space-y-6">
@@ -162,7 +262,7 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
               <div className="flex flex-wrap items-center justify-end gap-2">
                 {klass.content_course_id ? (
                   <Link
-                    href={`/cursos/${klass.content_course_id}`}
+                    href={`/grupos/${klass.id}/contenido`}
                     className="btn btn-secondary btn-sm"
                   >
                     Editar contenido
@@ -170,10 +270,25 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
                 ) : (
                   <form action={createClassContent}>
                     <input type="hidden" name="classId" value={klass.id} />
+                    <input
+                      type="hidden"
+                      name="volver"
+                      value={`/grupos/${klass.id}`}
+                    />
                     <button type="submit" className="btn btn-secondary btn-sm">
                       Crear contenido
                     </button>
                   </form>
+                )}
+                {canEditStructure && (
+                  <Link
+                    href={`/cursos/${klass.course_id}?vista=estructura&volver=${encodeURIComponent(
+                      `/grupos/${klass.id}`,
+                    )}`}
+                    className="btn btn-secondary btn-sm"
+                  >
+                    Editar estructura
+                  </Link>
                 )}
                 <Link
                   href={`/contenido-extra?classId=${klass.id}`}
@@ -210,14 +325,6 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
               {units.length === 0 ? (
                 <div className="mt-4 rounded-xl border border-dashed border-line-strong p-4 text-sm text-ink-muted">
                   Todavía no hay unidades ni subtemas.
-                  {klass.content_course_id && (
-                    <Link
-                      href={`/cursos/${klass.content_course_id}`}
-                      className="link ml-1"
-                    >
-                      Crear la estructura
-                    </Link>
-                  )}
                 </div>
               ) : (
                 <div className="mt-4 space-y-3">
@@ -256,24 +363,22 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
                       ) : (
                         <ul className="mx-4 mb-4 space-y-1 border-l border-line pl-4">
                           {unit.topics.map((topic, index) => (
-                            <li key={topic.id}>
-                              <Link
-                                href={`/cursos/${klass.content_course_id ?? topic.course_id}/temas/${topic.id}`}
-                                className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-md px-2 py-1.5 text-sm text-ink-soft transition-colors hover:bg-surface hover:text-ink"
-                              >
-                                <span className="min-w-0">
-                                  <span className="mr-2 font-mono text-xs text-ink-faint">
-                                    {unit.number}.{index + 1}
-                                  </span>
-                                  {topic.title}
+                            <li
+                              key={topic.id}
+                              className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-2 py-1.5 text-sm text-ink-soft"
+                            >
+                              <span className="min-w-0">
+                                <span className="mr-2 font-mono text-xs text-ink-faint">
+                                  {unit.number}.{index + 1}
                                 </span>
-                                <span className="shrink-0 text-right text-xs tabular-nums text-ink-faint">
-                                  {topic.lesson_count}{" "}
-                                  {topic.lesson_count === 1 ? "lección" : "lecciones"} ·{" "}
-                                  {topic.activity_count}{" "}
-                                  {topic.activity_count === 1 ? "actividad" : "actividades"}
-                                </span>
-                              </Link>
+                                {topic.title}
+                              </span>
+                              <span className="shrink-0 text-right text-xs tabular-nums text-ink-faint">
+                                {topic.lesson_count}{" "}
+                                {topic.lesson_count === 1 ? "lección" : "lecciones"} ·{" "}
+                                {topic.activity_count}{" "}
+                                {topic.activity_count === 1 ? "actividad" : "actividades"}
+                              </span>
                             </li>
                           ))}
                         </ul>
@@ -285,49 +390,38 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
             </details>
           </section>
 
-          <section className="card p-5">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <h2 className="text-sm font-semibold text-ink">Publicación</h2>
-                {last ? (
-                  <p className="mt-1 text-sm text-ink-muted">
-                    Versión v2{" "}
-                    <strong className="tabular-nums text-ink-soft">
-                      {last.version}
-                    </strong>{" "}
-                    ·{" "}
-                    <span className="tabular-nums">
-                      {formatDate(last.published_at)}
-                    </span>{" "}
-                    · hash{" "}
-                    <span className="font-mono text-xs">
-                      {last.content_hash.slice(0, 12)}
-                    </span>
-                  </p>
-                ) : (
-                  <p className="mt-1 text-sm text-ink-muted">
-                    Todavía no hay una versión v2 publicada.
-                  </p>
-                )}
-                <p className="mt-1 text-sm tabular-nums text-ink-muted">
-                  {v3
-                    ? `Release v3 de grupo: versión ${v3.version} · hash ${v3.content_hash.slice(0, 12)}.`
-                    : "Release v3 de grupo: pendiente de publicar."}
+          {pendingChangedAt && pendingTopics.length > 0 && (
+            <VersionCard
+              status="Sin publicar"
+              tone="warning"
+              date={pendingChangedAt}
+              topics={pendingTopics}
+            />
+          )}
+
+          {v3 ? (
+            <VersionCard
+              status="Disponible"
+              tone="positive"
+              date={v3.published_at}
+              topics={publishedTopics}
+            />
+          ) : (
+            !pendingChangedAt && (
+              <section className="card p-5">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <h2 className="text-sm font-semibold text-ink">Versión del grupo</h2>
+                  <span className="inline-flex items-center gap-1.5 text-xs text-ink-muted">
+                    <span className="size-1.5 rounded-full bg-ink-faint" />
+                    No disponible
+                  </span>
+                </div>
+                <p className="mt-1 text-sm text-ink-muted">
+                  Aún no has publicado este grupo.
                 </p>
-              </div>
-              {v3 ? (
-                <span className="inline-flex items-center gap-1.5 text-xs text-positive">
-                  <span className="size-1.5 rounded-full bg-positive" />
-                  Publicado
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1.5 text-xs text-ink-muted">
-                  <span className="size-1.5 rounded-full bg-ink-faint" />
-                  Sin publicar
-                </span>
-              )}
-            </div>
-          </section>
+              </section>
+            )
+          )}
         </div>
 
         <div className="space-y-5">

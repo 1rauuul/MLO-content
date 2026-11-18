@@ -12,6 +12,7 @@ import {
 import { canEditCourse, getCourseForRead, topicScopeForCourse } from "@/lib/access";
 import { requireTeacher } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { backTo } from "@/lib/navigation";
 
 import { CreateEvaluationForm } from "./create-evaluation-form";
 import { CreateLessonForm } from "../../lesson-form";
@@ -59,11 +60,16 @@ type EvaluationRow = {
 
 export default async function TopicPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string; topicId: string }>;
+  searchParams: Promise<{ volver?: string | string[] }>;
 }) {
   const teacher = await requireTeacher();
   const { id: courseId, topicId } = await params;
+  const { volver } = await searchParams;
+  const back = backTo(volver);
+  const volverQuery = back ? `?volver=${encodeURIComponent(back)}` : "";
 
   const course = await getCourseForRead(teacher, courseId);
   const scope = await topicScopeForCourse(course);
@@ -125,7 +131,9 @@ export default async function TopicPage({
   return (
     <div className="space-y-6">
       <header>
-        <BackLink href={`/cursos/${topic.course_id}`}>{topic.course_title}</BackLink>
+        <BackLink href={back ?? `/cursos/${topic.course_id}`}>
+          {back ? "Volver al contenido" : topic.course_title}
+        </BackLink>
         <div className="mt-1 flex flex-wrap items-center gap-3">
           <h1 className="page-title">
             <span className="mr-2 font-mono text-base text-ink-faint">
@@ -162,7 +170,7 @@ export default async function TopicPage({
             {lessons.map((lesson) => (
               <li key={lesson.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5 text-sm">
                 <Link
-                  href={`/cursos/${lesson.course_id}/lecciones/${lesson.id}`}
+                  href={`/cursos/${lesson.course_id}/lecciones/${lesson.id}${volverQuery}`}
                   className="text-ink-soft underline-offset-4 hover:underline"
                 >
                   <span className="mr-2 font-mono text-xs text-ink-faint">{lesson.code}</span>
@@ -252,7 +260,7 @@ export default async function TopicPage({
             {evaluations.map((evaluation) => (
               <li key={evaluation.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5 text-sm">
                 <Link
-                  href={`/cursos/${evaluation.course_id}/temas/${topic.id}/evaluaciones/${evaluation.id}`}
+                  href={`/cursos/${evaluation.course_id}/temas/${topic.id}/evaluaciones/${evaluation.id}${volverQuery}`}
                   className="text-ink-soft underline-offset-4 hover:underline"
                 >
                   {evaluation.title}

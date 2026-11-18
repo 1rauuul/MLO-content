@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 
 import { requireTeacher } from "@/lib/auth";
 import { publishClassRelease, requireEditableClass } from "@/lib/classes";
+import type { PublishClassOutcome } from "@/lib/classes";
 import { isExtraType, parseExtraPayload } from "@/lib/content/classes";
 import { db } from "@/lib/db";
 import {
@@ -113,7 +114,11 @@ export async function createClass(
 export async function createClassContent(formData: FormData): Promise<void> {
   const teacher = await requireTeacher();
   const klass = await requireEditableClass(teacher, String(formData.get("classId") ?? ""));
-  if (klass.content_course_id) redirect(`/cursos/${klass.content_course_id}`);
+  const volver =
+    formData.get("volver") === `/grupos/${klass.id}`
+      ? `?volver=${encodeURIComponent(`/grupos/${klass.id}`)}`
+      : "";
+  if (klass.content_course_id) redirect(`/cursos/${klass.content_course_id}${volver}`);
 
   const courseId = await db().begin(async (tx) => {
     const [contentCourse] = await tx<{ id: string }[]>`
@@ -131,7 +136,7 @@ export async function createClassContent(formData: FormData): Promise<void> {
   });
 
   revalidatePath(`/grupos/${klass.id}`);
-  redirect(`/cursos/${courseId}`);
+  redirect(`/cursos/${courseId}${volver}`);
 }
 
 export async function archiveClass(formData: FormData): Promise<void> {
@@ -359,6 +364,30 @@ export async function publishClass(
     revalidatePath(`/grupos/${klass.id}`);
     revalidatePath("/grupos");
     return { ok: true, ...result };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "No se pudo publicar." };
+  }
+}
+
+/** Publica todos los grupos seleccionados desde el estudio de contenido. */
+export async function publishClasses(
+  _prev: PublishClassResult,
+  formData: FormData,
+): Promise<PublishClassResult> {
+  const teacher = await requireTeacher();
+  const classIds = [...new Set(formData.getAll("classId").map(String).filter(Boolean))];
+  if (classIds.length === 0) return { error: "No hay grupos para publicar." };
+
+  try {
+    let last: PublishClassOutcome | null = null;
+    for (const classId of classIds) {
+      const klass = await requireEditableClass(teacher, classId);
+      last = await publishClassRelease(teacher, klass.id);
+      revalidatePath(`/grupos/${klass.id}`);
+    }
+    revalidatePath("/grupos");
+    revalidatePath("/contenido-extra");
+    return { ok: true, ...(last ?? {}) };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "No se pudo publicar." };
   }

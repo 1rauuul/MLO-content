@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useActionState, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { createClassContent } from "@/lib/actions/classes";
+import { createClassContent, publishClasses, type PublishClassResult } from "@/lib/actions/classes";
+import { ResultDialog } from "@/app/(panel)/result-dialog";
 import { createLesson, type ActionResult } from "@/lib/actions/content";
 import { createEvaluation, type TopicResult } from "@/lib/actions/topics";
 import type { ContentBlock } from "@/lib/content";
@@ -117,6 +118,7 @@ export function ContentStudio({
     topicId: string;
     evaluationId: string;
   } | null>(null);
+  const [pendingPublish, setPendingPublish] = useState<string[] | null>(null);
 
   const courseGroups = useMemo(
     () => groups.filter((group) => group.sourceCourseId === courseId),
@@ -129,6 +131,10 @@ export function ContentStudio({
     courseGroups[0] ??
     null;
   const targetClassIds = selectedGroups.map((group) => group.id);
+  const targetClassIdsRef = useRef(targetClassIds);
+  useEffect(() => {
+    targetClassIdsRef.current = targetClassIds;
+  }, [targetClassIds]);
   const courseTopics = selectedGroup?.topics ?? [];
   const units = (() => {
     const map = new Map<string, { id: string; number: number; title: string }>();
@@ -192,6 +198,9 @@ export function ContentStudio({
     (message: string) => {
       setNotice(message);
       setVersion((current) => current + 1);
+      if (targetClassIdsRef.current.length > 0) {
+        setPendingPublish(targetClassIdsRef.current);
+      }
       router.refresh();
     },
     [router],
@@ -227,7 +236,8 @@ export function ContentStudio({
   );
 
   return (
-    <div className="editor-preview-grid">
+    <>
+      <div className="editor-preview-grid">
       <div className="space-y-5">
         <section className="card overflow-hidden">
           <div className="border-b border-line px-5 py-4">
@@ -342,7 +352,7 @@ export function ContentStudio({
           </div>
         </section>
 
-        <section className="card overflow-hidden">
+        <section className="card">
           <div className="border-b border-line px-5 py-4">
             <h2 className="text-sm font-semibold text-ink">
               Crear contenido del subtema
@@ -520,7 +530,68 @@ export function ContentStudio({
           evaluationDraft={evaluationDraft}
         />
       </aside>
-    </div>
+      </div>
+
+      {pendingPublish && (
+        <PublishPendingDialog
+          classIds={pendingPublish}
+          onClose={() => setPendingPublish(null)}
+          onPublished={() => setNotice("Contenido publicado.")}
+        />
+      )}
+    </>
+  );
+}
+
+function PublishPendingDialog({
+  classIds,
+  onClose,
+  onPublished,
+}: {
+  classIds: string[];
+  onClose: () => void;
+  onPublished: () => void;
+}) {
+  const [state, action, pending] = useActionState<PublishClassResult, FormData>(
+    publishClasses,
+    {},
+  );
+
+  useEffect(() => {
+    if (state.ok) {
+      onPublished();
+      onClose();
+    }
+  }, [state.ok, onPublished, onClose]);
+
+  return (
+    <ResultDialog
+      open
+      title="Contenido guardado"
+      centered
+      onClose={onClose}
+      footer={
+        <form action={action} className="flex flex-wrap items-center justify-center gap-2">
+          {classIds.map((classId) => (
+            <input key={classId} type="hidden" name="classId" value={classId} />
+          ))}
+          <button type="submit" disabled={pending} className="btn btn-primary btn-sm">
+            {pending ? "Publicando…" : "Publicar"}
+          </button>
+          <button type="button" onClick={onClose} className="btn btn-secondary btn-sm">
+            Cerrar
+          </button>
+        </form>
+      }
+    >
+      <p>Los cambios se guardaron, pero todavía no están publicados.</p>
+      <p className="mt-1">Publícalos para que tus alumnos los vean.</p>
+      {state.error && (
+        <p className="form-error mt-2" role="alert">
+          {state.error}
+        </p>
+      )}
+    </ResultDialog>
   );
 }
 
