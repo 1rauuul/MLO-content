@@ -80,6 +80,11 @@ export function buildInvitationWebLink(baseUrl: string, token: string): string {
   return `${baseUrl.replace(/\/+$/, "")}/join?token=${encodeURIComponent(token)}`;
 }
 
+/** Enlace al servidor local de MLO (Expo web o Expo Go) para desarrollo. */
+export function buildMloLocalLink(baseUrl: string, token: string): string {
+  return `${baseUrl.replace(/\/+$/, "")}/join-class?token=${encodeURIComponent(token)}`;
+}
+
 /**
  * Primer error estable del reclamo. El límite de intentos se evalúa antes que
  * el estado para no revelar si el token existe cuando ya se agotó.

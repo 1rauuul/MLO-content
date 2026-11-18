@@ -19,6 +19,7 @@ import {
   INVITATION_TTL_DAYS,
   buildInvitationLink,
   buildInvitationWebLink,
+  buildMloLocalLink,
   generateInvitationToken,
   hashInvitationToken,
   invitationClaimError,
@@ -301,6 +302,14 @@ test("el hash es SHA-256 estable y no contiene el token", () => {
   assert.equal(
     buildInvitationWebLink("https://cms.test/", token),
     `https://cms.test/join?token=${token}`,
+  );
+  assert.equal(
+    buildMloLocalLink("http://localhost:8081/", token),
+    `http://localhost:8081/join-class?token=${token}`,
+  );
+  assert.equal(
+    buildMloLocalLink("exp://192.168.1.50:8081/--", token),
+    `exp://192.168.1.50:8081/--/join-class?token=${token}`,
   );
 });
 

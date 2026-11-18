@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 import {
   buildInvitationLink,
+  buildMloLocalLink,
   isInvitationToken,
   type InvitationStatus,
 } from "@/lib/invitations/core";
@@ -100,6 +101,7 @@ export default async function JoinPage({
   }
 
   const canOpen = preview.status === "pending";
+  const localUrl = process.env.MLO_LOCAL_URL?.trim();
 
   return (
     <Shell>
@@ -124,6 +126,15 @@ export default async function JoinPage({
           {STATUS_MESSAGE[preview.status]}
         </p>
       )}
+
+      {canOpen && localUrl ? (
+        <a
+          href={buildMloLocalLink(localUrl, token)}
+          className="btn btn-secondary mt-2 w-full"
+        >
+          Abrir MLO local (desarrollo)
+        </a>
+      ) : null}
 
       <CodeBlock code={preview.classCode} />
 
