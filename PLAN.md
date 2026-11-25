@@ -4,10 +4,10 @@
 
 ## 1. Objetivo
 
-Panel web para que cada maestro agregue **contenido propio** (unidades, lecciones y, más
-adelante, ejercicios y evaluaciones) sobre el **core** del curso. La app MLO
-(`D:\devvv\MLO\MLO-Ingenieria-software`) descarga ese contenido por la **API v3**
-(`/api/mlo/v3`) y lo aplica en el teléfono sin actualizar la app.
+Panel web para que cada maestro cree cursos completos (unidades, temas, lecciones,
+ejercicios, ejemplos y evaluaciones), con el **core** compartido como punto de partida o
+sin él. La app MLO (`D:\devvv\MLO\MLO-Ingenieria-software`) descarga ese contenido por la
+**API v3** (`/api/mlo/v3`) y lo aplica en el teléfono sin actualizar la app.
 
 ## 2. Decisiones tomadas
 
@@ -16,8 +16,8 @@ adelante, ejercicios y evaluaciones) sobre el **core** del curso. La app MLO
 | Stack | Next.js 16 (App Router) + React 19 + Tailwind 4, sin CMS |
 | Base de datos | Supabase Postgres, conexión por el pooler (6543) |
 | Core | Se guarda **una sola vez** y es compartido |
-| Contenido del maestro | Solo **adiciones**; no puede editar ni borrar el core |
-| Publicación | Snapshot inmutable (`release`) que compone core + adiciones |
+| Contenido del maestro | Cursos autónomos o **adiciones**; el core compartido no se edita desde un curso de maestro |
+| Publicación | Snapshot inmutable (`release`) del curso; si usa el core, el release lo incluye |
 | Ids publicados | `{key}-{contentId}`; el core conserva sus ids |
 | Multimedia | Imágenes en Postgres con URL firmada y caché offline en MLO; video de YouTube embebido (requiere conexión) |
 | Acceso | Admin gestiona todo y el core; maestro solo sus cursos y grupos |
@@ -33,7 +33,7 @@ adelante, ejercicios y evaluaciones) sobre el **core** del curso. La app MLO
 
 ### Stack y dependencias
 
-- `next` 16.4.3, `react` 19.3.0, `tailwindcss` 4.
+- `next` 16.4.6, `react` 19.3.0, `tailwindcss` 4.
 - `postgres` (driver, `prepare: false` por el pooler).
 - `tsx` para scripts y tests.
 - Auth propia: scrypt (`node:crypto`) + sesión en base + cookie httpOnly.
@@ -45,15 +45,15 @@ adelante, ejercicios y evaluaciones) sobre el **core** del curso. La app MLO
 | `teachers` | Cuentas del panel (`admin` \| `maestro`) |
 | `sessions` | Token hasheado y expiración |
 | `courses` | `key` de 5 caracteres; `base` para el core |
-| `units`, `lessons` | Estructura y texto/bloques |
+| `units`, `topics`, `lessons` | Estructura, subtemas y texto/bloques |
 | `evaluations`, `exercises`, `examples`, `questions` | Práctica, ejemplos y evaluación |
 | `classes` | Clase del maestro y su código de 6 fijo |
 | `students`, `class_members` | Identidad estable del alumno y sus membresías por clase |
 | `student_accounts`, `student_sessions`, `student_auth_attempts` | Cuenta remota del alumno, sesiones Bearer y límite de intentos |
 | `student_progress` | Respaldo v5 del progreso por alumno |
 | `lesson_extras`, `extra_classes` | Contenido extra y las clases a las que se asigna |
-| `class_releases` | Versión, hash y snapshot inmutable de una clase |
-| `releases` | Versión, hashes y snapshot JSON inmutable del curso (formato v2 histórico) |
+| `releases_v3`, `class_releases_v3` | Versión, hash y snapshot inmutable v3 de curso y grupo |
+| `releases`, `class_releases` | Releases v2 históricos; ya no se sirven por la API |
 | `schema_migrations` | Archivos de migración ya aplicados y su fecha |
 
 RLS activado sin políticas: la API pública de Supabase no puede leer las tablas; la app
@@ -100,7 +100,7 @@ publicación sigue escribiendo el release v2 de curso mientras haya lecciones.
 
 Las rutas de catálogo leen el último release; nunca borradores ni documentos
 sueltos. Devuelven `404` si el curso no tiene release. Los grupos leen su propio
-`class_release`; también devuelven `404` si no hay nada publicado. El alumno descarga
+`class_releases_v3`; también devuelven `404` si no hay nada publicado. El alumno descarga
 cada grupo al que pertenece y lo guarda localmente para usarlo sin conexión.
 
 ### API de cuentas (v3)
@@ -179,7 +179,7 @@ Hecho:
 Criterio de terminado: `build`, `lint` y tests verdes; el release del core coincide
 con el contenido incluido en MLO. ✅
 
-### M3 · Reactivos — 🟡
+### M3 · Reactivos — ✅
 
 #### M3A · Ejercicios y ejemplos — ✅
 
@@ -286,7 +286,7 @@ Estado al 2026-11-26:
 | Comando | Resultado |
 |---|---|
 | `npm test` | 185 pruebas (descubiertas de `lib/**/*.test.ts`) |
-| `npm run test:db` | Pruebas contra la base: rate limit, vinculación, recuperación, importación base y E2E HTTP v3 |
+| `npm run test:db` | 13 pruebas contra la base: rate limit, vinculación, recuperación, importación base y E2E HTTP v3 |
 | `npm run lint` | Sin errores |
 | `npx tsc --noEmit` | Sin errores |
 | `npm run build` | Compila |
