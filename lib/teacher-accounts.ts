@@ -160,8 +160,9 @@ async function sendInvitation(
   teacher: { name: string; email: string },
   link: string,
   invitedBy?: string | null,
+  sendInvite: typeof sendTeacherInvitationEmail = sendTeacherInvitationEmail,
 ): Promise<EmailDelivery> {
-  const delivery = await sendTeacherInvitationEmail({
+  const delivery = await sendInvite({
     to: teacher.email,
     name: teacher.name,
     link,
@@ -237,56 +238,77 @@ export async function createPendingTeacher(input: {
 export async function resendTeacherInvitation(
   teacherId: string,
   invitedBy: string,
+  deps: { sendInvite?: typeof sendTeacherInvitationEmail } = {},
 ): Promise<TeacherInvitationResult> {
+  const sendInvite = deps.sendInvite ?? sendTeacherInvitationEmail;
   const base = baseUrl();
   if (!base) return { ok: false, error: "config" };
 
-  const [teacher] = await db()<{
-    id: string;
-    name: string;
-    email: string;
-    activated_at: Date | null;
-  }[]>`
-    select id, name, email, activated_at
-      from teachers
-     where id = ${teacherId}
-     limit 1`;
-  if (!teacher) return { ok: false, error: "not_found" };
-  if (teacher.activated_at) return { ok: false, error: "already_active" };
+  // Un único bloqueo del maestro serializa el reenvío: dos pulsaciones
+  // concurrentes no pueden insertar dos tokens sin enviar ni enviar dos correos.
+  type ResendOutcome =
+    | { error: "not_found" | "already_active" | "cooldown" }
+    | {
+        teacher: {
+          id: string;
+          name: string;
+          email: string;
+          activated_at: Date | null;
+        };
+        token: { id: string; token: string; expiresAt: Date };
+      };
 
-  const [recent] = await db()<{ created_at: Date }[]>`
-    select created_at
-      from teacher_tokens
-     where teacher_id = ${teacher.id}
-       and purpose = 'invite'
-     order by created_at desc
-     limit 1`;
-  if (teacherCooldownActive(recent?.created_at ?? null)) {
-    return { ok: false, error: "cooldown" };
-  }
+  const outcome = await db().begin<ResendOutcome>(async (tx) => {
+    const [teacher] = await tx<{
+      id: string;
+      name: string;
+      email: string;
+      activated_at: Date | null;
+    }[]>`
+      select id, name, email, activated_at
+        from teachers
+       where id = ${teacherId}
+       for update
+       limit 1`;
+    if (!teacher) return { error: "not_found" as const };
+    if (teacher.activated_at) return { error: "already_active" as const };
 
-  const token = await db().begin((tx) =>
-    createTeacherToken(tx, {
+    const [recent] = await tx<{ created_at: Date }[]>`
+      select created_at
+        from teacher_tokens
+       where teacher_id = ${teacher.id}
+         and purpose = 'invite'
+       order by created_at desc
+       limit 1`;
+    if (teacherCooldownActive(recent?.created_at ?? null)) {
+      return { error: "cooldown" as const };
+    }
+
+    const token = await createTeacherToken(tx, {
       teacherId: teacher.id,
       purpose: "invite",
       expiresAt: teacherInviteExpiresAt(),
       createdBy: invitedBy,
-    }),
-  );
+    });
+    return { teacher, token };
+  });
 
-  const link = buildTeacherInviteLink(base, token.token);
+  if ("error" in outcome) return { ok: false, error: outcome.error };
+
+  const link = buildTeacherInviteLink(base, outcome.token.token);
   const delivery = await sendInvitation(
-    token,
-    { name: teacher.name, email: teacher.email },
+    outcome.token,
+    { name: outcome.teacher.name, email: outcome.teacher.email },
     link,
     await inviterName(invitedBy),
+    sendInvite,
   );
 
   return {
     ok: true,
-    teacherId: teacher.id,
-    email: teacher.email,
-    name: teacher.name,
+    teacherId: outcome.teacher.id,
+    email: outcome.teacher.email,
+    name: outcome.teacher.name,
     link,
     delivery,
   };
@@ -398,6 +420,7 @@ export async function requestTeacherPasswordReset(
   deps: {
     sendReset?: typeof sendTeacherPasswordResetEmail;
     sendInvite?: typeof sendTeacherInvitationEmail;
+    finalize?: () => Promise<void>;
   } = {},
 ): Promise<
   { ok: true } | { ok: false; error: "invalid_email" | "email_unavailable" }
@@ -408,6 +431,8 @@ export async function requestTeacherPasswordReset(
   if (!email) return { ok: false, error: "invalid_email" };
   // Se comprueba antes de buscar la cuenta para no filtrar su existencia.
   if (!emailConfigured()) return { ok: false, error: "email_unavailable" };
+  const base = baseUrl();
+  if (!base) return { ok: false, error: "email_unavailable" };
 
   const [teacher] = await db()<{
     id: string;
@@ -422,9 +447,6 @@ export async function requestTeacherPasswordReset(
   if (!teacher) return { ok: true };
 
   const purpose: TeacherTokenPurpose = teacher.activated_at ? "reset" : "invite";
-
-  const base = baseUrl();
-  if (!base) return { ok: false, error: "email_unavailable" };
 
   const token = newSessionToken();
   const expiresAt =
@@ -450,7 +472,7 @@ export async function requestTeacherPasswordReset(
          and used_at is null
          and revoked_at is null
          and sent_at is null
-         and expires_at > now()
+         and created_at > now() - interval '1 minute'
        limit 1`;
     if (pending) return null;
 
@@ -495,24 +517,44 @@ export async function requestTeacherPasswordReset(
       delivery.reason,
     );
     await db()`delete from teacher_tokens where id = ${newId}`;
-    return { ok: false, error: "email_unavailable" };
+    return { ok: true };
   }
 
-  await db().begin(async (tx) => {
-    // Revoca primero los tokens anteriores del mismo propósito: el índice
-    // parcial único solo cubre filas con sent_at no nulo.
-    await tx`update teacher_tokens
-      set revoked_at = now()
-      where teacher_id = ${teacher.id}
-        and purpose = ${purpose}
-        and used_at is null
-        and revoked_at is null
-        and id <> ${newId}`;
-    await tx`update teacher_tokens
-      set sent_at = now()
-      where id = ${newId}`;
-  });
+  const finalize =
+    deps.finalize ??
+    (async () => {
+      await db().begin(async (tx) => {
+        // Revoca primero los tokens anteriores del mismo propósito: el índice
+        // parcial único solo cubre filas con sent_at no nulo.
+        await tx`update teacher_tokens
+          set revoked_at = now()
+          where teacher_id = ${teacher.id}
+            and purpose = ${purpose}
+            and used_at is null
+            and revoked_at is null
+            and id <> ${newId}`;
+        await tx`update teacher_tokens
+          set sent_at = now()
+          where id = ${newId}`;
+      });
+    });
 
+  try {
+    await finalize();
+  } catch (error) {
+    console.error("[teachers] recovery finalization failed; retrying:", error);
+    try {
+      await finalize();
+    } catch (retryError) {
+      console.error(
+        "[teachers] recovery finalization failed after retry:",
+        retryError,
+      );
+      await db()`delete from teacher_tokens where id = ${newId}`.catch(
+        () => undefined,
+      );
+    }
+  }
   return { ok: true };
 }
 

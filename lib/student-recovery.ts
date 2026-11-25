@@ -111,7 +111,10 @@ export function studentRecoveryEmailContent(input: {
 
 export async function requestStudentPasswordReset(
   rawEmail: string,
-  deps: { sendEmail?: typeof sendEmail } = {},
+  deps: {
+    sendEmail?: typeof sendEmail;
+    finalize?: () => Promise<void>;
+  } = {},
 ): Promise<StudentRecoveryResult> {
   const send = deps.sendEmail ?? sendEmail;
   const email = normalizeEmail(rawEmail);
@@ -163,7 +166,7 @@ export async function requestStudentPasswordReset(
        where student_id = ${account.student_id}
          and used_at is null
          and sent_at is null
-         and expires_at > now()
+         and created_at > now() - interval '1 minute'
        limit 1`;
     if (pending) return null;
 
@@ -187,19 +190,40 @@ export async function requestStudentPasswordReset(
   if (!delivery.sent) {
     console.error("[students] recovery email not delivered:", delivery.reason);
     await db()`delete from student_password_resets where id = ${newId}`;
-    return { ok: false, error: "email_unavailable" };
+    return { ok: true };
   }
 
-  await db().begin(async (tx) => {
-    await tx`update student_password_resets
-      set used_at = now()
-      where student_id = ${account.student_id}
-        and used_at is null
-        and id <> ${newId}`;
-    await tx`update student_password_resets
-      set sent_at = now()
-      where id = ${newId}`;
-  });
+  const finalize =
+    deps.finalize ??
+    (async () => {
+      await db().begin(async (tx) => {
+        await tx`update student_password_resets
+          set used_at = now()
+          where student_id = ${account.student_id}
+            and used_at is null
+            and id <> ${newId}`;
+        await tx`update student_password_resets
+          set sent_at = now()
+          where id = ${newId}`;
+      });
+    });
+
+  try {
+    await finalize();
+  } catch (error) {
+    console.error("[students] recovery finalization failed; retrying:", error);
+    try {
+      await finalize();
+    } catch (retryError) {
+      console.error(
+        "[students] recovery finalization failed after retry:",
+        retryError,
+      );
+      await db()`delete from student_password_resets where id = ${newId}`.catch(
+        () => undefined,
+      );
+    }
+  }
   return { ok: true };
 }
 

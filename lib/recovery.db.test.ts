@@ -11,9 +11,13 @@ import {
 } from "./student-recovery";
 import {
   requestTeacherPasswordReset,
+  resendTeacherInvitation,
   resetTeacherPassword,
 } from "./teacher-accounts";
-import type { TeacherPasswordResetEmail } from "./teacher-emails";
+import type {
+  TeacherInvitationEmail,
+  TeacherPasswordResetEmail,
+} from "./teacher-emails";
 
 // Correo de prueba: credenciales ficticias para que emailConfigured() responda
 // true, y remitentes inyectados para no tocar nunca la API real de Resend.
@@ -84,6 +88,20 @@ async function createTeacher(): Promise<{
   return { teacherId: teacher.id, email };
 }
 
+async function createUnactivatedTeacher(): Promise<{
+  teacherId: string;
+  email: string;
+}> {
+  const email = `maestro-${randomUUID()}@test.dev`;
+  const name = `Maestro ${randomUUID().slice(0, 8)}`;
+  const [teacher] = await db()<{ id: string }[]>`
+    insert into teachers (name, email, password_hash, role, activated_at)
+    values (${name}, ${email}, '', 'maestro', null)
+    returning id`;
+  teacherIds.push(teacher.id);
+  return { teacherId: teacher.id, email };
+}
+
 function silenceConsoleError<T>(run: () => Promise<T>): Promise<T> {
   const original = console.error;
   console.error = () => undefined;
@@ -108,7 +126,7 @@ test("fallo de envío del alumno borra el código nuevo y conserva el anterior",
     }),
   );
 
-  assert.deepEqual(result, { ok: false, error: "email_unavailable" });
+  assert.deepEqual(result, { ok: true });
 
   const rows = await db()<{ sent_at: Date | null; used_at: Date | null }[]>`
     select sent_at, used_at
@@ -176,7 +194,7 @@ test("fallo y éxito del maestro: sin token nuevo al fallar, éxito tras enviar"
       }),
     }),
   );
-  assert.deepEqual(failResult, { ok: false, error: "email_unavailable" });
+  assert.deepEqual(failResult, { ok: true });
 
   const afterFail = await db()<{
     id: string;
@@ -208,4 +226,101 @@ test("fallo y éxito del maestro: sin token nuevo al fallar, éxito tras enviar"
 
   const reset = await resetTeacherPassword(token, "NuevaClave1!");
   assert.equal(reset.ok, true);
+});
+
+test("reenviar invitación dos veces a la vez envía un solo correo", async () => {
+  const { teacherId } = await createUnactivatedTeacher();
+  const inviter = await createTeacher();
+  await db()`insert into teacher_tokens
+    (teacher_id, purpose, token_hash, expires_at, sent_at, created_at)
+    values
+    (${teacherId}, 'invite', ${hashToken(newSessionToken())},
+     now() + interval '7 days', now(), now() - interval '5 minutes')`;
+
+  const sent: TeacherInvitationEmail[] = [];
+  const sender = async (
+    message: TeacherInvitationEmail,
+  ): Promise<EmailDelivery> => {
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    sent.push(message);
+    return { sent: true, id: "email_test" };
+  };
+
+  const results = await Promise.all([
+    resendTeacherInvitation(teacherId, inviter.teacherId, {
+      sendInvite: sender,
+    }),
+    resendTeacherInvitation(teacherId, inviter.teacherId, {
+      sendInvite: sender,
+    }),
+  ]);
+
+  assert.equal(sent.length, 1, "debe enviarse un único correo");
+
+  const okResults = results.filter((r) => r.ok === true);
+  const cooldownResults = results.filter(
+    (r) => !r.ok && r.error === "cooldown",
+  );
+  assert.equal(okResults.length, 1, "una sola llamada debe tener éxito");
+  assert.equal(cooldownResults.length, 1, "la otra debe devolver cooldown");
+
+  const pending = await db()<{ id: string }[]>`
+    select id from teacher_tokens
+     where teacher_id = ${teacherId}
+       and purpose = 'invite'
+       and used_at is null
+       and revoked_at is null
+       and sent_at is not null`;
+  assert.equal(pending.length, 1, "debe quedar un único token pendiente");
+});
+
+test("una finalización que falla borra la fila y responde ok", async () => {
+  const { studentId, email } = await createStudentAccount();
+  const sent: EmailMessage[] = [];
+  const result = await silenceConsoleError(() =>
+    requestStudentPasswordReset(email, {
+      sendEmail: async (message: EmailMessage): Promise<EmailDelivery> => {
+        sent.push(message);
+        return { sent: true, id: "email_test" };
+      },
+      finalize: async () => {
+        throw new Error("post-send failure");
+      },
+    }),
+  );
+
+  assert.deepEqual(result, { ok: true });
+  assert.equal(sent.length, 1, "el correo debe haberse enviado");
+
+  const rows = await db()<{ id: string }[]>`
+    select id from student_password_resets
+     where student_id = ${studentId}
+       and sent_at is null`;
+  assert.equal(rows.length, 0, "la fila sin enviar debe haberse borrado");
+});
+
+test("una fila sin enviar de hace 5 minutos no bloquea una nueva solicitud", async () => {
+  const { studentId, email } = await createStudentAccount();
+  await db()`insert into student_password_resets
+    (student_id, code_hash, expires_at, sent_at, created_at)
+    values
+    (${studentId}, ${hashToken("222222")}, now() + interval '15 minutes', null,
+     now() - interval '5 minutes')`;
+
+  const sent: EmailMessage[] = [];
+  const result = await requestStudentPasswordReset(email, {
+    sendEmail: async (message: EmailMessage): Promise<EmailDelivery> => {
+      sent.push(message);
+      return { sent: true, id: "email_test" };
+    },
+  });
+
+  assert.deepEqual(result, { ok: true });
+  assert.equal(sent.length, 1, "debe enviarse un correo nuevo");
+
+  const rows = await db()<{ sent_at: Date | null }[]>`
+    select sent_at from student_password_resets
+     where student_id = ${studentId}
+       and sent_at is not null`;
+  assert.equal(rows.length, 1, "debe quedar un código enviado");
 });
