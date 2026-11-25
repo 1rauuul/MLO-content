@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 
 import { updateTopic, type ActionResult } from "@/lib/actions/content";
+import { RequiredMark } from "@/app/(panel)/required-mark";
 
 export function TopicEditForm({
   courseId,
@@ -18,7 +19,7 @@ export function TopicEditForm({
       <input type="hidden" name="courseId" value={courseId} />
       <input type="hidden" name="topicId" value={topic.id} />
       <label className="field-label">
-        Título
+        <span>Título <RequiredMark /></span>
         <input
           name="title"
           defaultValue={topic.title}

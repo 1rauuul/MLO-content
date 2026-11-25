@@ -210,12 +210,24 @@ export default async function ReferencesPage({
                     const selected = current.get(`${group.kind}:${element.content_id}`) ?? [];
                     return (
                       <li key={element.content_id} className="py-3 text-sm">
-                        <details>
-                          <summary className="cursor-pointer text-ink-soft">
+                        <details className="group">
+                          <summary className="inline-flex cursor-pointer list-none items-center gap-2 text-ink-soft transition-colors hover:text-ink [&::-webkit-details-marker]:hidden">
                             {element.label}
-                            <span className="ml-2 text-xs text-ink-faint">
+                            <span className="text-xs text-ink-faint">
                               {selected.length} {selected.length === 1 ? "referencia" : "referencias"}
                             </span>
+                            <svg
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="size-3.5 transition-transform group-open:rotate-180"
+                              aria-hidden="true"
+                            >
+                              <path d="m6 9 6 6 6-6" />
+                            </svg>
                           </summary>
                           {canEdit ? (
                             <form action={setElementReferences} className="mt-3 space-y-2">

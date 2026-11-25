@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 
+import { ConfirmDialog } from "@/app/(panel)/confirm-dialog";
 import type { CoreExample } from "@/lib/content/model";
 import { deleteExample } from "@/lib/actions/exercises";
 
@@ -26,6 +27,7 @@ export function ExamplesPanel({
 }) {
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<CoreExample | null>(null);
   const editing = examples.find((example) => example.content_id === editingId) ?? null;
 
   const close = useCallback(() => {
@@ -82,8 +84,22 @@ export function ExamplesPanel({
                 </span>
               </div>
 
-              <details className="mt-3">
-                <summary className="cursor-pointer text-sm text-ink-muted">Vista previa</summary>
+              <details className="group mt-3">
+                <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 text-sm text-ink-muted transition-colors hover:text-ink [&::-webkit-details-marker]:hidden">
+                  Vista previa
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="size-3.5 transition-transform group-open:rotate-180"
+                    aria-hidden="true"
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </summary>
                 <div className="mt-3">
                   <ExamplePreview
                     type={example.type}
@@ -109,28 +125,30 @@ export function ExamplesPanel({
                   >
                     Editar
                   </button>
-                  <form
-                    action={deleteExample}
-                    onSubmit={(event) => {
-                      if (!confirm("¿Eliminar este ejemplo? El release publicado no cambia.")) {
-                        event.preventDefault();
-                      }
-                    }}
+                  <button
+                    type="button"
+                    onClick={() => setDeleting(example)}
+                    className="btn btn-danger btn-sm"
                   >
-                    <input type="hidden" name="lessonId" value={lessonId} />
-                    <input type="hidden" name="exampleId" value={example.content_id} />
-                    <button
-                      type="submit"
-                      className="btn btn-danger btn-sm"
-                    >
-                      Eliminar
-                    </button>
-                  </form>
+                    Eliminar
+                  </button>
                 </div>
               )}
             </li>
           ))}
         </ul>
+      )}
+
+      {deleting && (
+        <ConfirmDialog
+          open
+          title="Eliminar ejemplo"
+          description="Esta acción no cambia el release ya publicado."
+          action={deleteExample}
+          hiddenFields={{ lessonId, exampleId: deleting.content_id }}
+          confirmLabel="Eliminar ejemplo"
+          onClose={() => setDeleting(null)}
+        />
       )}
     </div>
   );

@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { parseBlocks } from "./content";
+import {
+  countWords,
+  courseDescriptionError,
+  parseBlocks,
+} from "./content";
 
 test("acepta los cinco tipos de bloque", () => {
   const result = parseBlocks(
@@ -27,6 +31,19 @@ test("rechaza una tabla con filas de otro largo", () => {
 });
 
 const mediaId = "6f0c7f0a-1a2b-4c3d-8e9f-0123456789ab";
+
+test("cuenta palabras y limita la descripción breve del curso", () => {
+  assert.equal(countWords("  uno   dos\ntres  "), 3);
+  assert.equal(courseDescriptionError("Texto corto"), null);
+
+  const sixty = Array.from({ length: 60 }, () => "a").join(" ");
+  assert.equal(courseDescriptionError(sixty), null);
+  assert.match(
+    courseDescriptionError(`${sixty} extra`) ?? "",
+    /60 palabras/,
+  );
+  assert.match(courseDescriptionError("a".repeat(281)) ?? "", /280 caracteres/);
+});
 
 test("acepta imagen y video y normaliza sus campos", () => {
   const result = parseBlocks(

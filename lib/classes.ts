@@ -602,7 +602,7 @@ export async function publishClassRelease(
 
     const [parent] = await tx<{ key: string; uses_base: boolean }[]>`
       select key, uses_base from courses where id = ${klass.course_id} limit 1`;
-    if (!parent) throw new Error("El curso padre del grupo no existe.");
+    if (!parent) throw new Error("El curso del grupo no existe.");
     const [parentRelease] = await tx<{ version: number; hash: string }[]>`
       select version, content_hash as hash
         from releases_v3
@@ -610,7 +610,7 @@ export async function publishClassRelease(
        order by version desc
        limit 1`;
     if (!parentRelease) {
-      throw new Error("El curso padre no tiene un release v3 publicado.");
+      throw new Error("El curso del grupo no tiene una versión publicada.");
     }
 
     let contentCourseId = klass.content_course_id;
@@ -985,7 +985,7 @@ export async function publishClassRelease(
     });
     const checked = validateRelease(release);
     if (!checked.ok) {
-      throw new Error(`El release de grupo no es válido: ${checked.error}`);
+      throw new Error(`La versión del grupo no es válida: ${checked.error}`);
     }
 
     await tx`

@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 
 import { createClass, type ClassResult } from "@/lib/actions/classes";
+import { RequiredMark } from "@/app/(panel)/required-mark";
 
 type CourseOption = { id: string; title: string };
 
@@ -30,7 +31,7 @@ export function CreateClassForm({ courses }: { courses: CourseOption[] }) {
 
       <div className="grid gap-4 p-5 sm:grid-cols-2">
         <label className="field-label">
-          Nombre del grupo
+          <span>Nombre del grupo <RequiredMark /></span>
           <input
             name="name"
             required
@@ -43,7 +44,7 @@ export function CreateClassForm({ courses }: { courses: CourseOption[] }) {
         </label>
 
         <label className="field-label">
-          Curso asignado
+          <span>Curso asignado <RequiredMark /></span>
           <select
             name="courseId"
             required
@@ -70,6 +71,8 @@ export function CreateClassForm({ courses }: { courses: CourseOption[] }) {
           Primero crea un curso para poder asignarlo a un grupo.
         </p>
       )}
+
+      <p className="px-5 pb-5 text-xs text-ink-faint">* Campo obligatorio</p>
 
       {state.error && (
         <p id="class-form-error" className="form-error px-5 pb-5" role="alert">

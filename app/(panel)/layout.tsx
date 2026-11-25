@@ -27,7 +27,7 @@ export default async function PanelLayout({ children }: { children: ReactNode })
 
           <NavLinks isAdmin={teacher.role === "admin"} />
 
-          <div className="ml-auto flex items-center gap-3">
+          <div className="order-2 ml-auto flex items-center gap-3 sm:order-3">
             <span className="hidden text-sm text-ink-muted sm:inline">{teacher.name}</span>
             <form action={logout}>
               <button className="btn btn-secondary btn-sm">Salir</button>

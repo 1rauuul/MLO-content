@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 
 import { createSession } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { normalizeEmail } from "@/lib/email";
 import { verifyPassword } from "@/lib/password";
 
 export type LoginState = { error?: string };
@@ -16,11 +17,27 @@ export async function login(_prev: LoginState, formData: FormData): Promise<Logi
     return { error: "Escribe tu correo y contraseña." };
   }
 
-  const rows = await db()<{ id: string; password_hash: string }[]>`
-    select id, password_hash from teachers where email = ${email} limit 1`;
+  const normalizedEmail = normalizeEmail(email);
+  if (!normalizedEmail) {
+    return { error: "Correo o contraseña incorrectos." };
+  }
+
+  const rows = await db()<{
+    id: string;
+    password_hash: string;
+    activated_at: Date | null;
+  }[]>`
+    select id, password_hash, activated_at
+      from teachers
+     where email = ${normalizedEmail}
+     limit 1`;
 
   const teacher = rows[0];
-  if (!teacher || !(await verifyPassword(password, teacher.password_hash))) {
+  if (
+    !teacher?.activated_at ||
+    !teacher.password_hash ||
+    !(await verifyPassword(password, teacher.password_hash))
+  ) {
     return { error: "Correo o contraseña incorrectos." };
   }
 

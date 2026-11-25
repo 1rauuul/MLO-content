@@ -5,6 +5,13 @@ import { useActionState, useState } from "react";
 import { BackLink } from "@/app/(panel)/back-link";
 import { PreviewFrame } from "@/app/(panel)/preview-frame";
 import { createCourse, type ActionResult } from "@/lib/actions/content";
+import {
+  countWords,
+  courseDescriptionError,
+  MAX_COURSE_DESCRIPTION_CHARS,
+  MAX_COURSE_DESCRIPTION_WORDS,
+} from "@/lib/content";
+import { RequiredMark } from "@/app/(panel)/required-mark";
 
 const LEVELS = ["Fundamental", "Intermedio", "Avanzado"] as const;
 
@@ -14,6 +21,8 @@ export function CreateCourseForm() {
   const [description, setDescription] = useState("");
   const [level, setLevel] = useState<string>(LEVELS[0]);
   const [usesBase, setUsesBase] = useState(false);
+  const descriptionWords = countWords(description);
+  const descriptionError = courseDescriptionError(description);
 
   return (
     <div className="space-y-6">
@@ -34,7 +43,7 @@ export function CreateCourseForm() {
 
           <div className="space-y-5 p-5">
             <label className="field-label">
-              Nombre del curso
+              <span>Nombre del curso <RequiredMark /></span>
               <input
                 name="title"
                 required
@@ -51,18 +60,30 @@ export function CreateCourseForm() {
             </label>
 
             <label className="field-label">
-              Descripción
+              Descripción breve
               <textarea
                 name="description"
                 rows={3}
-                maxLength={500}
+                maxLength={MAX_COURSE_DESCRIPTION_CHARS}
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
                 placeholder="Qué aprenderán los alumnos en este curso."
-                aria-describedby={state.error ? "course-form-error" : undefined}
+                aria-invalid={Boolean(state.error) || Boolean(descriptionError)}
+                aria-describedby={
+                  state.error
+                    ? "course-description-count course-form-error"
+                    : "course-description-count"
+                }
                 className="field"
               />
-              <span className="hint">Aparece en la biblioteca del alumno.</span>
+              <span
+                id="course-description-count"
+                className={`hint ${descriptionError ? "text-danger" : ""}`}
+              >
+                {descriptionWords}/{MAX_COURSE_DESCRIPTION_WORDS} palabras ·{" "}
+                {description.length}/{MAX_COURSE_DESCRIPTION_CHARS} caracteres
+                {descriptionError ? ` · ${descriptionError}` : ""}
+              </span>
             </label>
 
             <div className="grid gap-4 sm:grid-cols-2">
@@ -100,7 +121,7 @@ export function CreateCourseForm() {
                   name="usesBase"
                   checked={usesBase}
                   onChange={(event) => setUsesBase(event.target.checked)}
-                  className="mt-0.5 size-4 accent-brand"
+                  className="mt-0.5 size-4"
                 />
                 <span className="text-sm">
                   <span className="block font-medium text-ink">

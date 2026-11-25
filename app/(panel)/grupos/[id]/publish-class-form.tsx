@@ -38,7 +38,7 @@ export function PublishClassForm({
         centered
         onClose={() => setDismissed(state)}
       >
-        El grupo ya está disponible en el MLO y los alumnos pueden unirse con el código{" "}
+        El grupo ya está disponible en MLO y los alumnos pueden unirse con el código{" "}
         <span className="font-mono text-ink">{joinCode}</span>.
       </ResultDialog>
     </>

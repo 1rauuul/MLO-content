@@ -5,6 +5,7 @@ import { useActionState, useState } from "react";
 import { updateEvaluation, type TopicResult } from "@/lib/actions/topics";
 import { evaluationComposition } from "@/lib/content/preview";
 import { PreviewFrame } from "@/app/(panel)/preview-frame";
+import { RequiredMark } from "@/app/(panel)/required-mark";
 
 export function EvaluationEditForm({
   courseId,
@@ -45,7 +46,7 @@ export function EvaluationEditForm({
 
         <div className="grid gap-3">
           <label className="field-label">
-            Título
+            <span>Título <RequiredMark /></span>
             <input
               name="title"
               value={title}

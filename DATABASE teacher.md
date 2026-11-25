@@ -9,6 +9,7 @@ PostgreSQL de Supabase. La app conecta con el rol `postgres` (salta RLS); la API
 ```mermaid
 erDiagram
   teachers ||--o{ sessions : "teacher_id"
+  teachers ||--o{ teacher_tokens : "teacher_id"
   teachers ||--o{ courses : "owner_id"
   teachers ||--o{ classes : "teacher_id"
   teachers ||--o{ lesson_extras : "teacher_id"
@@ -31,6 +32,9 @@ erDiagram
 
   classes ||--o{ class_members : "class_id"
   students ||--o{ class_members : "student_id"
+  students ||--o| student_accounts : "student_id"
+  students ||--o{ student_sessions : "student_id"
+  students ||--o| student_progress : "student_id"
   classes ||--o{ extra_classes : "class_id"
   lesson_extras ||--o{ extra_classes : "extra_id"
   classes ||--o{ class_releases : "class_id"
@@ -45,9 +49,13 @@ erDiagram
 | `id` | uuid | PK, `gen_random_uuid()` |
 | `name` | text | not null |
 | `email` | text | not null, unique |
-| `password_hash` | text | not null (scrypt, ver `lib/password.ts`) |
+| `password_hash` | text | not null (scrypt, ver `lib/password.ts`); vacío mientras está pendiente |
 | `role` | text | `admin` \| `maestro`, default `maestro` |
+| `activated_at` | timestamptz | null = invitación pendiente; se llena al aceptar |
 | `created_at` | timestamptz | default `now()` |
+
+Restricción `teachers_activation_check`: `activated_at` es null si y solo si
+`password_hash` está vacío.
 
 ### `sessions` — sesiones de login
 
@@ -59,6 +67,26 @@ erDiagram
 | `created_at` | timestamptz | default `now()` |
 
 Índice: `sessions_teacher_idx (teacher_id)`.
+
+### `teacher_tokens` — invitaciones y recuperación
+
+| Columna | Tipo | Notas |
+|---|---|---|
+| `id` | uuid | PK |
+| `teacher_id` | uuid | FK → `teachers.id`, cascade |
+| `purpose` | text | `invite` \| `reset` |
+| `token_hash` | text | unique, SHA-256 del token |
+| `expires_at` | timestamptz | invitación 7 días; recuperación 60 minutos |
+| `used_at` | timestamptz | se llena al consumirlo |
+| `revoked_at` | timestamptz | se llena al reenviar o pedir otro |
+| `sent_at` | timestamptz | último envío por correo |
+| `delivery_error` | text | `not_configured`, `rejected` o `network` |
+| `created_by` | uuid | FK → `teachers.id`, set null |
+| `created_at` | timestamptz | default `now()` |
+
+Índices: `teacher_tokens_teacher_idx (teacher_id, purpose, created_at desc)` y el
+único parcial `teacher_tokens_pending_idx (teacher_id, purpose) where used_at is
+null and revoked_at is null` (un solo token pendiente por maestro y propósito).
 
 ### `courses` — un curso por docente, más el core
 
@@ -224,6 +252,47 @@ Unique `(course_id, version)`. Índice `releases_latest_idx (course_id, version 
 | `external_key` | text | unique; viaja en el respaldo para no duplicar alumnos |
 | `name` | text | not null |
 | `created_at` | timestamptz | default `now()` |
+| `updated_at` | timestamptz | default `now()` |
+
+### `student_accounts` — cuenta del alumno
+
+| Columna | Tipo | Notas |
+|---|---|---|
+| `student_id` | uuid | PK, FK → `students.id`, cascade |
+| `username` | text | unique, minúsculas; `^[a-z0-9._-]{3,32}$` |
+| `password_hash` | text | scrypt, ver `lib/password.ts` |
+| `created_at` | timestamptz | default `now()` |
+| `updated_at` | timestamptz | default `now()` |
+
+### `student_sessions` — sesiones de alumno
+
+| Columna | Tipo | Notas |
+|---|---|---|
+| `token_hash` | text | PK; SHA-256 del Bearer |
+| `student_id` | uuid | FK → `students.id`, cascade |
+| `expires_at` | timestamptz | 30 días |
+| `created_at` | timestamptz | default `now()` |
+
+Índices: `student_sessions_student_idx (student_id)` y
+`student_sessions_expires_idx (expires_at)`.
+
+### `student_auth_attempts` — límite de intentos
+
+| Columna | Tipo | Notas |
+|---|---|---|
+| `id` | bigserial | PK |
+| `username` | text | usuario intentado |
+| `created_at` | timestamptz | default `now()` |
+
+Índice: `student_auth_attempts_idx (username, created_at desc)`. Se limita a
+10 fallos por usuario cada 15 minutos.
+
+### `student_progress` — respaldo del progreso
+
+| Columna | Tipo | Notas |
+|---|---|---|
+| `student_id` | uuid | PK, FK → `students.id`, cascade |
+| `payload` | jsonb | respaldo v5 de MLO |
 | `updated_at` | timestamptz | default `now()` |
 
 ### `class_members` — alumnos por clase

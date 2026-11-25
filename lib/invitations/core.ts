@@ -1,5 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
 
+import { normalizeEmail } from "@/lib/email";
+
 export const INVITATION_TTL_DAYS = 3;
 export const INVITATION_MAX_ATTEMPTS = 10;
 export const INVITATION_TOKEN_BYTES = 32;
@@ -47,10 +49,7 @@ export function isInvitationToken(value: string): boolean {
 
 /** Acepta cualquier dominio; solo exige formato y normaliza a minúsculas. */
 export function normalizeInvitationEmail(raw: string): string | null {
-  const email = raw.trim().toLowerCase();
-  if (email.length < 5 || email.length > 254) return null;
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return null;
-  return email;
+  return normalizeEmail(raw);
 }
 
 export function invitationExpiresAt(now: Date = new Date()): Date {

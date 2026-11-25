@@ -2,6 +2,11 @@ import { db } from "./db";
 
 const MAX_PROGRESS_BYTES = 2_000_000;
 
+/** El pooler puede devolver jsonb como texto; el cliente espera un objeto. */
+export function parseStoredProgress(value: unknown): unknown {
+  return typeof value === "string" ? JSON.parse(value) : value;
+}
+
 /** El respaldo v5 de MLO; el cliente lo valida completo al descargarlo. */
 export function isProgressPayload(value: unknown): value is Record<string, unknown> {
   return (
@@ -26,9 +31,11 @@ export async function getStudentProgress(
      where s.external_key = ${studentKey}
      limit 1`;
 
-  return row
-    ? { progress: row.payload, updatedAt: row.updated_at.toISOString() }
-    : null;
+  if (!row) return null;
+  return {
+    progress: parseStoredProgress(row.payload),
+    updatedAt: row.updated_at.toISOString(),
+  };
 }
 
 export async function putStudentProgress(

@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 
 import { login, type LoginState } from "./actions";
+import { RequiredMark } from "@/app/(panel)/required-mark";
 
 export function LoginForm() {
   const [state, action, pending] = useActionState<LoginState, FormData>(login, {});
@@ -10,7 +11,7 @@ export function LoginForm() {
   return (
     <form action={action} className="flex flex-col gap-4">
       <label className="field-label">
-        Correo
+        <span>Correo <RequiredMark /></span>
         <input
           name="email"
           type="email"
@@ -23,7 +24,7 @@ export function LoginForm() {
         />
       </label>
       <label className="field-label">
-        Contraseña
+        <span>Contraseña <RequiredMark /></span>
         <input
           name="password"
           type="password"
@@ -34,6 +35,8 @@ export function LoginForm() {
           className="field"
         />
       </label>
+
+      <p className="text-xs text-ink-faint">* Campo obligatorio</p>
 
       {state.error && (
         <p id="login-error" className="form-error" role="alert">

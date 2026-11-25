@@ -9,6 +9,25 @@ import {
   type ImageMime,
 } from "./content/media";
 
+export const MAX_COURSE_DESCRIPTION_WORDS = 60;
+export const MAX_COURSE_DESCRIPTION_CHARS = 280;
+
+export function countWords(value: string): number {
+  const text = value.trim();
+  return text ? text.split(/\s+/).length : 0;
+}
+
+export function courseDescriptionError(value: string): string | null {
+  const text = value.trim();
+  if (countWords(text) > MAX_COURSE_DESCRIPTION_WORDS) {
+    return `La descripción breve no puede pasar de ${MAX_COURSE_DESCRIPTION_WORDS} palabras.`;
+  }
+  if (text.length > MAX_COURSE_DESCRIPTION_CHARS) {
+    return `La descripción breve no puede pasar de ${MAX_COURSE_DESCRIPTION_CHARS} caracteres.`;
+  }
+  return null;
+}
+
 export type ImageBlock = {
   type: "image";
   mediaId: string;

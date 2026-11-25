@@ -18,8 +18,8 @@ export function CreateTopicForm({ courseId, unitId }: { courseId: string; unitId
       <input
         name="title"
         required
-        placeholder="Título del subtema"
-        aria-label="Título del subtema"
+        placeholder="Título del subtema *"
+        aria-label="Título del subtema (obligatorio)"
         aria-invalid={Boolean(state.error)}
         aria-describedby={state.error ? errorId : undefined}
         className="field min-w-0"

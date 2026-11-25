@@ -1,7 +1,11 @@
-export type InvitationDeliveryReason =
-  | "not_configured"
-  | "rejected"
-  | "network";
+import {
+  escapeHtml,
+  sendEmail,
+  type EmailDelivery,
+  type EmailDeliveryReason,
+} from "@/lib/email";
+
+export type InvitationDeliveryReason = EmailDeliveryReason;
 
 export type InvitationEmail = {
   to: string;
@@ -13,20 +17,7 @@ export type InvitationEmail = {
   expiresAt: Date;
 };
 
-export type InvitationDelivery =
-  | { sent: true; id: string }
-  | { sent: false; reason: InvitationDeliveryReason };
-
-const RESEND_ENDPOINT = "https://api.resend.com/emails";
-
-function escapeHtml(value: string): string {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
-}
+export type InvitationDelivery = EmailDelivery;
 
 function formatExpiry(value: Date): string {
   return new Intl.DateTimeFormat("es-MX", {
@@ -203,36 +194,8 @@ export function invitationEmailContent(email: InvitationEmail): {
 export async function sendInvitationEmail(
   email: InvitationEmail,
 ): Promise<InvitationDelivery> {
-  const apiKey = process.env.EMAIL_PROVIDER_API_KEY?.trim();
-  const from = process.env.EMAIL_FROM?.trim();
-  if (!apiKey || !from) return { sent: false, reason: "not_configured" };
-
-  const content = invitationEmailContent(email);
-
-  try {
-    const response = await fetch(RESEND_ENDPOINT, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from,
-        to: email.to,
-        subject: content.subject,
-        text: content.text,
-        html: content.html,
-      }),
-      signal: AbortSignal.timeout(10_000),
-    });
-
-    if (!response.ok) return { sent: false, reason: "rejected" };
-
-    const data = (await response.json().catch(() => null)) as
-      | { id?: unknown }
-      | null;
-    return { sent: true, id: typeof data?.id === "string" ? data.id : "" };
-  } catch {
-    return { sent: false, reason: "network" };
-  }
+  return sendEmail({
+    to: email.to,
+    ...invitationEmailContent(email),
+  });
 }

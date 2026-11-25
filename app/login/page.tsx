@@ -1,11 +1,19 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { getSession } from "@/lib/auth";
 
 import { LoginForm } from "./login-form";
 
-export default async function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ restablecida?: string | string[] }>;
+}) {
   if (await getSession()) redirect("/mis-cursos");
+
+  const { restablecida } = await searchParams;
+  const justReset = (Array.isArray(restablecida) ? restablecida[0] : restablecida) === "1";
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-canvas p-6">
@@ -24,7 +32,17 @@ export default async function LoginPage() {
           <p className="page-lead mb-7">
             Contenido adicional para el curso de Ingeniería de Software.
           </p>
+          {justReset && (
+            <p className="form-ok mb-4" role="status">
+              Contraseña actualizada. Inicia sesión con tu nueva contraseña.
+            </p>
+          )}
           <LoginForm />
+          <p className="mt-5 text-center text-sm">
+            <Link href="/recuperar" className="link">
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </p>
         </div>
 
         <p className="mt-6 text-center text-xs text-ink-faint">

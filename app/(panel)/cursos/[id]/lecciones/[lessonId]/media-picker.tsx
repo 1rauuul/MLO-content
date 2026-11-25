@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from "react";
 
+import { RequiredMark } from "@/app/(panel)/required-mark";
 import type { ImageBlock, VideoBlock } from "@/lib/content";
 import {
   isImageMime,
@@ -206,7 +207,7 @@ export function ImagePickerDialog({
         )}
 
         <label className="field-label">
-          Texto alternativo
+          <span>Texto alternativo <RequiredMark /></span>
           <input
             value={alt}
             onChange={(event) => setAlt(event.target.value)}
@@ -283,7 +284,7 @@ export function VideoPickerDialog({
         }}
       >
         <label className="field-label">
-          Enlace de YouTube
+          <span>Enlace de YouTube <RequiredMark /></span>
           <input
             value={url}
             onChange={(event) => {
@@ -305,7 +306,7 @@ export function VideoPickerDialog({
         )}
 
         <label className="field-label">
-          Título
+          <span>Título <RequiredMark /></span>
           <input
             value={title}
             onChange={(event) => setTitle(event.target.value)}

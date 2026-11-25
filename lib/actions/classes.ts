@@ -73,7 +73,7 @@ export async function createClass(
     select id, is_base, owner_id from courses
      where id = ${courseId} and not is_group and archived_at is null
      limit 1`;
-  if (!course) return { error: "El curso padre no existe." };
+  if (!course) return { error: "El curso del grupo no existe." };
   if (teacher.role !== "admin" && !course.is_base && course.owner_id !== teacher.id) {
     return { error: "No puedes crear grupos en ese curso." };
   }

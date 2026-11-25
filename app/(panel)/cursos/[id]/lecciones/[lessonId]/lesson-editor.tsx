@@ -6,6 +6,7 @@ import { updateLesson, type LessonResult } from "@/lib/actions/content";
 import type { ContentBlock } from "@/lib/content";
 import { previewBlockErrors } from "@/lib/content/preview";
 import { PreviewFrame } from "@/app/(panel)/preview-frame";
+import { RequiredMark } from "@/app/(panel)/required-mark";
 
 import { BlockEditor } from "./block-editor";
 import { LessonReadingPreview } from "./preview";
@@ -57,7 +58,7 @@ export function LessonEditor({
 
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="field-label">
-              Título
+              <span>Título <RequiredMark /></span>
               <input
                 name="title"
                 required

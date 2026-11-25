@@ -37,7 +37,9 @@ export async function getSession(): Promise<Teacher | null> {
   const rows = await db()<Teacher[]>`select t.id, t.name, t.email, t.role
     from sessions s
     join teachers t on t.id = s.teacher_id
-    where s.token_hash = ${hashToken(token)} and s.expires_at > now()
+    where s.token_hash = ${hashToken(token)}
+      and s.expires_at > now()
+      and t.activated_at is not null
     limit 1`;
 
   return rows[0] ?? null;

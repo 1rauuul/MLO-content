@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 
 import { getBaseCourseId, requireEditableCourse, resolveContentTargets } from "@/lib/access";
 import { requireTeacher } from "@/lib/auth";
-import { parseBlocks } from "@/lib/content";
+import { courseDescriptionError, parseBlocks } from "@/lib/content";
 import { publishCourse } from "@/lib/content/publish";
 import { UNIT_COLORS } from "@/lib/content/unit-colors";
 import { editorCourseIds } from "@/lib/content/x03";
@@ -27,9 +27,8 @@ export async function createCourse(
 
   if (title.length < 3) return { error: "Escribe un título de al menos 3 caracteres." };
   if (title.length > 80) return { error: "El título no puede pasar de 80 caracteres." };
-  if (description.length > 500) {
-    return { error: "La descripción no puede pasar de 500 caracteres." };
-  }
+  const descriptionError = courseDescriptionError(description);
+  if (descriptionError) return { error: descriptionError };
   if (!["Fundamental", "Intermedio", "Avanzado"].includes(level)) {
     return { error: "Elige un nivel válido." };
   }
@@ -118,7 +117,7 @@ export async function createUnit(
   }
 
   revalidatePath(`/cursos/${courseId}`);
-  return {};
+  return { ok: true };
 }
 
 export async function createLesson(
@@ -343,7 +342,7 @@ export async function updateUnit(
      where id = ${unitId}`;
 
   revalidatePath(`/cursos/${courseId}`);
-  return {};
+  return { ok: true };
 }
 
 export async function moveUnit(formData: FormData): Promise<void> {

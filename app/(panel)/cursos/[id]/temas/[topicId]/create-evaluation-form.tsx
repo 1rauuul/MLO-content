@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 
 import { createEvaluation, type TopicResult } from "@/lib/actions/topics";
+import { RequiredMark } from "@/app/(panel)/required-mark";
 
 export function CreateEvaluationForm({
   courseId,
@@ -22,7 +23,7 @@ export function CreateEvaluationForm({
       <input type="hidden" name="topicId" value={topicId} />
       <div className="grid gap-3">
         <label className="field-label">
-          Título
+          <span>Título <RequiredMark /></span>
           <input
             name="title"
             required

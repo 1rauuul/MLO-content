@@ -1,5 +1,6 @@
 import { db } from "../lib/db";
 import { hashPassword } from "../lib/password";
+import { validatePassword } from "../lib/password-policy";
 
 async function main() {
   const name = (process.env.ADMIN_NAME ?? "Administrador").trim();
@@ -11,17 +12,20 @@ async function main() {
     process.exit(1);
   }
 
-  if (password.length < 8) {
-    console.error("ADMIN_PASSWORD debe tener al menos 8 caracteres.");
+  if (!validatePassword(password).valid) {
+    console.error(
+      "ADMIN_PASSWORD debe tener 8–128 caracteres, mayúscula, minúscula, número y símbolo.",
+    );
     process.exit(1);
   }
 
-  await db()`insert into teachers (name, email, password_hash, role)
-    values (${name}, ${email}, ${await hashPassword(password)}, 'admin')
+  await db()`insert into teachers (name, email, password_hash, role, activated_at)
+    values (${name}, ${email}, ${await hashPassword(password)}, 'admin', now())
     on conflict (email) do update
       set name = excluded.name,
           password_hash = excluded.password_hash,
-          role = 'admin'`;
+          role = 'admin',
+          activated_at = now()`;
 
   console.log(`Administrador listo: ${email}`);
   await db().end({ timeout: 5 });

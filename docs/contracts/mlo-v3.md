@@ -814,7 +814,8 @@ X-MLO-Student-Key: <uuid de accounts.external_key>
 
 - Si falta o no es un UUID válido: `400` con `{ error: "invalid" }`.
 - No se acepta identidad por query string, body ni UI.
-- CORS permite `Content-Type, X-MLO-Student-Key`; `OPTIONS` responde `204`.
+- CORS permite `Content-Type, X-MLO-Student-Key`; las rutas de cuenta añaden
+  `Authorization`. `OPTIONS` responde `204`.
 
 ### 13.2 Lista de cursos
 

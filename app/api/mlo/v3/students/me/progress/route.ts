@@ -1,5 +1,5 @@
 import { corsPreflight, CORS_HEADERS } from "@/lib/api/cors";
-import { isStudentKey } from "@/lib/classes";
+import { resolveStudentKey } from "@/lib/student-auth";
 import {
   getStudentProgress,
   isProgressPayload,
@@ -20,12 +20,12 @@ export async function OPTIONS() {
 }
 
 export async function GET(request: Request) {
-  const studentKey = (request.headers.get("x-mlo-student-key") ?? "").trim();
-  if (!isStudentKey(studentKey)) {
-    return invalid("Falta la identidad estable del alumno.");
+  const identity = await resolveStudentKey(request);
+  if (!identity) {
+    return invalid("Falta la identidad estable del alumno.", 401);
   }
 
-  const progress = await getStudentProgress(studentKey);
+  const progress = await getStudentProgress(identity.externalKey);
   if (!progress) {
     return new Response(null, { status: 204, headers: NO_STORE });
   }
@@ -33,16 +33,17 @@ export async function GET(request: Request) {
 }
 
 export async function PUT(request: Request) {
-  const studentKey = (request.headers.get("x-mlo-student-key") ?? "").trim();
-  if (!isStudentKey(studentKey)) {
-    return invalid("Falta la identidad estable del alumno.");
+  const identity = await resolveStudentKey(request);
+  if (!identity) {
+    return invalid("Falta la identidad estable del alumno.", 401);
   }
 
   const body = (await request.json().catch(() => null)) as
     | { studentName?: unknown; progress?: unknown }
     | null;
   const studentName =
-    typeof body?.studentName === "string" ? body.studentName.trim() : "";
+    identity.student?.displayName ??
+    (typeof body?.studentName === "string" ? body.studentName.trim() : "");
   if (studentName.length < 2 || studentName.length > 80) {
     return invalid("El nombre del alumno no es válido.");
   }
@@ -53,6 +54,10 @@ export async function PUT(request: Request) {
     return invalid("El progreso es demasiado grande.", 413);
   }
 
-  const updatedAt = await putStudentProgress(studentKey, studentName, body.progress);
+  const updatedAt = await putStudentProgress(
+    identity.externalKey,
+    studentName,
+    body.progress,
+  );
   return Response.json({ updatedAt }, { headers: NO_STORE });
 }

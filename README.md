@@ -41,7 +41,10 @@ Requisitos: Node 22+ y un proyecto de Supabase.
 2. Copia `.env.example` a `.env.local` y rellena:
    - `DATABASE_URL`: cadena del **pooler** de Supabase (puerto 6543).
    - `DATABASE_URL_DIRECT`: cadena directa (puerto 5432), para migraciones.
-   - `ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`.
+   - `ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` (8–128 con mayúscula,
+     minúscula, número y símbolo).
+   - `EMAIL_PROVIDER_API_KEY`, `EMAIL_FROM` y `APP_BASE_URL` para las invitaciones y
+     la recuperación de contraseña por correo.
 
 3. Aplica las migraciones **en orden**. Pega cada archivo de
    `supabase/migrations/` en el **SQL Editor** de Supabase (o usa
@@ -65,7 +68,9 @@ Requisitos: Node 22+ y un proyecto de Supabase.
    npm run dev
    ```
 
-Entra en http://localhost:3000 y usa el correo y la contraseña del paso 2.
+Entra en http://localhost:3000 con el correo y la contraseña del administrador. Desde
+`/admin/maestros` podrás invitar a los maestros por correo; ellos crean su contraseña
+desde el enlace.
 
 Verificación rápida:
 
@@ -92,7 +97,10 @@ npm run export:release -- base <ruta>/MLO-Ingenieria-software/src/shared/service
 
 | Ruta | Quién | Qué hace |
 |---|---|---|
-| `/login` | público | Entrar |
+| `/login` | público | Entrar y recuperar contraseña |
+| `/invitacion` | público (token) | El maestro crea su contraseña |
+| `/recuperar` | público | Pedir enlace de recuperación |
+| `/restablecer` | público (token) | Elegir una contraseña nueva |
 | `/mis-cursos` | maestro | Contenido base (lectura) y cursos propios |
 | `/mis-cursos/crear` | maestro | Alta de un curso |
 | `/cursos/[id]` | maestro | Unidades y lecciones; agregar contenido |
@@ -101,7 +109,7 @@ npm run export:release -- base <ruta>/MLO-Ingenieria-software/src/shared/service
 | `/grupos` | maestro | Crear grupos y ver sus códigos |
 | `/grupos/[id]` | dueño / admin | Alumnos, contenido y publicación por grupo |
 | `/contenido-extra` | dueño / admin | Contenido del grupo y aportaciones asignadas a grupos |
-| `/admin/maestros` | admin | Alta de cuentas |
+| `/admin/maestros` | admin | Invitar maestros y reenviar invitaciones |
 
 ### API para MLO
 
@@ -116,6 +124,20 @@ Solo lectura del último release, sin autenticación:
 | `DELETE /api/mlo/v2/classes/{code}/members/{studentKey}` | Salir de la clase |
 | `GET /api/mlo/v2/classes/{code}/release` | Snapshot publicado de la clase |
 
+### Cuentas de alumno
+
+| Ruta | Qué hace |
+|---|---|
+| `POST /api/mlo/v3/auth/register` | Alta con usuario, contraseña y nombre; devuelve token |
+| `POST /api/mlo/v3/auth/login` | Login; devuelve token Bearer |
+| `POST /api/mlo/v3/auth/logout` | Revoca la sesión |
+| `GET/PUT /api/mlo/v3/students/me/progress` | Progreso del alumno autenticado |
+| `GET /api/mlo/v3/students/me/classes` | Clases del alumno autenticado |
+
+Las rutas de progreso y clases aceptan `Authorization: Bearer`; durante la
+transición también siguen aceptando `X-MLO-Student-Key`. Las cuentas nuevas usan
+scrypt y sesiones de 30 días guardadas en `student_sessions`.
+
 `404` si el curso no tiene release, la lección no está en el snapshot o la clase no
 tiene nada publicado. El snapshot de clase solo lleva contenido extra; MLO lo combina
 con el curso base y lo guarda localmente para funcionar sin conexión. Hay un ejemplo
@@ -128,6 +150,9 @@ del contrato en `scripts/fixtures/class-release.json`.
 - Las tablas viven en `public` con **RLS activado y sin políticas**: la API pública de
   Supabase no puede leerlas ni escribirlas. La app entra con el rol `postgres`, que no
   pasa por RLS.
-- Las sesiones se guardan en la base; la cookie solo lleva un token aleatorio y en la
-  base queda su SHA-256.
+- Las sesiones de maestro se guardan en la base; la cookie solo lleva un token
+  aleatorio y en la base queda su SHA-256. Las sesiones de alumno usan Bearer y el
+  mismo esquema de token hasheado.
+- Las invitaciones de maestro y los enlaces de recuperación son tokens de un solo uso;
+  en `teacher_tokens` solo queda su SHA-256. Reenviar o pedir otro invalida el anterior.
 - `cacheComponents` está desactivado: el panel es dinámico y autenticado, PPR no aporta.

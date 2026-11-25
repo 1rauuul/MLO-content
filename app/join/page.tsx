@@ -62,10 +62,10 @@ function InvalidInvitation() {
   return (
     <Shell>
       <p className="eyebrow">Invitación</p>
-      <h1 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
+      <h1 className="page-title mt-2">
         Esta invitación no es válida
       </h1>
-      <p className="mt-2 text-sm leading-relaxed text-ink-muted">
+      <p className="page-lead mt-2">
         Pide a tu docente una invitación nueva o únete con el código de la clase.
       </p>
     </Shell>
@@ -90,10 +90,10 @@ export default async function JoinPage({
     return (
       <Shell>
         <p className="eyebrow">Invitación</p>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
+        <h1 className="page-title mt-2">
           {preview.className}
         </h1>
-        <p className="mt-2 text-sm leading-relaxed text-ink-muted">
+        <p className="page-lead mt-2">
           El grupo ya no está disponible. Pide una nueva invitación a tu docente.
         </p>
       </Shell>
@@ -106,10 +106,10 @@ export default async function JoinPage({
   return (
     <Shell>
       <p className="eyebrow">Invitación a un grupo</p>
-      <h1 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
+      <h1 className="page-title mt-2">
         {preview.className}
       </h1>
-      <p className="mt-2 text-sm leading-relaxed text-ink-muted">
+      <p className="page-lead mt-2">
         {preview.teacherName} te invitó al curso{" "}
         <strong className="font-medium text-ink">{preview.courseTitle}</strong>.
       </p>

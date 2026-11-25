@@ -1,6 +1,7 @@
 "use client";
 
 import type { CrosswordEntry, ExerciseStep, MatchPair } from "@/lib/content/model";
+import { RequiredMark } from "@/app/(panel)/required-mark";
 
 export const fieldClass = "field";
 
@@ -20,17 +21,22 @@ export function Field({
   label,
   hint,
   marker,
+  required = false,
   children,
 }: {
   label: string;
   hint?: string;
   marker?: string;
+  required?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <label className="field-label">
-      {marker && <Marker>{marker}</Marker>}
-      {label}
+      <span className="inline-flex items-center">
+        {marker && <Marker>{marker}</Marker>}
+        {label}
+        {required && <RequiredMark />}
+      </span>
       {children}
       {hint && <span className="hint">{hint}</span>}
     </label>

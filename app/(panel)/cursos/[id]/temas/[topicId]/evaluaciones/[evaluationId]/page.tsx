@@ -168,9 +168,21 @@ export default async function EvaluationPage({
                   </div>
                 )}
                 {canEdit && (
-                  <details className="mt-3">
-                    <summary className="cursor-pointer text-sm text-ink-muted">
+                  <details className="group mt-3">
+                    <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 text-sm text-ink-muted transition-colors hover:text-ink [&::-webkit-details-marker]:hidden">
                       Editar pregunta
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="size-3.5 transition-transform group-open:rotate-180"
+                        aria-hidden="true"
+                      >
+                        <path d="m6 9 6 6 6-6" />
+                      </svg>
                     </summary>
                     <div className="mt-3">
                       <QuestionForm

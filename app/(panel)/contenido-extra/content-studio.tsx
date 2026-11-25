@@ -636,7 +636,7 @@ function LessonStudioForm({
       ))}
 
       <div className="max-w-2xl">
-        <Field label="Título de la lección">
+        <Field label="Título de la lección" required>
           <input
             name="title"
             required
@@ -718,7 +718,7 @@ function EvaluationStudioForm({
       ))}
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Título de la evaluación">
+        <Field label="Título de la evaluación" required>
           <input
             name="title"
             required

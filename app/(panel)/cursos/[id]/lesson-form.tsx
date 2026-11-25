@@ -5,6 +5,7 @@ import { useActionState } from "react";
 import { createLesson, type ActionResult } from "@/lib/actions/content";
 
 import { BlockEditor } from "./lecciones/[lessonId]/block-editor";
+import { RequiredMark } from "@/app/(panel)/required-mark";
 
 const inputClass = "field";
 
@@ -24,7 +25,7 @@ export function CreateLessonForm({
       <input type="hidden" name="courseId" value={courseId} />
       <input type="hidden" name="topicId" value={topicId} />
       <label className="field-label">
-        Título de la lección
+        <span>Título de la lección <RequiredMark /></span>
         <input
           name="title"
           required

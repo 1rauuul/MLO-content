@@ -9,6 +9,7 @@ import {
 } from "@/lib/actions/classes";
 import type { InvitationStatus } from "@/lib/invitations/core";
 import type { InvitationDeliveryReason } from "@/lib/invitations/delivery";
+import { RequiredMark } from "@/app/(panel)/required-mark";
 
 type InvitationRow = {
   id: string;
@@ -79,17 +80,21 @@ export function InvitationPanel({
 
       <form action={action} className="mt-4 flex flex-wrap items-start gap-3">
         <input type="hidden" name="classId" value={classId} />
-        <input
-          name="email"
-          type="email"
-          required
-          maxLength={254}
-          placeholder="correo@cualquier-dominio.com"
-          aria-label="Correo del alumno"
-          aria-invalid={Boolean(state.error)}
-          aria-describedby={state.error ? "invitation-error" : undefined}
-          className="field min-w-0 flex-1 sm:min-w-64"
-        />
+        <label className="min-w-0 flex-1 sm:min-w-64">
+          <span className="field-label">
+            <span>Correo del alumno <RequiredMark /></span>
+          </span>
+          <input
+            name="email"
+            type="email"
+            required
+            maxLength={254}
+            placeholder="correo@cualquier-dominio.com"
+            aria-invalid={Boolean(state.error)}
+            aria-describedby={state.error ? "invitation-error" : undefined}
+            className="field"
+          />
+        </label>
         <button
           type="submit"
           disabled={blocked || pending}
@@ -113,6 +118,7 @@ export function InvitationPanel({
             {state.error}
           </p>
         )}
+        <p className="w-full text-xs text-ink-faint">* Campo obligatorio</p>
       </form>
 
       {state.invitation && (

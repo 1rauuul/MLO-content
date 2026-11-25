@@ -16,15 +16,15 @@ export function GrantAccessForm({ courseId }: { courseId: string }) {
       <input
         name="externalKey"
         required
-        placeholder="UUID del alumno"
-        aria-label="Identidad externa del alumno"
+        placeholder="UUID del alumno *"
+        aria-label="Identidad externa del alumno (obligatorio)"
         className="field min-w-64 flex-1 font-mono text-xs"
       />
       <input
         name="name"
         required
-        placeholder="Nombre del alumno"
-        aria-label="Nombre del alumno"
+        placeholder="Nombre del alumno *"
+        aria-label="Nombre del alumno (obligatorio)"
         className="field min-w-48 flex-1"
       />
       <button type="submit" disabled={pending} className="btn btn-secondary btn-sm">

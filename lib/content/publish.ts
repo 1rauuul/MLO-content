@@ -345,7 +345,7 @@ export async function publishCourse(teacher: Teacher, course: Course): Promise<P
     });
     const checked = validateRelease(release);
     if (!checked.ok) {
-      throw new Error(`El release v3 no es válido: ${checked.error}`);
+      throw new Error(`La versión del curso no es válida: ${checked.error}`);
     }
 
     await tx`insert into releases_v3

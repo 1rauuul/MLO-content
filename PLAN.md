@@ -1,6 +1,6 @@
 # Plan del proyecto — MLO · Maestros
 
-> Estado al **2026-11-18**. El detalle reciente vive en `HISTORIAL.md`; este documento conserva el estado por hitos.
+> Estado al **2026-11-25**. El detalle reciente vive en `MLO-Ingenieria-software/docs/estado/historial-cms.md`; este documento conserva el estado por hitos.
 
 ## 1. Objetivo
 
@@ -21,11 +21,12 @@ aplica en el teléfono sin actualizar la app.
 | Ids publicados | `{key}-{contentId}`; el core conserva sus ids |
 | Multimedia | Imágenes en Postgres con URL firmada y caché offline en MLO; video de YouTube embebido (requiere conexión) |
 | Acceso | Admin gestiona todo y el core; maestro solo sus cursos y clases |
-| Registro | Sin registro público; el admin crea las cuentas |
+| Registro | Sin registro público; el admin invita por correo y el maestro crea su contraseña |
+| Contraseñas de maestro | Recuperación por enlace de un solo uso; política 8–128 con mayúscula, minúscula, número y símbolo |
 | Clases | Un maestro crea varias; código de 6 fijo desde la creación; el alumno puede estar en varias |
 | Contenido extra | Bloques, ejemplos o ejercicios sobre lecciones del core; se asigna a una o varias clases |
 | Publicación extra | Snapshot inmutable por clase; MLO lo descarga y lo guarda para usar sin conexión |
-| Identidad del alumno | UUID estable por persona (viaja en el respaldo) + nombre; sin cuenta en el servidor |
+| Identidad del alumno | UUID estable por persona + cuenta con usuario/contraseña en el CMS; el progreso se restaura al iniciar sesión |
 | Grupos | Reemplazados por clases; la tabla `groups` se eliminó |
 
 ## 3. Arquitectura
@@ -48,6 +49,8 @@ aplica en el teléfono sin actualizar la app.
 | `evaluations`, `exercises`, `examples`, `questions` | Práctica, ejemplos y evaluación |
 | `classes` | Clase del maestro y su código de 6 fijo |
 | `students`, `class_members` | Identidad estable del alumno y sus membresías por clase |
+| `student_accounts`, `student_sessions`, `student_auth_attempts` | Cuenta remota del alumno, sesiones Bearer y límite de intentos |
+| `student_progress` | Respaldo v5 del progreso por alumno |
 | `lesson_extras`, `extra_classes` | Contenido extra y las clases a las que se asigna |
 | `class_releases` | Versión, hash y snapshot inmutable de una clase |
 | `releases` | Versión, hashes y snapshot JSON inmutable del curso |
@@ -86,6 +89,18 @@ sueltos. Devuelven `404` si el curso no tiene release o la lección no está en 
 snapshot. Las clases leen su propio `class_release`; también devuelven `404` si no
 hay nada publicado. El alumno descarga cada clase a la que pertenece y la guarda
 localmente para usarla sin conexión.
+
+### API de cuentas (v3)
+
+- `POST /api/mlo/v3/auth/register` — alta con usuario, contraseña y nombre; token Bearer.
+- `POST /api/mlo/v3/auth/login` — login; token Bearer.
+- `POST /api/mlo/v3/auth/logout` — revoca la sesión.
+- `GET/PUT /api/mlo/v3/students/me/progress` — progreso del alumno autenticado.
+- `GET /api/mlo/v3/students/me/classes` — clases del alumno autenticado.
+
+Las rutas de progreso y clases aceptan `Authorization: Bearer`; durante la transición
+siguen aceptando `X-MLO-Student-Key`. Las cuentas usan scrypt y sesiones de 30 días; el
+token se guarda hasheado en `student_sessions`.
 
 ## 4. Hitos y estado
 
@@ -311,7 +326,7 @@ versión 1. El curso `IS-AGDC-2026` quedó con 1 unidad (renumerada `u6`) y 1 le
 - PWA.
 - Borradores e historial por documento.
 - Que el maestro modifique el core en su curso.
-- Cuentas de alumno en el servidor, calificaciones y sincronización de progreso.
+- Calificaciones normalizadas y reportes de progreso para el docente.
 - Expulsar alumnos desde el panel y publicación masiva de todas las clases.
 - Edición offline.
 
@@ -405,3 +420,4 @@ Variables en `.env.local` (no versionado): `DATABASE_URL`, `DATABASE_URL_DIRECT`
 | 2026-11-16 | Evaluaciones arregladas: faltaba aplicar `20261111000001_topic_direct_activities.sql` en la base (lesson_id seguía NOT NULL), así que crear evaluación/pregunta fallaba con `23502`. Migración aplicada y verificada; la base ya acepta actividades directas al subtema. Además `createEvaluation`/`saveQuestion` devuelven el error al formulario y la publicación rechaza una evaluación sin preguntas. 129 tests en verde. |
 | 2026-11-16 | Referencia visual en el editor de ejercicios y ejemplos: botón **Ver muestra** con una actividad completa por tipo (ordenar, completar, relacionar, crucigrama), chips ①–⑥ ligados a los campos y **Usar esta muestra** para copiarla al formulario. Las muestras viven en `lib/content/samples.ts` y un test las valida con las reglas estrictas de publicación. La vista previa del crucigrama ahora muestra las pistas con H1/V1. 131 tests en verde. |
 | 2026-11-18 | Editor de contenido del grupo: lista unificada de lecciones, ejemplos, ejercicios y evaluaciones; editores propios con vista previa interactiva; `class_content_changes` con triggers y tarjeta de versión con subtemas pendientes; edición de estructura desde el grupo; enlaces de vuelta seguros y pop ups centrados. En la app: portada con logos CINVESTAV, perfil con "Mostrar curso base", salir del curso, lección de una sola pantalla y unidad de grupo restaurada. 145 tests del panel y 581 de la app. |
+| 2026-11-24 | Cuentas de alumno en el CMS y progreso en la nube: `student_accounts`, `student_sessions` y `student_auth_attempts`; auth scrypt con sesiones Bearer de 30 días y límite de intentos; endpoints `/api/mlo/v3/auth/*`; progreso y clases con Bearer (y header legacy); `student_progress` con límite de 2 MB. Pulido del panel (confirmaciones, campos obligatorios, 404, icono) y limpieza de pruebas. En la app: token y `remote_session` en SQLite v23, restauración y sincronización automática del progreso, vinculación de cuentas antiguas. 157 tests del panel y 541 de la app. |
