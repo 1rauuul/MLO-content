@@ -20,6 +20,7 @@ import {
 } from "@/lib/invitations/invitations";
 import { newCourseKey, newJoinCode } from "@/lib/ids";
 import { appBaseUrl } from "@/lib/media/signing";
+import { canIssueStudentLink, issueStudentLinkCode } from "@/lib/student-link";
 
 export type ClassResult = { error?: string };
 export type ExtraResult = { error?: string; ok?: boolean };
@@ -42,6 +43,11 @@ export type PublishClassResult = {
   extras?: number;
   v3Version?: number;
   v3Hash?: string;
+};
+export type StudentLinkResult = {
+  error?: string;
+  code?: string;
+  expiresAt?: string;
 };
 
 function parseJson(value: FormDataEntryValue | null): unknown {
@@ -349,6 +355,35 @@ export async function revokeClassInvitation(formData: FormData): Promise<void> {
   );
   await revokeInvitation(klass.id, invitationId);
   revalidatePath(`/grupos/${klass.id}`);
+}
+
+export async function createStudentLinkCode(
+  _prev: StudentLinkResult,
+  formData: FormData,
+): Promise<StudentLinkResult> {
+  const teacher = await requireTeacher();
+  const classId = String(formData.get("classId") ?? "");
+  const studentId = String(formData.get("studentId") ?? "");
+  const klass = await requireEditableClass(teacher, classId);
+  const [member] = await db()<{ ok: boolean }[]>`
+    select exists(
+      select 1 from class_members
+       where class_id = ${klass.id} and student_id = ${studentId} and active
+    ) as ok`;
+  if (
+    !canIssueStudentLink({
+      teacherId: teacher.id,
+      role: teacher.role,
+      classTeacherId: klass.teacher_id,
+      isMember: Boolean(member?.ok),
+    })
+  ) {
+    return { error: "El alumno no pertenece a este grupo." };
+  }
+  const issued = await issueStudentLinkCode(studentId);
+  if (!issued) return { error: "El alumno ya tiene cuenta o no existe." };
+  revalidatePath(`/grupos/${klass.id}`);
+  return { code: issued.code, expiresAt: issued.expiresAt.toISOString() };
 }
 
 export async function publishClass(

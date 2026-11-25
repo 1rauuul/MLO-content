@@ -1,10 +1,6 @@
-import { randomInt } from "node:crypto";
-
 import { db } from "../lib/db";
-import { hashToken } from "../lib/password";
+import { issueStudentLinkCode } from "../lib/student-link";
 import { isExternalKey } from "../lib/student-auth";
-
-const LINK_CODE_TTL_MINUTES = 30;
 
 function flag(name: string): string | undefined {
   const index = process.argv.indexOf(name);
@@ -61,32 +57,15 @@ async function main() {
       process.exit(1);
     }
 
-    const [account] = await sql<{ student_id: string }[]>`
-      select student_id from student_accounts
-       where student_id = ${student.id}
-       limit 1`;
-    if (account) {
-      console.error("Esa cuenta ya está vinculada; el alumno debe iniciar sesión.");
+    const issued = await issueStudentLinkCode(student.id);
+    if (!issued) {
+      console.error("Esa cuenta ya está vinculada o el alumno no existe.");
       process.exit(1);
     }
 
-    const code = String(randomInt(0, 1_000_000)).padStart(6, "0");
-    const expiresAt = new Date(
-      Date.now() + LINK_CODE_TTL_MINUTES * 60_000,
-    );
-    await sql.begin(async (tx) => {
-      await tx`update student_link_codes
-        set used_at = now()
-        where student_id = ${student.id}
-          and used_at is null`;
-      await tx`insert into student_link_codes
-        (student_id, code_hash, expires_at)
-        values (${student.id}, ${hashToken(code)}, ${expiresAt.toISOString()})`;
-    });
-
-    console.log(`Código de vinculación para ${student.name}: ${code}`);
+    console.log(`Código de vinculación para ${student.name}: ${issued.code}`);
     console.log(
-      `Vence: ${expiresAt.toLocaleString("es-MX")}. Compártelo solo con el alumno.`,
+      `Vence: ${issued.expiresAt.toLocaleString("es-MX")}. Compártelo solo con el alumno.`,
     );
   } finally {
     await sql.end({ timeout: 5 });

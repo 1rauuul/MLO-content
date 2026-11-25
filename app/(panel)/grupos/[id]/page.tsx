@@ -14,6 +14,7 @@ import { listInvitations } from "@/lib/invitations/invitations";
 
 import { InvitationHistory, InvitationPanel } from "./invitation-panel";
 import { PublishClassForm } from "./publish-class-form";
+import { StudentLinkForm } from "./student-link-form";
 
 type GroupTopic = {
   id: string;
@@ -444,11 +445,12 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
               </p>
             ) : (
               <div className="mt-4 overflow-x-auto">
-                <table className="w-full min-w-[320px] text-left text-sm">
+                <table className="w-full min-w-[420px] text-left text-sm">
                   <thead>
                     <tr className="border-b border-line">
                       <th className="eyebrow py-2 font-medium">Nombre</th>
                       <th className="eyebrow py-2 font-medium">Se unió</th>
+                      <th className="eyebrow py-2 font-medium">Cuenta</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-line">
@@ -460,6 +462,17 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
                         <td className="py-2 text-ink-soft">{student.name}</td>
                         <td className="whitespace-nowrap py-2 tabular-nums text-ink-muted">
                           {formatDate(student.joined_at)}
+                        </td>
+                        <td className="py-2">
+                          {student.hasAccount ? (
+                            <span className="badge badge-positive">En la nube</span>
+                          ) : (
+                            <StudentLinkForm
+                              classId={klass.id}
+                              studentId={student.id}
+                              studentName={student.name}
+                            />
+                          )}
                         </td>
                       </tr>
                     ))}

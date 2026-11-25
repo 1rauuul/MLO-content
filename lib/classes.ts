@@ -61,6 +61,8 @@ export type ClassReleaseInfo = {
 export type ClassStudent = {
   id: string;
   name: string;
+  externalKey: string;
+  hasAccount: boolean;
   joined_at: Date;
 };
 
@@ -241,7 +243,10 @@ export async function getLatestClassSnapshot(
 
 export async function listClassStudents(classId: string): Promise<ClassStudent[]> {
   return db()<ClassStudent[]>`
-    select s.id, s.name, m.joined_at
+    select s.id, s.name, s.external_key as "externalKey", m.joined_at,
+           exists(
+             select 1 from student_accounts a where a.student_id = s.id
+           ) as "hasAccount"
       from class_members m
       join students s on s.id = m.student_id
      where m.class_id = ${classId} and m.active
