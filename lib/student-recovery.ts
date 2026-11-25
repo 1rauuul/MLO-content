@@ -111,7 +111,9 @@ export function studentRecoveryEmailContent(input: {
 
 export async function requestStudentPasswordReset(
   rawEmail: string,
+  deps: { sendEmail?: typeof sendEmail } = {},
 ): Promise<StudentRecoveryResult> {
+  const send = deps.sendEmail ?? sendEmail;
   const email = normalizeEmail(rawEmail);
   if (!email) return { ok: false, error: "invalid_email" };
   // Se comprueba antes de buscar la cuenta para no filtrar su existencia.
@@ -146,17 +148,45 @@ export async function requestStudentPasswordReset(
   const expiresAt = new Date(
     Date.now() + STUDENT_RECOVERY_CODE_TTL_MINUTES * 60_000,
   );
+
+  // Guarda el código sin enviar antes de mandar el correo. El bloqueo del
+  // alumno serializa las solicitudes concurrentes: si ya hay un código vivo
+  // sin enviar, otra solicitud ya está en curso y no se envía un segundo correo.
+  const newId = await db().begin(async (tx) => {
+    const [locked] = await tx<{ id: string }[]>`
+      select id from students where id = ${account.student_id} for update`;
+    if (!locked) return null;
+
+    const [pending] = await tx<{ id: string }[]>`
+      select id
+        from student_password_resets
+       where student_id = ${account.student_id}
+         and used_at is null
+         and sent_at is null
+         and expires_at > now()
+       limit 1`;
+    if (pending) return null;
+
+    const [row] = await tx<{ id: string }[]>`
+      insert into student_password_resets
+        (student_id, code_hash, expires_at, sent_at)
+      values
+        (${account.student_id}, ${hashToken(code)}, ${expiresAt.toISOString()}, null)
+      returning id`;
+    return row.id;
+  });
+
+  if (newId === null) return { ok: true };
+
   const content = studentRecoveryEmailContent({
     username: account.username,
     code,
     expiresAt,
   });
-
-  // Primero el correo: si falla, el código anterior sigue vigente y no se gasta
-  // una solicitud. Solo se guarda el código nuevo cuando ya salió el correo.
-  const delivery = await sendEmail({ to: email, ...content });
+  const delivery = await send({ to: email, ...content });
   if (!delivery.sent) {
     console.error("[students] recovery email not delivered:", delivery.reason);
+    await db()`delete from student_password_resets where id = ${newId}`;
     return { ok: false, error: "email_unavailable" };
   }
 
@@ -164,10 +194,11 @@ export async function requestStudentPasswordReset(
     await tx`update student_password_resets
       set used_at = now()
       where student_id = ${account.student_id}
-        and used_at is null`;
-    await tx`insert into student_password_resets
-      (student_id, code_hash, expires_at)
-      values (${account.student_id}, ${hashToken(code)}, ${expiresAt.toISOString()})`;
+        and used_at is null
+        and id <> ${newId}`;
+    await tx`update student_password_resets
+      set sent_at = now()
+      where id = ${newId}`;
   });
   return { ok: true };
 }
@@ -202,6 +233,7 @@ export async function confirmStudentPasswordReset(input: {
       from student_password_resets
      where student_id = ${account.student_id}
        and used_at is null
+       and sent_at is not null
        and expires_at > now()
      order by created_at desc
      limit 1`;

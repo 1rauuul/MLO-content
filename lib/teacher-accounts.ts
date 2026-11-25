@@ -314,6 +314,7 @@ export async function getTeacherTokenPreview(
       join teachers t on t.id = tt.teacher_id
      where tt.token_hash = ${hashToken(token)}
        and tt.purpose = ${purpose}
+       and (tt.sent_at is not null or tt.purpose <> 'reset')
      limit 1`;
   if (!row) return null;
 
@@ -394,9 +395,15 @@ export async function acceptTeacherInvitation(
 
 export async function requestTeacherPasswordReset(
   rawEmail: string,
+  deps: {
+    sendReset?: typeof sendTeacherPasswordResetEmail;
+    sendInvite?: typeof sendTeacherInvitationEmail;
+  } = {},
 ): Promise<
   { ok: true } | { ok: false; error: "invalid_email" | "email_unavailable" }
 > {
+  const sendReset = deps.sendReset ?? sendTeacherPasswordResetEmail;
+  const sendInvite = deps.sendInvite ?? sendTeacherInvitationEmail;
   const email = normalizeEmail(rawEmail);
   if (!email) return { ok: false, error: "invalid_email" };
   // Se comprueba antes de buscar la cuenta para no filtrar su existencia.
@@ -415,14 +422,6 @@ export async function requestTeacherPasswordReset(
   if (!teacher) return { ok: true };
 
   const purpose: TeacherTokenPurpose = teacher.activated_at ? "reset" : "invite";
-  const [recent] = await db()<{ created_at: Date }[]>`
-    select created_at
-      from teacher_tokens
-     where teacher_id = ${teacher.id}
-       and purpose = ${purpose}
-     order by created_at desc
-     limit 1`;
-  if (teacherCooldownActive(recent?.created_at ?? null)) return { ok: true };
 
   const base = baseUrl();
   if (!base) return { ok: false, error: "email_unavailable" };
@@ -435,16 +434,56 @@ export async function requestTeacherPasswordReset(
       ? buildTeacherResetLink(base, token)
       : buildTeacherInviteLink(base, token);
 
-  // Primero el correo: si falla no se revoca el enlace anterior.
+  // Guarda el token sin enviar antes de mandar el correo. El bloqueo del
+  // maestro serializa las solicitudes concurrentes: si ya hay un token vivo
+  // sin enviar o el cooldown sigue activo, se devuelve ok sin enviar otro.
+  const newId = await db().begin(async (tx) => {
+    const [locked] = await tx<{ id: string }[]>`
+      select id from teachers where id = ${teacher.id} for update`;
+    if (!locked) return null;
+
+    const [pending] = await tx<{ id: string }[]>`
+      select id
+        from teacher_tokens
+       where teacher_id = ${teacher.id}
+         and purpose = ${purpose}
+         and used_at is null
+         and revoked_at is null
+         and sent_at is null
+         and expires_at > now()
+       limit 1`;
+    if (pending) return null;
+
+    const [recent] = await tx<{ created_at: Date }[]>`
+      select created_at
+        from teacher_tokens
+       where teacher_id = ${teacher.id}
+         and purpose = ${purpose}
+       order by created_at desc
+       limit 1`;
+    if (teacherCooldownActive(recent?.created_at ?? null)) return null;
+
+    const [row] = await tx<{ id: string }[]>`
+      insert into teacher_tokens
+        (teacher_id, purpose, token_hash, expires_at, sent_at)
+      values
+        (${teacher.id}, ${purpose}, ${hashToken(token)},
+         ${expiresAt.toISOString()}, null)
+      returning id`;
+    return row.id;
+  });
+
+  if (newId === null) return { ok: true };
+
   const delivery =
     purpose === "reset"
-      ? await sendTeacherPasswordResetEmail({
+      ? await sendReset({
           to: teacher.email,
           name: teacher.name,
           link,
           expiresAt,
         })
-      : await sendTeacherInvitationEmail({
+      : await sendInvite({
           to: teacher.email,
           name: teacher.name,
           link,
@@ -455,21 +494,23 @@ export async function requestTeacherPasswordReset(
       "[teachers] password recovery email not delivered:",
       delivery.reason,
     );
+    await db()`delete from teacher_tokens where id = ${newId}`;
     return { ok: false, error: "email_unavailable" };
   }
 
   await db().begin(async (tx) => {
+    // Revoca primero los tokens anteriores del mismo propósito: el índice
+    // parcial único solo cubre filas con sent_at no nulo.
     await tx`update teacher_tokens
       set revoked_at = now()
       where teacher_id = ${teacher.id}
         and purpose = ${purpose}
         and used_at is null
-        and revoked_at is null`;
-    await tx`insert into teacher_tokens
-      (teacher_id, purpose, token_hash, expires_at, sent_at)
-      values
-      (${teacher.id}, ${purpose}, ${hashToken(token)},
-       ${expiresAt.toISOString()}, now())`;
+        and revoked_at is null
+        and id <> ${newId}`;
+    await tx`update teacher_tokens
+      set sent_at = now()
+      where id = ${newId}`;
   });
 
   return { ok: true };
@@ -494,6 +535,7 @@ export async function resetTeacherPassword(
       from teacher_tokens tt
      where tt.token_hash = ${hashToken(token)}
        and tt.purpose = 'reset'
+       and tt.sent_at is not null
      limit 1`;
   if (!row) return { ok: false, error: "invalid" };
 
