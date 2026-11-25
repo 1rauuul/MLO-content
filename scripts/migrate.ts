@@ -68,15 +68,22 @@ async function main(): Promise<void> {
       process.exitCode = 1;
       return;
     }
+    const cutoff = process.argv[3];
+    if (!cutoff) {
+      console.error(
+        "Indica el corte: npm run db:migrate -- --baseline <ultima-migracion-aplicada>.sql",
+      );
+      process.exitCode = 1;
+      return;
+    }
     await bootstrap();
     const all = await sqlFiles();
-    const cutoff = process.argv[3];
-    if (cutoff && !all.includes(cutoff)) {
+    if (!all.includes(cutoff)) {
       console.error(`No existe la migración de corte: ${cutoff}`);
       process.exitCode = 1;
       return;
     }
-    const list = cutoff ? migrationsUpTo(all, cutoff) : all.sort();
+    const list = migrationsUpTo(all, cutoff);
     for (const file of list) {
       await db()`insert into schema_migrations (filename) values (${file}) on conflict do nothing`;
     }
