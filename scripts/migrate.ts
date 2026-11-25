@@ -5,14 +5,16 @@ import { db } from "../lib/db";
 import { pendingMigrations } from "../lib/migrations";
 
 const DIR = "supabase/migrations";
-const REGISTRY = "20261126000000_schema_migrations.sql";
 
 async function sqlFiles(): Promise<string[]> {
   return (await readdir(DIR)).filter((file) => file.endsWith(".sql"));
 }
 
 async function bootstrap(): Promise<void> {
-  await db().unsafe(await readFile(join(DIR, REGISTRY), "utf8"));
+  await db()`create table if not exists schema_migrations (
+    filename text primary key,
+    applied_at timestamptz not null default now()
+  )`;
 }
 
 async function applied(): Promise<string[]> {
@@ -52,6 +54,15 @@ async function main(): Promise<void> {
   }
 
   if (flag === "--baseline") {
+    const [schema] = await db()<{ courses: string | null }[]>`
+      select to_regclass('public.courses') as courses`;
+    if (!schema?.courses) {
+      console.error(
+        "La base no tiene el esquema (falta courses). No uses --baseline en una base nueva: usa npm run db:migrate.",
+      );
+      process.exitCode = 1;
+      return;
+    }
     await bootstrap();
     const list = await sqlFiles();
     for (const file of list) {
