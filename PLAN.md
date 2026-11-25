@@ -285,7 +285,7 @@ Estado al 2026-11-26:
 
 | Comando | Resultado |
 |---|---|
-| `npm test` | 185 pruebas (descubiertas de `lib/**/*.test.ts`) |
+| `npm test` | 186 pruebas (descubiertas de `lib/**/*.test.ts`) |
 | `npm run test:db` | 13 pruebas contra la base: rate limit, vinculación, recuperación, importación base y E2E HTTP v3 |
 | `npm run lint` | Sin errores |
 | `npx tsc --noEmit` | Sin errores |
@@ -405,7 +405,7 @@ versión 1. El curso `IS-AGDC-2026` quedó con 1 unidad (renumerada `u6`) y 1 le
 - **Unidades creadas antes del core:** una unidad con `content_id` `u1` choca con la
   unidad 1 del core. `createUnit` ya numera después del core; los cursos antiguos hay
   que renumerarlos. El curso de prueba se corrigió (`u6`).
-- **Cobertura de tests:** 185 pruebas de bloques, composición, serialización, hashes,
+- **Cobertura de tests:** 186 pruebas de bloques, composición, serialización, hashes,
   validación, API v3, auth y migraciones; `test:db` cubre rate limit, vinculación,
   recuperación, importación y el flujo HTTP v3. El recorrido manual sigue siendo la
   verificación final.
@@ -424,7 +424,7 @@ versión 1. El curso `IS-AGDC-2026` quedó con 1 unidad (renumerada `u6`) y 1 le
 ```bash
 npm install
 npm run dev          # http://localhost:3000
-npm run test         # descubre lib/**/*.test.ts (185 pruebas)
+npm run test         # descubre lib/**/*.test.ts (186 pruebas)
 npm run test:db      # pruebas contra la base (requiere DATABASE_URL)
 npm run lint
 npx tsc --noEmit
@@ -487,4 +487,4 @@ y `npm run build` en cada push y pull request.
 | 2026-11-18 | Editor de contenido del grupo: lista unificada de lecciones, ejemplos, ejercicios y evaluaciones; editores propios con vista previa interactiva; `class_content_changes` con triggers y tarjeta de versión con subtemas pendientes; edición de estructura desde el grupo; enlaces de vuelta seguros y pop ups centrados. En la app: portada con logos CINVESTAV, perfil con "Mostrar curso base", salir del curso, lección de una sola pantalla y unidad de grupo restaurada. 145 tests del panel y 581 de la app. |
 | 2026-11-24 | Cuentas de alumno en el CMS y progreso en la nube: `student_accounts`, `student_sessions` y `student_auth_attempts`; auth scrypt con sesiones Bearer de 30 días y límite de intentos; endpoints `/api/mlo/v3/auth/*`; progreso y clases con Bearer (y header legacy); `student_progress` con límite de 2 MB. Pulido del panel (confirmaciones, campos obligatorios, 404, icono) y limpieza de pruebas. En la app: token y `remote_session` en SQLite v24 (v23 más `accounts.email`), restauración y sincronización automática del progreso, vinculación de cuentas antiguas. 157 tests del panel y 541 de la app. |
 | 2026-11-25 | Rate limits por IP para aulas (login de alumno 300, registro 100, vinculación 100 y login de docente 60; ventana de 15 min), con prueba real del limiter contra la base (`test:db`) e índice `auth_rate_limits_created_idx`. Código de vinculación desde `/grupos/[id]` (6 dígitos, 30 min, hasheado, uno pendiente por alumno, solo docente dueño o admin) e insignia “En la nube” según `hasAccount` de `student_accounts`. Recuperación con guardado previo al envío (`sent_at`): solo `sent_at is not null` es utilizable, un fallo conserva el código anterior y no deja filas pendientes, y dos solicitudes concurrentes envían un solo correo. Migraciones `20261125000004` y `20261125000005`. En la app: `needsRemoteLink` por existencia de `remote_session` y `DATABASE_VERSION` 24. Revisión final: las respuestas de recuperación son genéricas (un correo inexistente y un envío fallido devuelven lo mismo; `email_unavailable` queda solo para fallos de configuración), el reenvío de invitación se serializa con el bloqueo del maestro y una fila de sesión sin token muestra “sesión caducada” con el botón de sincronizar deshabilitado. 184 tests del panel (`test:db` 11/11) y 579 de la app. |
-| 2026-11-26 | Cierre pre-deadline: **API pública solo v3** (se eliminaron las rutas `/api/mlo/v2`; las clases viven en `/grupos`), rate limit de `join` (100 por IP y 1000 globales cada 15 min), CORS con `CORS_ALLOWED_ORIGIN`, migraciones registradas con `db:migrate`/`--status`/`--baseline` y descubrimiento automático de tests. `npm test` queda en 185 pruebas y `test:db` en 13 (incluye la E2E HTTP v3 de preview/join/release/manifest). CI con test, lint, tsc y build. En la app: cliente único v3, token en `expo-secure-store` con migración desde SQLite, CI y perfiles EAS preview/production; no se generó build. |
+| 2026-11-26 | Cierre pre-deadline: **API pública solo v3** (se eliminaron las rutas `/api/mlo/v2`; las clases viven en `/grupos`), rate limit de `join` (100 por IP y 1000 globales cada 15 min), CORS con `CORS_ALLOWED_ORIGIN`, migraciones registradas con `db:migrate`/`--status`/`--baseline` y descubrimiento automático de tests. `npm test` queda en 186 pruebas y `test:db` en 13 (incluye la E2E HTTP v3 de preview/join/release/manifest). CI con test, lint, tsc y build. En la app: cliente único v3, token en `expo-secure-store` con migración desde SQLite, CI y perfiles EAS preview/production; no se generó build. |

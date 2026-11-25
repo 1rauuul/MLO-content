@@ -94,7 +94,7 @@ desde el enlace.
 Verificación rápida:
 
 ```bash
-npm test        # descubre lib/**/*.test.ts y excluye los *.db.test.ts (185 pruebas)
+npm test        # descubre lib/**/*.test.ts y excluye los *.db.test.ts (186 pruebas)
 npm run test:db # pruebas contra la base: rate limit, vinculación, recuperación, importación y E2E HTTP v3
 npm run lint
 npx tsc --noEmit
