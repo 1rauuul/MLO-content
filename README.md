@@ -7,9 +7,9 @@ ejercicios, ejemplos y evaluaciones) sobre el **contenido base** del curso o en 
 curso completo. La app MLO descarga el resultado por la **API v3**
 (`/api/mlo/v3`, contrato en [`docs/contracts/mlo-v3.md`](docs/contracts/mlo-v3.md)).
 
-El contenido base se guarda una sola vez y es compartido. El curso de un maestro guarda
-solo sus aportaciones; al publicar, el servidor compone **contenido base + adicionales**
-en un snapshot inmutable.
+El contenido base se guarda una sola vez y es compartido. Un curso puede usarlo como
+punto de partida o ser completamente autónomo; al publicar, el servidor guarda el
+snapshot inmutable de su contenido.
 
 ## Estado (2026-11-26)
 
