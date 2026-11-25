@@ -2,7 +2,7 @@ import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 
 import { db } from "../lib/db";
-import { pendingMigrations } from "../lib/migrations";
+import { migrationsUpTo, pendingMigrations } from "../lib/migrations";
 
 const DIR = "supabase/migrations";
 
@@ -39,13 +39,18 @@ async function main(): Promise<void> {
   const flag = process.argv[2];
   if (flag && flag !== "--baseline" && flag !== "--status") {
     console.error(
-      `Opción desconocida: ${flag}\nUso: npm run db:migrate [-- --baseline|--status]`,
+      `Opción desconocida: ${flag}\nUso: npm run db:migrate [-- --baseline [hasta]|--status]`,
     );
     process.exitCode = 1;
     return;
   }
 
   if (flag === "--status") {
+    if (process.argv[3]) {
+      console.error("--status no acepta argumentos.");
+      process.exitCode = 1;
+      return;
+    }
     const list = await pending();
     console.log(
       list.length ? `Pendientes (${list.length}):\n${list.join("\n")}` : "No hay migraciones pendientes.",
@@ -64,7 +69,14 @@ async function main(): Promise<void> {
       return;
     }
     await bootstrap();
-    const list = await sqlFiles();
+    const all = await sqlFiles();
+    const cutoff = process.argv[3];
+    if (cutoff && !all.includes(cutoff)) {
+      console.error(`No existe la migración de corte: ${cutoff}`);
+      process.exitCode = 1;
+      return;
+    }
+    const list = cutoff ? migrationsUpTo(all, cutoff) : all.sort();
     for (const file of list) {
       await db()`insert into schema_migrations (filename) values (${file}) on conflict do nothing`;
     }

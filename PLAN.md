@@ -380,8 +380,10 @@ versión 1. El curso `IS-AGDC-2026` quedó con 1 unidad (renumerada `u6`) y 1 le
   sin importar antes `base-course.json` dejaría el curso incompleto.
 - **Migraciones:** `npm run db:migrate` aplica solo las pendientes, una transacción por
   archivo, y las registra en `schema_migrations`. En una base existente hay que
-  ejecutar una sola vez `npm run db:migrate -- --baseline`. `db:apply` queda para
-  casos puntuales; ya no se aplican archivos a mano uno por uno.
+  ejecutar una sola vez el baseline con corte
+  (`--baseline 20261125000005_recovery_delivery.sql`) y después `db:migrate`; así no se
+  saltan las migraciones nuevas. `db:apply` queda para casos puntuales; ya no se aplican
+  archivos a mano uno por uno.
 - **Ejemplos independientes en MLO:** el motor ya los envuelve como `Exercise` y los
   añade a `items` sin tocar el sorteo de práctica. Hay pruebas con el release real del
   panel (`panelRelease.json`): 25 lecciones aplicadas y `exA1.2` visible. Falta la
@@ -435,8 +437,15 @@ npm run db:migrate              # aplica las pendientes y las registra
 ```
 
 En una base nueva basta `npm run db:migrate`. En una base existente que ya tenía el
-esquema aplicado, ejecuta **una sola vez** `npm run db:migrate -- --baseline` antes de
-la primera ejecución. Las migraciones ya no se aplican a mano una por una.
+esquema aplicado, ejecuta **una sola vez** el baseline con corte hasta la última
+migración histórica y después aplica las nuevas:
+
+```bash
+npm run db:migrate -- --baseline 20261125000005_recovery_delivery.sql
+npm run db:migrate
+```
+
+Las migraciones ya no se aplican a mano una por una.
 
 `scripts/export-base.ts` vive en el repo de MLO. Para regenerar el fixture:
 

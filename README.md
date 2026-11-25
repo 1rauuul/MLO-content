@@ -58,9 +58,16 @@ Requisitos: Node 22+ y un proyecto de Supabase.
    npm run db:migrate -- --status
    ```
 
-   En una base que ya tenía el esquema aplicado a mano, ejecuta **una sola vez**
-   `npm run db:migrate -- --baseline`: marca los archivos actuales como aplicados sin
-   ejecutarlos. `npm run db:apply -- <archivo>` queda solo para casos puntuales.
+   En una base que ya tenía el esquema aplicado a mano, ejecuta **una sola vez** el
+   baseline con corte hasta la última migración histórica y después aplica las nuevas:
+
+   ```bash
+   npm run db:migrate -- --baseline 20261125000005_recovery_delivery.sql
+   npm run db:migrate
+   ```
+
+   El corte evita marcar como aplicadas las migraciones nuevas (por ejemplo, el rate
+   limit de `class_join`). `npm run db:apply -- <archivo>` queda solo para casos puntuales.
 
 4. Crea el administrador:
 

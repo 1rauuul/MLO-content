@@ -67,8 +67,9 @@ Google Cloud mantiene una guía oficial para desplegar Next.js en Cloud Run:
 - Ejecutar las migraciones mediante un job o paso controlado de despliegue, no al
   inicio de cada instancia de Cloud Run:
   - Base nueva: `npm run db:migrate`.
-  - Base existente: una sola vez `npm run db:migrate -- --baseline` y después
-    `npm run db:migrate`.
+  - Base existente: una sola vez
+    `npm run db:migrate -- --baseline 20261125000005_recovery_delivery.sql` y después
+    `npm run db:migrate` (el corte evita saltarse las migraciones nuevas).
   - `npm run db:migrate -- --status` lista las pendientes sin aplicar.
   - El runner aplica cada archivo en su propia transacción y lo registra en
     `schema_migrations`; las migraciones ya no se aplican a mano una por una.

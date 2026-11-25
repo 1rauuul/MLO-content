@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { pendingMigrations } from "./migrations";
+import { migrationsUpTo, pendingMigrations } from "./migrations";
 
 test("pendingMigrations ordena, descarta no SQL y omite las aplicadas", () => {
   assert.deepEqual(
@@ -18,4 +18,16 @@ test("pendingMigrations ordena, descarta no SQL y omite las aplicadas", () => {
   );
   assert.deepEqual(pendingMigrations(["b.sql", "a.sql"], []), ["a.sql", "b.sql"]);
   assert.deepEqual(pendingMigrations(["a.sql"], ["a.sql"]), []);
+});
+
+test("migrationsUpTo corta el baseline antes de las migraciones nuevas", () => {
+  const files = [
+    "20261125000005_recovery_delivery.sql",
+    "20261125000006_auth_rate_limits_class_join.sql",
+    "20261126000000_schema_migrations.sql",
+    "notas.txt",
+  ];
+  assert.deepEqual(migrationsUpTo(files, "20261125000005_recovery_delivery.sql"), [
+    "20261125000005_recovery_delivery.sql",
+  ]);
 });
