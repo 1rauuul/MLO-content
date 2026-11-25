@@ -1,0 +1,90 @@
+import { readdir, readFile } from "node:fs/promises";
+import { join } from "node:path";
+
+import { db } from "../lib/db";
+import { pendingMigrations } from "../lib/migrations";
+
+const DIR = "supabase/migrations";
+const REGISTRY = "20261126000000_schema_migrations.sql";
+
+async function sqlFiles(): Promise<string[]> {
+  return (await readdir(DIR)).filter((file) => file.endsWith(".sql"));
+}
+
+async function bootstrap(): Promise<void> {
+  await db().unsafe(await readFile(join(DIR, REGISTRY), "utf8"));
+}
+
+async function applied(): Promise<string[]> {
+  const rows = await db()<{ filename: string }[]>`select filename from schema_migrations`;
+  return rows.map((row) => row.filename);
+}
+
+async function pending(): Promise<string[]> {
+  await bootstrap();
+  return pendingMigrations(await sqlFiles(), await applied());
+}
+
+async function close(): Promise<void> {
+  try {
+    await db().end({ timeout: 5 });
+  } catch {
+    // Sin conexión abierta (por ejemplo, falta DATABASE_URL).
+  }
+}
+
+async function main(): Promise<void> {
+  const flag = process.argv[2];
+  if (flag && flag !== "--baseline" && flag !== "--status") {
+    console.error(
+      `Opción desconocida: ${flag}\nUso: npm run db:migrate [-- --baseline|--status]`,
+    );
+    process.exitCode = 1;
+    return;
+  }
+
+  if (flag === "--status") {
+    const list = await pending();
+    console.log(
+      list.length ? `Pendientes (${list.length}):\n${list.join("\n")}` : "No hay migraciones pendientes.",
+    );
+    return;
+  }
+
+  if (flag === "--baseline") {
+    await bootstrap();
+    const list = await sqlFiles();
+    for (const file of list) {
+      await db()`insert into schema_migrations (filename) values (${file}) on conflict do nothing`;
+    }
+    console.log(`Baseline registrado: ${list.length} archivos marcados como aplicados.`);
+    return;
+  }
+
+  for (const file of await pending()) {
+    const source = await readFile(join(DIR, file), "utf8");
+    // Como en scripts/apply-schema.ts: postgres.js reserva la transacción y los
+    // BEGIN/COMMIT del archivo rompen el pooler.
+    const statement = source
+      .replace(/^\s*begin\s*;\s*$/gim, "")
+      .replace(/^\s*commit\s*;\s*$/gim, "");
+    try {
+      await db().begin(async (tx) => {
+        await tx.unsafe(statement);
+        await tx`insert into schema_migrations (filename) values (${file})`;
+      });
+      console.log(`Aplicada: ${file}`);
+    } catch (error) {
+      console.error(`Migración fallida: ${file}`);
+      throw error;
+    }
+  }
+  console.log("Migraciones al día.");
+}
+
+main()
+  .catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  })
+  .finally(close);

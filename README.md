@@ -40,15 +40,23 @@ Requisitos: Node 22+ y un proyecto de Supabase.
 
 2. Copia `.env.example` a `.env.local` y rellena:
    - `DATABASE_URL`: cadena del **pooler** de Supabase (puerto 6543).
-   - `DATABASE_URL_DIRECT`: cadena directa (puerto 5432), para migraciones.
+   - `DATABASE_URL_DIRECT`: cadena directa (puerto 5432), opcional; `db:migrate`
+     usa `DATABASE_URL`.
    - `ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` (8–128 con mayúscula,
      minúscula, número y símbolo).
    - `EMAIL_PROVIDER_API_KEY`, `EMAIL_FROM` y `APP_BASE_URL` para las invitaciones y
      la recuperación de contraseña por correo.
 
-3. Aplica las migraciones **en orden**. Pega cada archivo de
-   `supabase/migrations/` en el **SQL Editor** de Supabase (o usa
-   `npm run db:apply -- <archivo>`).
+3. Aplica las migraciones. Ya no se pegan una por una:
+
+   ```bash
+   npm run db:migrate            # aplica las pendientes y las registra
+   npm run db:migrate -- --status
+   ```
+
+   En una base que ya tenía el esquema aplicado a mano, ejecuta **una sola vez**
+   `npm run db:migrate -- --baseline`: marca los archivos actuales como aplicados sin
+   ejecutarlos. `npm run db:apply -- <archivo>` queda solo para casos puntuales.
 
 4. Crea el administrador:
 

@@ -337,8 +337,10 @@ versión 1. El curso `IS-AGDC-2026` quedó con 1 unidad (renumerada `u6`) y 1 le
   futuro en el contrato debe volver a pasar esa validación.
 - **Release base parcial:** MLO archiva lo que no venga en el manifest. Publicar el core
   sin importar antes `base-course.json` dejaría el curso incompleto.
-- **Las migraciones no son idempotentes:** se aplican a mano en orden con
-  `npm run db:apply -- <archivo>`; un segundo intento falla con "already exists".
+- **Migraciones:** `npm run db:migrate` aplica solo las pendientes, una transacción por
+  archivo, y las registra en `schema_migrations`. En una base existente hay que
+  ejecutar una sola vez `npm run db:migrate -- --baseline`. `db:apply` queda para
+  casos puntuales; ya no se aplican archivos a mano uno por uno.
 - **Ejemplos independientes en MLO:** el motor ya los envuelve como `Exercise` y los
   añade a `items` sin tocar el sorteo de práctica. Hay pruebas con el release real del
   panel (`panelRelease.json`): 25 lecciones aplicadas y `exA1.2` visible. Falta la
@@ -380,12 +382,13 @@ npm run build
 npm run seed:admin   # requiere ADMIN_* en .env.local
 npm run import:base  # importa scripts/fixtures/base-course.json
 npm run export:release -- base <ruta>/MLO.../panelRelease.json
-npm run db:apply -- supabase/migrations/<archivo>.sql  # en orden
+npm run db:migrate -- --status  # lista las migraciones pendientes
+npm run db:migrate              # aplica las pendientes y las registra
 ```
 
-En una base nueva se aplican `20261027000000_init.sql`,
-`…000001_examples.sql`, `…000002_question_position.sql`,
-`…000003_exercise_example_position.sql` y `…000004_classes.sql`.
+En una base nueva basta `npm run db:migrate`. En una base existente que ya tenía el
+esquema aplicado, ejecuta **una sola vez** `npm run db:migrate -- --baseline` antes de
+la primera ejecución. Las migraciones ya no se aplican a mano una por una.
 
 `scripts/export-base.ts` vive en el repo de MLO. Para regenerar el fixture:
 

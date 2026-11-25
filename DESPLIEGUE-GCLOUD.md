@@ -61,7 +61,13 @@ Google Cloud mantiene una guía oficial para desplegar Next.js en Cloud Run:
 - Crear un usuario de aplicación con permisos limitados; no usar el superusuario
   de la base desde Cloud Run.
 - Ejecutar las migraciones mediante un job o paso controlado de despliegue, no al
-  inicio de cada instancia de Cloud Run.
+  inicio de cada instancia de Cloud Run:
+  - Base nueva: `npm run db:migrate`.
+  - Base existente: una sola vez `npm run db:migrate -- --baseline` y después
+    `npm run db:migrate`.
+  - `npm run db:migrate -- --status` lista las pendientes sin aplicar.
+  - El runner aplica cada archivo en su propia transacción y lo registra en
+    `schema_migrations`; las migraciones ya no se aplican a mano una por una.
 - Configurar límites de conexiones/pooling acordes a Cloud Run. Las instancias de
   Cloud Run pueden escalar, por lo que la aplicación no debe abrir conexiones sin
   límite a PostgreSQL.
@@ -90,7 +96,7 @@ contener, como mínimo:
 
 ```text
 DATABASE_URL
-DATABASE_URL_DIRECT (solo para migraciones controladas)
+DATABASE_URL_DIRECT (opcional, tareas de administración)
 SESSION_SECRET / claves de firma de invitaciones
 EMAIL_PROVIDER_API_KEY (Resend)
 EMAIL_FROM
