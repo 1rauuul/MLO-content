@@ -13,7 +13,7 @@ Navegador del maestro / App MLO
               │ HTTPS
               ▼
 Cloud Run
-  └─ Next.js: panel CMS + API /api/mlo
+  └─ Next.js: panel CMS + API /api/mlo/v3
               │ conexión administrada
               ▼
 Cloud SQL for PostgreSQL
@@ -40,14 +40,18 @@ Cloud Run ──► Proveedor de correo / SMTP institucional
 ## Aplicación: Cloud Run
 
 - Desplegar el proyecto Next.js como un único servicio de Cloud Run.
-- Mantener panel y API en el mismo servicio: las rutas `/api/mlo/...` seguirán
-  siendo públicas para MLO y las rutas del panel conservarán su sesión propia.
+- Mantener panel y API en el mismo servicio: las rutas `/api/mlo/v3/...` seguirán
+  siendo públicas para MLO y las rutas del panel conservarán su sesión propia. La API
+  v2 se retiró; no hay que enrutar `/api/mlo/v2`.
 - Elegir una única región y colocar Cloud Run, Cloud SQL, Artifact Registry y
   Cloud Storage en esa misma región.
 - Configurar un dominio propio para el CMS; las invitaciones usarán ese dominio
   para sus enlaces profundos hacia MLO.
 - Establecer una instancia mínima solo si se requiere evitar arranques en frío;
   de lo contrario, permitir escala a cero en ambientes de desarrollo.
+- El CI de GitHub Actions (`.github/workflows/ci.yml`) ejecuta `npm test`, `npm run
+  lint`, `npx tsc --noEmit` y `npm run build`. Cloud Build o el mismo workflow pueden
+  construir la imagen después de que el CI pase.
 
 Google Cloud mantiene una guía oficial para desplegar Next.js en Cloud Run:
 [Deploy a Next.js web app to Cloud Run](https://docs.cloud.google.com/run/docs/quickstarts/frameworks/deploy-nextjs-service).
@@ -86,8 +90,9 @@ integración administrada de Cloud SQL. Referencias oficiales:
 4. Para producción, preferir base con IP privada y salida de Cloud Run por Direct
    VPC egress si la política de red institucional lo requiere.
 5. Mantener la base sin acceso público salvo necesidad operativa explícita.
-6. Limitar CORS de la API a los orígenes que realmente lo necesitan; MLO nativo no
-   depende de CORS, pero Expo web sí puede requerirlo.
+6. Limitar CORS con `CORS_ALLOWED_ORIGIN`: un cliente nativo no depende de CORS, pero
+   Expo web y un panel en otro dominio sí. Sin la variable, producción no envía
+   cabeceras CORS; en desarrollo se permite `*`.
 
 ## Secretos y configuración
 
@@ -102,6 +107,7 @@ EMAIL_PROVIDER_API_KEY (Resend)
 EMAIL_FROM
 APP_BASE_URL
 MEDIA_SECRET (firma las URLs de /api/media)
+CORS_ALLOWED_ORIGIN (origen de Expo web o del panel)
 MLO_DEEP_LINK_BASE
 ```
 
@@ -130,7 +136,7 @@ desde Secret Manager.
 ```text
 Pull request
    ↓
-Pruebas: test + lint + build
+CI: test + lint + tsc + build
    ↓
 Construcción de imagen / Artifact Registry
    ↓
@@ -156,8 +162,9 @@ Recomendación de ambientes:
 - Registrar eventos relevantes: publicación de curso/grupo, emisión y aceptación
   de invitación, y fallos de validación de release.
 - Rotar credenciales y claves de firma de forma documentada.
-- Aplicar rate limiting en endpoints públicos, especialmente invitaciones,
-  aceptación por código y endpoints de lectura de releases.
+- Mantener el rate limiting de endpoints públicos: `join` limita a 100 peticiones por
+  IP y 1000 globales cada 15 minutos; login, registro, vinculación y recuperación
+  tienen sus propios límites por IP y globales.
 - Probar restauración de respaldos de Cloud SQL antes de liberar a producción.
 - Establecer presupuestos y alertas de costo en el proyecto de Google Cloud.
 

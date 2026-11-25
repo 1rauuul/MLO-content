@@ -3,12 +3,13 @@
 - **Versión del contrato:** `3` (`schemaVersion: 3`, entero)
 - **Productor:** CMS (`mlo-teachers`)
 - **Consumidor:** MLO (`MLO-Ingenieria-software`)
-- **Estado:** especificación cerrada; los endpoints `/api/mlo/v3/**` se implementan en X-02
+- **Estado:** implementado; `/api/mlo/v3/**` es la única API pública desde el 2026-11-26
 - **Fixtures:** [`docs/contracts/fixtures/`](./fixtures/README.md)
 - **Validador:** [`lib/content/contract-v3.ts`](../../lib/content/contract-v3.ts)
 
 Este documento fija la forma de los releases v3. No describe endpoints, esquema
-de base de datos ni migraciones de datos. v2 sigue vigente y no se modifica.
+de base de datos ni migraciones de datos. La API v2 se retiró el 2026-11-26; los
+releases v2 quedan en la base como datos históricos.
 
 ## 1. Versión y política de cambio
 
@@ -35,8 +36,8 @@ Obligan a **v4**:
 
 Cada release publica `version` (entero creciente) y `hash`. Un consumidor
 rechaza una versión menor o igual con hash distinto, y trata versión y hash
-iguales como «sin cambios». v2 y v3 conviven: el consumidor elige el validador
-por `schemaVersion` y no mezcla payloads de versiones distintas.
+iguales como «sin cambios». El consumidor elige el validador por `schemaVersion`
+y no mezcla payloads de versiones distintas.
 
 ## 2. Envoltorio común
 
@@ -692,20 +693,20 @@ enunciado, configuración y explicación.
 - El consumidor puede barajar preguntas, opciones y ejercicios al mostrar; el
   orden contractual es el de almacenamiento.
 
-## 10. Compatibilidad con v2
+## 10. Compatibilidad con v2 (histórico)
 
-- v2 (`schemaVersion: 2`) sigue publicado sin cambios: manifiesto, payload de
-  lección, release de clase y endpoints `/api/mlo/v2/**`.
+- v2 (`schemaVersion: 2`) sirvió manifiesto, payload de lección, release de clase y
+  endpoints `/api/mlo/v2/**` hasta el 2026-11-26. Esas rutas se eliminaron; v3 es la
+  única API pública.
+- Los releases v2 se conservan en `releases` y `class_releases` como datos históricos.
+  La publicación de un curso sigue escribiendo el release v2 mientras tenga lecciones,
+  pero no se expone por HTTP.
 - v3 no reutiliza ni reinterpreta payloads v2. El consumidor elige el validador
   por `schemaVersion` y rechaza cualquier otro valor.
 - La canonicalización de hash es la misma utilidad en ambos lados, pero el
   alcance del hash v3 (release completo, sin hash por lección) es propio de v3.
-- v3 no implementa endpoints todavía. X-02 define las rutas `/api/mlo/v3/**`;
-  hasta entonces v2 es la única ruta servida.
 - Los ids migrados se conservan para que `attempts` y `evaluation_results`
   sigan apuntando al mismo elemento (DEC-03).
-- La migración es reversible: el release v2 permanece intacto y sirve como
-  rollback mientras no se retire.
 
 ### 10.1 Correspondencia de campos v2 → v3
 
@@ -904,9 +905,12 @@ comparten el siguiente número de versión.
 
 Fixtures de productor: [`fixtures/x02/`](./fixtures/x02/README.md).
 
-### 13.7 Rutas v2 y acceso
+### 13.7 Rutas v2 y acceso (histórico)
 
-- `catalogId === "base"` sigue público, sin cabecera y con la misma respuesta y
+> Las rutas v2 se retiraron el 2026-11-26. Este apartado se conserva como historial
+> de cómo funcionaba el acceso antes de unificar la API en v3.
+
+- `catalogId === "base"` era público, sin cabecera y con la misma respuesta y
   caché que antes.
 - Para cualquier otro catálogo, `GET /api/mlo/v2/catalogs/{catalogId}/manifest`
   y `.../lessons/{lessonId}` exigen `X-MLO-Student-Key` válido, curso
@@ -914,5 +918,5 @@ Fixtures de productor: [`fixtures/x02/`](./fixtures/x02/README.md).
   curso inexistente.
 - Las respuestas v2 autorizadas de cursos no-base no se marcan como caché
   pública. El contenido y la forma del payload v2 autorizado no cambian.
-- Las rutas de clases v2 no cambian.
+- Las rutas de clases v2 tampoco cambiaron hasta su retirada.
 

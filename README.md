@@ -2,31 +2,30 @@
 
 Plan y estado del proyecto: [`PLAN.md`](PLAN.md).
 
-Panel para que cada maestro agregue contenido propio (unidades, lecciones, ejercicios y evaluaciones)
-sobre el **contenido base** del curso. La app MLO descarga el resultado por el contrato v2
-(`docs/api/contrato.md` del repositorio base).
+Panel para que cada maestro agregue contenido propio (unidades, temas, lecciones,
+ejercicios, ejemplos y evaluaciones) sobre el **contenido base** del curso o en un
+curso completo. La app MLO descarga el resultado por la **API v3**
+(`/api/mlo/v3`, contrato en [`docs/contracts/mlo-v3.md`](docs/contracts/mlo-v3.md)).
 
 El contenido base se guarda una sola vez y es compartido. El curso de un maestro guarda
 solo sus aportaciones; al publicar, el servidor compone **contenido base + adicionales**
 en un snapshot inmutable.
 
-## Estado
+## Estado (2026-11-26)
 
-**M3A · Ejercicios y ejemplos.** Además de M0/M1/M2: pestañas en la lección, ejercicios
-`order`, `fill`, `match` y `crossword`, la opción “Añadir como ejemplo”, ejemplos
-independientes, vista previa y validación estricta al publicar. Los ejemplos
-independientes no admiten `order` (el contrato no lleva `correctOrder`).
-
-**M4A · Grupos y contenido extra.** Cada maestro crea grupos con un código fijo, agrega
-bloques/ejemplos/ejercicios a lecciones del contenido base y los asigna a uno o varios
-grupos. La publicación es un snapshot inmutable por grupo que MLO descargará y guardará
-para usar sin conexión. También están `GET /catalogs/{catalogId}/manifest` y
-`GET /catalogs/{catalogId}/lessons/{lessonId}`.
-
-El motor de ejemplos independientes de MLO ya está corregido y probado con el release
-real del panel. MLO ya tiene identidad estable, caché de clases, contenido extra y
-respaldo v4 con reconciliación de duplicados. Pendiente: M3B (evaluación y preguntas) y
-la prueba en la app en modo `hybrid` en un dispositivo.
+- **API v3 única.** La API v2 se retiró: las rutas viven solo en `/api/mlo/v3`. Los
+  releases v2 históricos se conservan en la base, pero ya no se sirven.
+- **Cursos y grupos.** Cursos con unidades, temas, lecciones, referencias, ejercicios,
+  ejemplos y evaluaciones con preguntas. Los grupos (clases en la base) tienen código
+  fijo de 6 caracteres, alumnos, contenido extra y publicación por snapshot. El panel
+  usa `/grupos`; guardar el curso publica el curso y **Publicar grupo** publica su
+  snapshot.
+- **Cuentas de alumno.** Registro, login, logout, recuperación y vinculación de cuentas
+  antiguas; progreso en la nube y listado de clases por alumno.
+- **Operación.** Migraciones registradas (`schema_migrations`), rate limit en `join` y
+  CORS configurable. CI ejecuta tests, lint, `tsc` y build.
+- **Pendiente:** solo despliegue y operación (M5): dominio, secretos, respaldos y la
+  prueba final en dispositivo con la app en modo `hybrid`.
 
 ## Puesta en marcha
 
@@ -46,6 +45,11 @@ Requisitos: Node 22+ y un proyecto de Supabase.
      minúscula, número y símbolo).
    - `EMAIL_PROVIDER_API_KEY`, `EMAIL_FROM` y `APP_BASE_URL` para las invitaciones y
      la recuperación de contraseña por correo.
+   - `MEDIA_SECRET` para firmar las URLs de `/api/media`.
+   - `CORS_ALLOWED_ORIGIN` con el origen exacto de Expo web o del panel cuando corra en
+     otro dominio (por ejemplo `https://mlo.example.com`). Sin ella, desarrollo permite
+     `*` y producción no envía cabeceras CORS.
+   - `MLO_ACCESS_CONTROL` solo si el curso base también debe exigir autorización.
 
 3. Aplica las migraciones. Ya no se pegan una por una:
 
@@ -83,10 +87,16 @@ desde el enlace.
 Verificación rápida:
 
 ```bash
-npm test        # bloques, composición, hashes, contrato y validación por tipo
+npm test        # descubre lib/**/*.test.ts y excluye los *.db.test.ts (185 pruebas)
+npm run test:db # pruebas contra la base: rate limit, vinculación, recuperación, importación y E2E HTTP v3
 npm run lint
+npx tsc --noEmit
 npm run build
 ```
+
+El CI de GitHub Actions (`.github/workflows/ci.yml`) ejecuta `npm test`, `npm run lint`,
+`npx tsc --noEmit` y `npm run build` en cada push y pull request. `npm run test:db`
+requiere `DATABASE_URL` y no corre en CI.
 
 Para regenerar el fixture desde el repo de MLO:
 
@@ -109,47 +119,68 @@ npm run export:release -- base <ruta>/MLO-Ingenieria-software/src/shared/service
 | `/invitacion` | público (token) | El maestro crea su contraseña |
 | `/recuperar` | público | Pedir enlace de recuperación |
 | `/restablecer` | público (token) | Elegir una contraseña nueva |
+| `/join` | público | Abrir una invitación de alumno desde el correo |
 | `/mis-cursos` | maestro | Contenido base (lectura) y cursos propios |
 | `/mis-cursos/crear` | maestro | Alta de un curso |
-| `/cursos/[id]` | maestro | Unidades y lecciones; agregar contenido |
-| `/cursos/[id]/lecciones/[id]` | dueño | Editar texto y bloques |
-| `/cursos/[id]/publicar` | dueño / admin | Crear un release inmutable |
+| `/cursos/[id]` | maestro | Unidades, temas y lecciones; guardar publica el curso |
+| `/cursos/[id]/lecciones/[lessonId]` | dueño | Editar texto, bloques e imágenes |
+| `/cursos/[id]/temas/[topicId]` | dueño | Editar el tema y sus actividades |
+| `/cursos/[id]/temas/[topicId]/evaluaciones/[evaluationId]` | dueño | Editar evaluación y preguntas |
+| `/cursos/[id]/referencias` | dueño | Bibliografía del curso |
 | `/grupos` | maestro | Crear grupos y ver sus códigos |
-| `/grupos/[id]` | dueño / admin | Alumnos, contenido y publicación por grupo |
-| `/contenido-extra` | dueño / admin | Contenido del grupo y aportaciones asignadas a grupos |
+| `/grupos/[id]` | dueño / admin | Alumnos, código de vinculación y publicación del grupo |
+| `/grupos/[id]/contenido` | dueño / admin | Lecciones, ejemplos, ejercicios y evaluaciones del grupo |
+| `/grupos/[id]/contenido/{ejemplos,ejercicios}/[id]` | dueño / admin | Editar el contenido propio del grupo |
+| `/contenido-extra` | dueño / admin | Aportaciones asignadas a uno o varios grupos |
 | `/admin/maestros` | admin | Invitar maestros y reenviar invitaciones |
 
-### API para MLO
+Los enlaces antiguos a `/clases` y `/grupos/[id]/publicar` ya no existen: los grupos
+viven en `/grupos` y cada guardado del curso o del grupo publica su snapshot.
 
-Solo lectura del último release, sin autenticación:
+## API para MLO (v3)
 
-| Ruta | Qué devuelve |
-|---|---|
-| `GET /api/mlo/v2/catalogs/{catalogId}/manifest` | Manifest del último release |
-| `GET /api/mlo/v2/catalogs/{catalogId}/lessons/{lessonId}` | Payload completo de la lección |
-| `GET /api/mlo/v2/classes/{code}` | Vista previa y última versión de la clase |
-| `POST /api/mlo/v2/classes/{code}/join` | Unir un alumno por UUID + nombre |
-| `DELETE /api/mlo/v2/classes/{code}/members/{studentKey}` | Salir de la clase |
-| `GET /api/mlo/v2/classes/{code}/release` | Snapshot publicado de la clase |
-
-### Cuentas de alumno
+Todas las rutas cuelgan de `/api/mlo/v3`. Las de lectura de contenido aceptan
+`X-MLO-Student-Key` (identidad anónima) o `Authorization: Bearer` (cuenta de alumno).
+Las de progreso y correo exigen Bearer. Las respuestas de contenido usan `Cache-Control`
+corto; las de cuenta, `no-store`.
 
 | Ruta | Qué hace |
 |---|---|
-| `POST /api/mlo/v3/auth/register` | Alta con usuario, contraseña y nombre; devuelve token |
-| `POST /api/mlo/v3/auth/login` | Login; devuelve token Bearer |
-| `POST /api/mlo/v3/auth/logout` | Revoca la sesión |
-| `GET/PUT /api/mlo/v3/students/me/progress` | Progreso del alumno autenticado |
-| `GET /api/mlo/v3/students/me/classes` | Clases del alumno autenticado |
+| `GET /courses` | Cursos publicados y autorizados para el alumno |
+| `GET /catalogs/{catalogId}/manifest` | Release v3 completo: unidades, temas, lecciones, actividades y referencias |
+| `GET /classes/{code}` | Vista previa y última versión del grupo |
+| `POST /classes/{code}/join` | Unir un alumno con UUID + nombre (429 si se supera el límite) |
+| `DELETE /classes/{code}/members/{studentKey}` | Salir del grupo |
+| `GET /classes/{code}/release` | Snapshot publicado del grupo |
+| `POST /auth/register` | Alta con usuario, contraseña y nombre; devuelve token |
+| `POST /auth/login` | Login; devuelve token Bearer |
+| `POST /auth/logout` | Revoca la sesión |
+| `POST /auth/link` | Vincular una cuenta local antigua con código de un solo uso |
+| `POST /auth/recover` | Pedir código de recuperación por correo |
+| `POST /auth/recover/verify` | Verificar el código y cambiar la contraseña |
+| `GET/PUT /students/me/progress` | Progreso del alumno autenticado (máx. 2 MB) |
+| `GET /students/me/classes` | Grupos del alumno autenticado |
+| `PUT /students/me/email` | Agregar o cambiar el correo de la cuenta |
+| `POST /invitations/claim` | Reclamar una invitación de alumno por token o código |
 
-Las rutas de progreso y clases aceptan `Authorization: Bearer`; durante la
-transición también siguen aceptando `X-MLO-Student-Key`. Las cuentas nuevas usan
-scrypt y sesiones de 30 días guardadas en `student_sessions`.
+CORS: `CORS_ALLOWED_ORIGIN` define el origen permitido y se envía `Vary: Origin`.
+Sin la variable, desarrollo abre `*` y producción no permite orígenes cruzados; hay que
+definirla para Expo web y para el panel si corre en otro dominio. La API permite
+`Content-Type`, `X-MLO-Student-Key` y `Authorization`.
 
-`404` si el curso no tiene release, la lección no está en el snapshot o la clase no
-tiene nada publicado. El snapshot de clase solo lleva contenido extra; MLO lo combina
-con el curso base y lo guarda localmente para funcionar sin conexión. Hay un ejemplo
-del contrato en `scripts/fixtures/class-release.json`.
+`POST /classes/{code}/join` tiene rate limit de 100 peticiones por IP y 1000 globales
+cada 15 minutos; al superarlo responde `429 rate_limited` y no crece la lista.
+
+`404` si el curso no tiene release, el grupo no existe o no tiene nada publicado.
+`409 unpublished` si el grupo aún no se ha publicado. El snapshot de grupo solo lleva
+contenido extra; MLO lo combina con el curso y lo guarda localmente para funcionar sin
+conexión. Hay un ejemplo del contrato en `scripts/fixtures/class-release.json`.
+
+## Cuentas de alumno
+
+Las cuentas nuevas usan scrypt y sesiones Bearer de 30 días guardadas en
+`student_sessions`. La recuperación y la vinculación usan códigos de un solo uso; en la
+base solo queda su SHA-256. El progreso se guarda por alumno en `student_progress`.
 
 ## Notas técnicas
 

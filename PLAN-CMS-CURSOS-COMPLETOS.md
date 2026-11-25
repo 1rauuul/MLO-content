@@ -134,7 +134,7 @@ siendo legible durante la transición.
    validando al guardar y nuevamente antes de publicar.
 5. Cambiar `/contenido-extra` para que el autor elija curso → unidad → subtema →
    lección, y solo pueda asignar contenido a clases del mismo curso.
-6. Cambiar `/clases` para exigir la selección de un curso en el alta y mostrar la
+6. Cambiar `/grupos` para exigir la selección de un curso en el alta y mostrar la
    versión publicada de ese curso junto con la versión del release de clase.
 7. Conservar permisos: maestro administra sus cursos y clases; administrador ve y
    administra todos.
@@ -207,8 +207,8 @@ curso creado desde cero, descargar el curso y usarlo sin conexión tras cerrar l
    → unirse desde MLO → sincronizar → abrir contenido sin conexión.
 4. Probar restauración de respaldo para confirmar que identidad, clases, catálogos y
    progreso no se duplican.
-5. Desplegar primero CMS compatible con v2/v3; después un APK `hybrid` con v3;
-   retirar v2 solamente cuando no haya clientes activos que lo necesiten.
+5. Desplegar el CMS con la API v3 y después un APK `hybrid` con v3. La API v2 ya se
+   retiró; solo quedan sus releases como datos históricos.
 
 ## Entregables por hito
 

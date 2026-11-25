@@ -352,8 +352,8 @@ Definidas en `lib/content/model.ts`:
 - `exercises.example`: `{ title, steps: {text, why}[], hints: string[] } | null`.
 - `examples.steps`: `{text, why}[]`; `examples.hints`: `string[]`.
 - `lessons.content`: bloques del contrato; `lessons.synthesis`: `string[]`.
-- `releases.snapshot` / `class_releases.snapshot`: payload completo del contrato v2
-  (`schema_version = 2`), inmutable.
+- `releases.snapshot` / `class_releases.snapshot`: payload serializado del release
+  (`schema_version = 2`, forma histórica; la API pública servida es v3), inmutable.
 
 ## Notas de diseño
 

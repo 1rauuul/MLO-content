@@ -1,13 +1,13 @@
 # Plan del proyecto — MLO · Maestros
 
-> Estado al **2026-11-25**. El detalle reciente vive en `MLO-Ingenieria-software/docs/estado/historial-cms.md`; este documento conserva el estado por hitos.
+> Estado al **2026-11-26**. El detalle reciente vive en `MLO-Ingenieria-software/docs/estado/historial-cms.md`; este documento conserva el estado por hitos.
 
 ## 1. Objetivo
 
 Panel web para que cada maestro agregue **contenido propio** (unidades, lecciones y, más
 adelante, ejercicios y evaluaciones) sobre el **core** del curso. La app MLO
-(`D:\devvv\MLO\MLO-Ingenieria-software`) descarga ese contenido por el contrato v2 y lo
-aplica en el teléfono sin actualizar la app.
+(`D:\devvv\MLO\MLO-Ingenieria-software`) descarga ese contenido por la **API v3**
+(`/api/mlo/v3`) y lo aplica en el teléfono sin actualizar la app.
 
 ## 2. Decisiones tomadas
 
@@ -20,14 +20,14 @@ aplica en el teléfono sin actualizar la app.
 | Publicación | Snapshot inmutable (`release`) que compone core + adiciones |
 | Ids publicados | `{key}-{contentId}`; el core conserva sus ids |
 | Multimedia | Imágenes en Postgres con URL firmada y caché offline en MLO; video de YouTube embebido (requiere conexión) |
-| Acceso | Admin gestiona todo y el core; maestro solo sus cursos y clases |
-| Registro | Sin registro público; el admin invita por correo y el maestro crea su contraseña |
+| Acceso | Admin gestiona todo y el core; maestro solo sus cursos y grupos |
+| Registro | Sin registro público de maestros; el admin invita por correo y el maestro crea su contraseña |
 | Contraseñas de maestro | Recuperación por enlace de un solo uso; política 8–128 con mayúscula, minúscula, número y símbolo |
-| Clases | Un maestro crea varias; código de 6 fijo desde la creación; el alumno puede estar en varias |
-| Contenido extra | Bloques, ejemplos o ejercicios sobre lecciones del core; se asigna a una o varias clases |
-| Publicación extra | Snapshot inmutable por clase; MLO lo descarga y lo guarda para usar sin conexión |
+| Grupos (clases) | Un maestro crea varios; código de 6 fijo desde la creación; el alumno puede estar en varios. La tabla es `classes`; `groups` se eliminó |
+| Contenido extra | Bloques, ejemplos, ejercicios o evaluaciones sobre lecciones del curso; se asigna a uno o varios grupos |
+| Publicación extra | Snapshot inmutable por grupo; MLO lo descarga y lo guarda para usar sin conexión |
 | Identidad del alumno | UUID estable por persona + cuenta con usuario/contraseña en el CMS; el progreso se restaura al iniciar sesión |
-| Grupos | Reemplazados por clases; la tabla `groups` se eliminó |
+| API pública | Solo v3 (`/api/mlo/v3`); v2 se retiró y sus releases quedan como datos históricos |
 
 ## 3. Arquitectura
 
@@ -53,7 +53,8 @@ aplica en el teléfono sin actualizar la app.
 | `student_progress` | Respaldo v5 del progreso por alumno |
 | `lesson_extras`, `extra_classes` | Contenido extra y las clases a las que se asigna |
 | `class_releases` | Versión, hash y snapshot inmutable de una clase |
-| `releases` | Versión, hashes y snapshot JSON inmutable del curso |
+| `releases` | Versión, hashes y snapshot JSON inmutable del curso (formato v2 histórico) |
+| `schema_migrations` | Archivos de migración ya aplicados y su fecha |
 
 RLS activado sin políticas: la API pública de Supabase no puede leer las tablas; la app
 entra con el rol `postgres`, que no pasa por RLS.
@@ -66,29 +67,41 @@ entra con el rol `postgres`, que no pasa por RLS.
 | `/mis-cursos` | ✅ |
 | `/cursos/[id]` | ✅ |
 | `/cursos/[id]/lecciones/[lessonId]` | ✅ |
-| `/cursos/[id]/publicar` | ✅ |
-| `/clases` | ✅ |
-| `/clases/[id]` | ✅ |
+| `/cursos/[id]/temas/[topicId]` | ✅ |
+| `/cursos/[id]/temas/[topicId]/evaluaciones/[evaluationId]` | ✅ |
+| `/cursos/[id]/referencias` | ✅ |
+| `/grupos` | ✅ |
+| `/grupos/[id]` | ✅ |
+| `/grupos/[id]/contenido` | ✅ |
 | `/contenido-extra` | ✅ |
 | `/admin/maestros` | ✅ |
-| `/grupos` | Redirige a `/clases` |
+| `/join` | ✅ invitación de alumno desde el correo |
 
-### API para MLO (contrato v2)
+Guardar el curso publica el curso (no hay pantalla `/publicar`); **Publicar grupo**
+publica el snapshot del grupo. Las rutas antiguas `/clases` ya no existen.
 
-Rutas propias bajo `/api/mlo/v2`:
+### API para MLO (v3 única)
 
-- `GET /catalogs/{catalogId}/manifest` — ✅
-- `GET /catalogs/{catalogId}/lessons/{lessonId}` — ✅
+Rutas propias bajo `/api/mlo/v3`:
+
+- `GET /courses` — ✅ cursos publicados y autorizados
+- `GET /catalogs/{catalogId}/manifest` — ✅ release v3 completo
 - `GET /classes/{code}` — ✅ vista previa
-- `POST /classes/{code}/join` — ✅ `{ studentKey, studentName }`
+- `POST /classes/{code}/join` — ✅ `{ studentKey, studentName }` con rate limit
 - `DELETE /classes/{code}/members/{studentKey}` — ✅ salir
-- `GET /classes/{code}/release` — ✅ último snapshot de la clase
+- `GET /classes/{code}/release` — ✅ último snapshot del grupo
+- `POST /auth/*` — ✅ registro, login, logout, vinculación y recuperación
+- `GET/PUT /students/me/progress`, `GET /students/me/classes`, `PUT /students/me/email` — ✅
+- `POST /invitations/claim` — ✅ reclamar invitación por token o código
 
-Las rutas de catálogo leen el último `release`; nunca borradores ni documentos
-sueltos. Devuelven `404` si el curso no tiene release o la lección no está en el
-snapshot. Las clases leen su propio `class_release`; también devuelven `404` si no
-hay nada publicado. El alumno descarga cada clase a la que pertenece y la guarda
-localmente para usarla sin conexión.
+La API v2 se eliminó el 2026-11-26: ya no existen `/api/mlo/v2/**`. Las tablas
+`releases` y `class_releases` se conservan como datos históricos/internos y la
+publicación sigue escribiendo el release v2 de curso mientras haya lecciones.
+
+Las rutas de catálogo leen el último release; nunca borradores ni documentos
+sueltos. Devuelven `404` si el curso no tiene release. Los grupos leen su propio
+`class_release`; también devuelven `404` si no hay nada publicado. El alumno descarga
+cada grupo al que pertenece y lo guarda localmente para usarlo sin conexión.
 
 ### API de cuentas (v3)
 
@@ -109,9 +122,9 @@ token se guarda hasheado en `student_sessions`.
 | **M0 · Fundación** | ✅ Completado y verificado | Esquema, auth, login, seed, alta de maestros |
 | **M1 · Cursos y lecciones** | ✅ Completado y verificado | Crear curso/unidad/lección, editor de bloques, permisos |
 | **M2 · Core y publicación** | ✅ Completado y verificado | Importar el core, componer, hashes y primer release |
-| **M3 · Reactivos** | 🟡 M3A ✅ · M3B siguiente | Ejercicios y ejemplos editables; falta evaluación y preguntas |
-| **M4 · API y clases** | 🟡 Catálogos y panel de clases ✅ · MLO siguiente | Clases, contenido extra, publicación por clase y endpoints; falta adaptar MLO |
-| **M5 · Cierre** | ⬜ Pendiente | Rate limit, CORS, despliegue, documentación |
+| **M3 · Reactivos** | ✅ Completado | Ejercicios, ejemplos, evaluación y preguntas |
+| **M4 · API y grupos** | ✅ Completado | Grupos, contenido extra, publicación por grupo y API v3; app adaptada |
+| **M5 · Cierre** | 🟡 Solo despliegue/operación pendiente | Rate limit y CORS ✅; migraciones y CI ✅; falta desplegar y operar |
 
 ### M0 · Fundación — ✅
 
@@ -190,71 +203,96 @@ Hecho:
 - Datos de prueba eliminados. La unidad del curso de prueba se renumeró de `u1` a `u6`
   porque se había creado antes de importar el core y chocaba con la unidad 1.
 
-#### M3B · Evaluación y preguntas — ⬜ siguiente
-
-- Editor de evaluación propia (título, descripción, `questionCount`, `exerciseCount`).
-- Preguntas `mcq`, `order`, `fill`, `match` y `crossword`.
-- Ids `ev1.2` y `ev1.2-q1`.
-- Vista previa y validación al guardar.
-- La validación estricta al publicar ya existe desde M3A.
-
-### M4 · API y clases — 🟡
-
-#### M4A · Clases y contenido extra (panel) — ✅
+#### M3B · Evaluación y preguntas — ✅
 
 Hecho:
 
-- `GET /api/mlo/v2/catalogs/{catalogId}/manifest` y
-  `GET /api/mlo/v2/catalogs/{catalogId}/lessons/{lessonId}`.
-- Leen solo el último `release`; `404` para curso sin release o lección fuera del
-  snapshot; `Cache-Control` corto.
+- Editor de evaluación propia por tema (título, descripción, `questionCount`,
+  `exerciseCount`).
+- Preguntas `mcq`, `order`, `fill`, `match` y `crossword`, y evaluaciones de puras
+  preguntas.
+- Actividades directas al tema, sin exigir lección.
+- Ids `ev1.2` y `ev1.2-q1`; vista previa y validación al guardar.
+- La validación estricta al publicar rechaza una evaluación sin preguntas y los
+  reactivos inválidos.
+
+### M4 · API y grupos — ✅
+
+#### M4A · Grupos y contenido extra (panel) — ✅
+
+Hecho:
+
+- `GET /api/mlo/v3/catalogs/{catalogId}/manifest` (release v3 completo). La API v2 y
+  su endpoint por lección se retiraron; el release v2 queda como dato histórico.
+- Lee solo el último release; `404` para curso sin release; `Cache-Control` corto.
 - Prueba HTTP real: el release base de 25 lecciones y 3 ejemplos independientes pasa
   `parseCatalogManifest` y `validateLessonPayload` desde MLO.
 - Migración `20261027000004_classes.sql`: `classes`, `students`, `class_members`,
   `lesson_extras`, `extra_classes` y `class_releases`; se eliminó `groups`.
-- `/clases` y `/clases/[id]`: crear clase, código fijo de 6, alumnos, contenido y
-  publicación por clase. `/grupos` redirige a `/clases`.
-- `/contenido-extra`: agregar bloques, ejemplos o ejercicios a una lección del core y
-  asignarlos a una o varias clases. Los ejercicios extra usan los mismos tipos y
-  validadores que los existentes.
-- Publicación por clase: snapshot inmutable con solo lo asignado a esa clase; un
-  contenido compartido entra en el snapshot de cada clase al publicarla. Los cambios
+- `/grupos` y `/grupos/[id]`: crear grupo, código fijo de 6, alumnos, contenido y
+  publicación por grupo. `/grupos/[id]/contenido` edita las actividades propias.
+- `/contenido-extra`: agregar bloques, ejemplos, ejercicios o evaluaciones a una
+  lección del curso y asignarlos a uno o varios grupos. Usan los mismos tipos y
+  validadores que el contenido del curso.
+- Publicación por grupo: snapshot inmutable con solo lo asignado a ese grupo; un
+  contenido compartido entra en el snapshot de cada grupo al publicarlo. Los cambios
   en borrador no llegan al alumno hasta republicar.
-- `GET /classes/{code}`, `POST /classes/{code}/join`,
-  `DELETE /classes/{code}/members/{studentKey}` y `GET /classes/{code}/release`.
-- Fixture del contrato en `scripts/fixtures/class-release.json` para la fase de MLO.
+- `GET /api/mlo/v3/classes/{code}`, `POST .../join`, `DELETE .../members/{studentKey}`
+  y `GET .../release`.
+- Fixture del contrato en `scripts/fixtures/class-release.json`.
 - Identidad del alumno por UUID estable + nombre; el panel guarda alumno y membresía
-  sin crear cuentas ni tocar el login de MLO.
+  sin crear cuentas.
 - 9 tests nuevos (30 en total) de composición, hash estable, asignación múltiple,
   snapshot vacío, validación de extras y fixture del contrato.
 
 Hecho del lado de MLO:
 
 - `accounts.external_key` (UUID estable), `account_classes`, `class_cache` y
-  `class_extras_cache` en SQLite (versión 17).
-- Perfil con varias clases, unirse/salir y sincronización del release de cada clase.
+  `class_extras_cache` en SQLite.
+- Perfil con varios grupos, unirse/salir y sincronización del release de cada grupo.
 - Bloques extra debajo de la lección; ejercicios extra en la práctica y ejemplos
-  extra en su flujo, con la etiqueta de la clase.
-- Respaldo v4: restaura el UUID y las clases, vuelve a unir con la identidad
+  extra en su flujo, con la etiqueta del grupo.
+- Respaldo v4: restaura el UUID y los grupos, vuelve a unir con la identidad
   original y retira la temporal para no duplicar al alumno.
-- 363 tests de MLO en verde y fixture real del panel validado con
-  `parseClassRelease`.
+- Fixture real del panel validado con `parseClassRelease`.
 
-Pendiente:
+Pendiente de operación:
 
-- Rate limit y CORS de las rutas de clases.
 - Prueba desde la app MLO con `EXPO_PUBLIC_DATA_MODE=hybrid` en un dispositivo.
 - Caché por `catalog:{id}` en producción.
 
-### M5 · Cierre — ⬜
+### M5 · Cierre — 🟡
 
-- Rate limit de `classes/{code}/join`, CORS para Expo web.
-- Despliegue en Vercel + Supabase.
-- Manual del maestro y actualización del contrato.
+Hecho:
+
+- Rate limit de `classes/{code}/join` (100 por IP y 1000 globales cada 15 min).
+- CORS configurable con `CORS_ALLOWED_ORIGIN` y `Vary: Origin`.
+- Migraciones registradas: `db:migrate`, `--status` y `--baseline`.
+- CI de test, lint, `tsc` y build; prueba E2E HTTP de la API v3.
+- Documentación de estado, contrato y despliegue actualizada.
+
+Pendiente (solo despliegue/operación):
+
+- Desplegar en Vercel + Supabase (o Cloud Run + Cloud SQL) con dominio y secretos.
+- Definir `CORS_ALLOWED_ORIGIN`, `MEDIA_SECRET` y `APP_BASE_URL` en producción.
+- Manual del maestro y prueba final en dispositivo.
 
 ## 5. Verificación
 
 ### Automática
+
+Estado al 2026-11-26:
+
+| Comando | Resultado |
+|---|---|
+| `npm test` | 185 pruebas (descubiertas de `lib/**/*.test.ts`) |
+| `npm run test:db` | Pruebas contra la base: rate limit, vinculación, recuperación, importación base y E2E HTTP v3 |
+| `npm run lint` | Sin errores |
+| `npx tsc --noEmit` | Sin errores |
+| `npm run build` | Compila |
+| CI (`.github/workflows/ci.yml`) | `test`, `lint`, `tsc` y `build` en cada push y PR |
+
+#### Historial (2026-10-27)
 
 Ejecutada el 2026-10-27:
 
@@ -272,6 +310,9 @@ El mismo contenido publicado dos veces produjo el mismo hash
 (`c33cad9e397d6fc2bf88e81c2b7c9ebad72d7862c25d178a06718e3dac89d2f3`).
 
 ### Manual (navegador, contra la base real)
+
+Registro histórico del 2026-10-27; entonces la API era v2 y las clases vivían en
+`/clases`. Esas rutas ya no existen, pero el resultado de cada prueba se conserva.
 
 | Prueba | Resultado |
 |---|---|
@@ -347,20 +388,25 @@ versión 1. El curso `IS-AGDC-2026` quedó con 1 unidad (renumerada `u6`) y 1 le
   prueba en la app en `hybrid`. El plan está en
   `D:\devvv\MLO\MLO-Ingenieria-software\docs\planes\PLAN-ejemplos-independientes.md`.
   El panel bloquea el tipo `order` para ejemplos independientes.
-- **CORS y clases:** las rutas no envían CORS todavía; un cliente nativo no lo necesita,
-  Expo web sí. Falta rate limit en `join`, que es la única ruta pública de escritura.
-- **Código de clase:** es la única llave para leer el snapshot de la clase. Si se filtra,
+- **CORS y rate limit:** resueltos. `CORS_ALLOWED_ORIGIN` define el origen permitido y
+  `join` limita a 100 peticiones por IP y 1000 globales cada 15 minutos (429). En
+  producción hay que definir la variable para Expo web.
+- **API v2 retirada:** cualquier cliente que aún llame a `/api/mlo/v2` deja de
+  funcionar. Las releases v2 quedan en la base como historial, pero no se sirven.
+- **Código de grupo:** es la única llave para leer el snapshot del grupo. Si se filtra,
   cualquiera con el código puede descargar el contenido (no los nombres de los alumnos).
 - **Identidad del alumno:** el UUID vive en la cuenta local de MLO y debe viajar en el
   respaldo. Sin respaldo, una reinstalación crea otra identidad y el alumno aparece
-  duplicado en la lista de la clase.
+  duplicado en la lista del grupo.
 - **Contenido extra publicado:** editar el borrador no cambia lo que ve el alumno hasta
-  volver a publicar esa clase.
+  volver a publicar ese grupo.
 - **Unidades creadas antes del core:** una unidad con `content_id` `u1` choca con la
   unidad 1 del core. `createUnit` ya numera después del core; los cursos antiguos hay
   que renumerarlos. El curso de prueba se corrigió (`u6`).
-- **Cobertura de tests:** 21 tests de bloques, composición, serialización, hashes,
-  validación por tipo y lectura de releases; auth, DB y rutas se siguen probando a mano.
+- **Cobertura de tests:** 185 pruebas de bloques, composición, serialización, hashes,
+  validación, API v3, auth y migraciones; `test:db` cubre rate limit, vinculación,
+  recuperación, importación y el flujo HTTP v3. El recorrido manual sigue siendo la
+  verificación final.
 - **Orden del contenido:** ejercicios y ejemplos necesitan `position`; sin ella el hash
   del release podía cambiar sin cambios de contenido.
 - **Core editable por el admin:** un maestro no puede tocar el core, pero el admin sí
@@ -376,8 +422,10 @@ versión 1. El curso `IS-AGDC-2026` quedó con 1 unidad (renumerada `u6`) y 1 le
 ```bash
 npm install
 npm run dev          # http://localhost:3000
-npm run test         # bloques, composición, hashes, contrato y validación por tipo
+npm run test         # descubre lib/**/*.test.ts (185 pruebas)
+npm run test:db      # pruebas contra la base (requiere DATABASE_URL)
 npm run lint
+npx tsc --noEmit
 npm run build
 npm run seed:admin   # requiere ADMIN_* en .env.local
 npm run import:base  # importa scripts/fixtures/base-course.json
@@ -398,7 +446,12 @@ npx tsx scripts/export-base.ts <ruta>/mlo-teachers/scripts/fixtures/base-course.
 ```
 
 Variables en `.env.local` (no versionado): `DATABASE_URL`, `DATABASE_URL_DIRECT`,
-`ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`.
+`ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `EMAIL_PROVIDER_API_KEY`, `EMAIL_FROM`,
+`APP_BASE_URL`, `MEDIA_SECRET` y `CORS_ALLOWED_ORIGIN`. `MLO_ACCESS_CONTROL` y
+`MLO_LOCAL_URL` son opcionales.
+
+El CI (`.github/workflows/ci.yml`) ejecuta `npm test`, `npm run lint`, `npx tsc --noEmit`
+y `npm run build` en cada push y pull request.
 
 ## 9. Flujo de trabajo
 
@@ -425,3 +478,4 @@ Variables en `.env.local` (no versionado): `DATABASE_URL`, `DATABASE_URL_DIRECT`
 | 2026-11-18 | Editor de contenido del grupo: lista unificada de lecciones, ejemplos, ejercicios y evaluaciones; editores propios con vista previa interactiva; `class_content_changes` con triggers y tarjeta de versión con subtemas pendientes; edición de estructura desde el grupo; enlaces de vuelta seguros y pop ups centrados. En la app: portada con logos CINVESTAV, perfil con "Mostrar curso base", salir del curso, lección de una sola pantalla y unidad de grupo restaurada. 145 tests del panel y 581 de la app. |
 | 2026-11-24 | Cuentas de alumno en el CMS y progreso en la nube: `student_accounts`, `student_sessions` y `student_auth_attempts`; auth scrypt con sesiones Bearer de 30 días y límite de intentos; endpoints `/api/mlo/v3/auth/*`; progreso y clases con Bearer (y header legacy); `student_progress` con límite de 2 MB. Pulido del panel (confirmaciones, campos obligatorios, 404, icono) y limpieza de pruebas. En la app: token y `remote_session` en SQLite v24 (v23 más `accounts.email`), restauración y sincronización automática del progreso, vinculación de cuentas antiguas. 157 tests del panel y 541 de la app. |
 | 2026-11-25 | Rate limits por IP para aulas (login de alumno 300, registro 100, vinculación 100 y login de docente 60; ventana de 15 min), con prueba real del limiter contra la base (`test:db`) e índice `auth_rate_limits_created_idx`. Código de vinculación desde `/grupos/[id]` (6 dígitos, 30 min, hasheado, uno pendiente por alumno, solo docente dueño o admin) e insignia “En la nube” según `hasAccount` de `student_accounts`. Recuperación con guardado previo al envío (`sent_at`): solo `sent_at is not null` es utilizable, un fallo conserva el código anterior y no deja filas pendientes, y dos solicitudes concurrentes envían un solo correo. Migraciones `20261125000004` y `20261125000005`. En la app: `needsRemoteLink` por existencia de `remote_session` y `DATABASE_VERSION` 24. Revisión final: las respuestas de recuperación son genéricas (un correo inexistente y un envío fallido devuelven lo mismo; `email_unavailable` queda solo para fallos de configuración), el reenvío de invitación se serializa con el bloqueo del maestro y una fila de sesión sin token muestra “sesión caducada” con el botón de sincronizar deshabilitado. 184 tests del panel (`test:db` 11/11) y 579 de la app. |
+| 2026-11-26 | Cierre pre-deadline: **API pública solo v3** (se eliminaron las rutas `/api/mlo/v2`; las clases viven en `/grupos`), rate limit de `join` (100 por IP y 1000 globales cada 15 min), CORS con `CORS_ALLOWED_ORIGIN`, migraciones registradas con `db:migrate`/`--status`/`--baseline` y descubrimiento automático de tests. `npm test` queda en 185 pruebas y `test:db` en 13 (incluye la E2E HTTP v3 de preview/join/release/manifest). CI con test, lint, tsc y build. En la app: cliente único v3, token en `expo-secure-store` con migración desde SQLite, CI y perfiles EAS preview/production; no se generó build. |
