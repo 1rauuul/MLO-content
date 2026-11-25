@@ -17,13 +17,13 @@ const WINDOW_MINUTES = 15;
 const CLEANUP_MINUTES = 24 * 60;
 
 export const RATE_LIMITS = {
-  studentLoginIp: { limit: 30, windowMinutes: WINDOW_MINUTES },
+  studentLoginIp: { limit: 300, windowMinutes: WINDOW_MINUTES },
   studentLoginGlobal: { limit: 500, windowMinutes: WINDOW_MINUTES },
-  studentRegisterIp: { limit: 10, windowMinutes: WINDOW_MINUTES },
+  studentRegisterIp: { limit: 100, windowMinutes: WINDOW_MINUTES },
   studentRegisterGlobal: { limit: 100, windowMinutes: WINDOW_MINUTES },
-  studentLinkIp: { limit: 10, windowMinutes: WINDOW_MINUTES },
+  studentLinkIp: { limit: 100, windowMinutes: WINDOW_MINUTES },
   studentLinkGlobal: { limit: 100, windowMinutes: WINDOW_MINUTES },
-  teacherLoginIp: { limit: 20, windowMinutes: WINDOW_MINUTES },
+  teacherLoginIp: { limit: 60, windowMinutes: WINDOW_MINUTES },
   teacherLoginEmail: { limit: 10, windowMinutes: WINDOW_MINUTES },
   teacherLoginGlobal: { limit: 200, windowMinutes: WINDOW_MINUTES },
 } satisfies Record<string, RateLimitRule>;

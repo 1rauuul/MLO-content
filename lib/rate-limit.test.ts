@@ -23,3 +23,10 @@ test("los límites son positivos y con ventana de 15 minutos", () => {
     assert.equal(rule.windowMinutes, 15);
   }
 });
+
+test("los límites por IP soportan un aula compartida", () => {
+  assert.ok(RATE_LIMITS.studentLoginIp.limit >= 100);
+  assert.ok(RATE_LIMITS.studentRegisterIp.limit >= 50);
+  assert.ok(RATE_LIMITS.studentLinkIp.limit >= 50);
+  assert.ok(RATE_LIMITS.teacherLoginIp.limit >= 50);
+});
