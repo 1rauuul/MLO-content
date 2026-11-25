@@ -28,7 +28,7 @@ export const RATE_LIMITS = {
   teacherLoginEmail: { limit: 10, windowMinutes: WINDOW_MINUTES },
   teacherLoginGlobal: { limit: 200, windowMinutes: WINDOW_MINUTES },
   classJoinIp: { limit: 100, windowMinutes: WINDOW_MINUTES },
-  classJoinGlobal: { limit: 100, windowMinutes: WINDOW_MINUTES },
+  classJoinGlobal: { limit: 1000, windowMinutes: WINDOW_MINUTES },
 } satisfies Record<string, RateLimitRule>;
 
 /** En Vercel la IP real viene en el primer valor de x-forwarded-for. */
