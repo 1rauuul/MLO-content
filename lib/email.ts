@@ -21,6 +21,13 @@ export interface EmailMessage {
 
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
 
+export function emailConfigured(): boolean {
+  return Boolean(
+    process.env.EMAIL_PROVIDER_API_KEY?.trim() &&
+      process.env.EMAIL_FROM?.trim(),
+  );
+}
+
 export function escapeHtml(value: string): string {
   return value
     .replaceAll("&", "&amp;")
@@ -35,9 +42,9 @@ export function escapeHtml(value: string): string {
  * decide si muestra el enlace o mantiene una respuesta genérica.
  */
 export async function sendEmail(message: EmailMessage): Promise<EmailDelivery> {
-  const apiKey = process.env.EMAIL_PROVIDER_API_KEY?.trim();
-  const from = process.env.EMAIL_FROM?.trim();
-  if (!apiKey || !from) return { sent: false, reason: "not_configured" };
+  if (!emailConfigured()) return { sent: false, reason: "not_configured" };
+  const apiKey = process.env.EMAIL_PROVIDER_API_KEY!.trim();
+  const from = process.env.EMAIL_FROM!.trim();
 
   try {
     const response = await fetch(RESEND_ENDPOINT, {

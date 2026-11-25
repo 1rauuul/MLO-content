@@ -806,16 +806,23 @@ real (`units`, `topics`, `lessons`, `evaluations`, `questions`, `exercises`,
 
 ### 13.1 Identidad del alumno
 
-Toda petición a la API v3 lleva la cabecera:
+La identidad depende de si el alumno ya tiene cuenta en la nube:
 
-```
-X-MLO-Student-Key: <uuid de accounts.external_key>
-```
-
-- Si falta o no es un UUID válido: `400` con `{ error: "invalid" }`.
-- No se acepta identidad por query string, body ni UI.
-- CORS permite `Content-Type, X-MLO-Student-Key`; las rutas de cuenta añaden
-  `Authorization`. `OPTIONS` responde `204`.
+- **Cuenta vinculada:** toda petición lleva `Authorization: Bearer` con el token
+  de una sesión de alumno. `X-MLO-Student-Key` por sí sola devuelve `401`, aunque
+  el UUID sea válido.
+- **Cuenta local antigua sin cuenta en `student_accounts`:** se mantiene
+  `X-MLO-Student-Key: <uuid de students.external_key>` durante la transición.
+  Deja de aceptarse en cuanto existe la cuenta.
+- El registro público (`POST /api/mlo/v3/auth/register`) ya **no** acepta
+  `externalKey`. La vinculación se hace con `POST /api/mlo/v3/auth/link` y un
+  código de un solo uso emitido por el administrador
+  (`npm run link:student -- --name <texto>` y luego `--external-key <uuid>`).
+- Las rutas que reciben la llave en el cuerpo o la URL (unirse/salir de clase)
+  exigen que coincida con el Bearer cuando la cuenta está vinculada.
+- CORS permite `Content-Type, X-MLO-Student-Key, Authorization`; `OPTIONS`
+  responde `204`. Los errores de identidad usan `400` o `401` con
+  `{ error: "invalid" }`.
 
 ### 13.2 Lista de cursos
 

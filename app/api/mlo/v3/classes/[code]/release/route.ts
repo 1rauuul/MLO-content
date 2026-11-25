@@ -1,8 +1,9 @@
 import { corsPreflight, CORS_HEADERS } from "@/lib/api/cors";
-import { isStudentKey, normalizeJoinCode } from "@/lib/classes";
+import { normalizeJoinCode } from "@/lib/classes";
 import { publishedGroupRelease } from "@/lib/content/group-release";
 import type { ReleaseV3 } from "@/lib/content/contract-v3";
 import { db } from "@/lib/db";
+import { resolveStudentKey } from "@/lib/student-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -21,8 +22,9 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ code: string }> },
 ) {
-  const studentKey = (request.headers.get("x-mlo-student-key") ?? "").trim();
-  if (!isStudentKey(studentKey)) {
+  const identity = await resolveStudentKey(request);
+  const studentKey = identity?.externalKey ?? "";
+  if (!studentKey) {
     return Response.json(
       { error: "invalid", message: "Falta la identidad estable del alumno." },
       { status: 400, headers: { ...CORS_HEADERS, "Cache-Control": "no-store" } },

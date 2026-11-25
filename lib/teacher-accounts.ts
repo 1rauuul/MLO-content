@@ -2,7 +2,11 @@ import type postgres from "postgres";
 
 import { isUniqueViolation } from "./content/x03";
 import { db } from "./db";
-import { normalizeEmail, type EmailDelivery } from "./email";
+import {
+  emailConfigured,
+  normalizeEmail,
+  type EmailDelivery,
+} from "./email";
 import { appBaseUrl } from "./media/signing";
 import { hashPassword, hashToken, newSessionToken } from "./password";
 import { validatePassword } from "./password-policy";
@@ -48,6 +52,7 @@ export type TeacherInvitationResult =
         | "email_taken"
         | "not_found"
         | "already_active"
+        | "cooldown"
         | "config";
     };
 
@@ -249,6 +254,17 @@ export async function resendTeacherInvitation(
   if (!teacher) return { ok: false, error: "not_found" };
   if (teacher.activated_at) return { ok: false, error: "already_active" };
 
+  const [recent] = await db()<{ created_at: Date }[]>`
+    select created_at
+      from teacher_tokens
+     where teacher_id = ${teacher.id}
+       and purpose = 'invite'
+     order by created_at desc
+     limit 1`;
+  if (teacherCooldownActive(recent?.created_at ?? null)) {
+    return { ok: false, error: "cooldown" };
+  }
+
   const token = await db().begin((tx) =>
     createTeacherToken(tx, {
       teacherId: teacher.id,
@@ -378,9 +394,13 @@ export async function acceptTeacherInvitation(
 
 export async function requestTeacherPasswordReset(
   rawEmail: string,
-): Promise<{ ok: true } | { ok: false; error: "invalid_email" }> {
+): Promise<
+  { ok: true } | { ok: false; error: "invalid_email" | "email_unavailable" }
+> {
   const email = normalizeEmail(rawEmail);
   if (!email) return { ok: false, error: "invalid_email" };
+  // Se comprueba antes de buscar la cuenta para no filtrar su existencia.
+  if (!emailConfigured()) return { ok: false, error: "email_unavailable" };
 
   const [teacher] = await db()<{
     id: string;
@@ -405,36 +425,52 @@ export async function requestTeacherPasswordReset(
   if (teacherCooldownActive(recent?.created_at ?? null)) return { ok: true };
 
   const base = baseUrl();
-  if (!base) return { ok: true };
+  if (!base) return { ok: false, error: "email_unavailable" };
 
+  const token = newSessionToken();
   const expiresAt =
     purpose === "reset" ? teacherResetExpiresAt() : teacherInviteExpiresAt();
+  const link =
+    purpose === "reset"
+      ? buildTeacherResetLink(base, token)
+      : buildTeacherInviteLink(base, token);
 
-  const token = await db().begin((tx) =>
-    createTeacherToken(tx, {
-      teacherId: teacher.id,
-      purpose,
-      expiresAt,
-    }),
-  );
-
-  if (purpose === "reset") {
-    const link = buildTeacherResetLink(base, token.token);
-    const delivery = await sendTeacherPasswordResetEmail({
-      to: teacher.email,
-      name: teacher.name,
-      link,
-      expiresAt: token.expiresAt,
-    });
-    await recordDelivery(token.id, delivery).catch(() => undefined);
-  } else {
-    const link = buildTeacherInviteLink(base, token.token);
-    await sendInvitation(
-      token,
-      { name: teacher.name, email: teacher.email },
-      link,
+  // Primero el correo: si falla no se revoca el enlace anterior.
+  const delivery =
+    purpose === "reset"
+      ? await sendTeacherPasswordResetEmail({
+          to: teacher.email,
+          name: teacher.name,
+          link,
+          expiresAt,
+        })
+      : await sendTeacherInvitationEmail({
+          to: teacher.email,
+          name: teacher.name,
+          link,
+          expiresAt,
+        });
+  if (!delivery.sent) {
+    console.error(
+      "[teachers] password recovery email not delivered:",
+      delivery.reason,
     );
+    return { ok: false, error: "email_unavailable" };
   }
+
+  await db().begin(async (tx) => {
+    await tx`update teacher_tokens
+      set revoked_at = now()
+      where teacher_id = ${teacher.id}
+        and purpose = ${purpose}
+        and used_at is null
+        and revoked_at is null`;
+    await tx`insert into teacher_tokens
+      (teacher_id, purpose, token_hash, expires_at, sent_at)
+      values
+      (${teacher.id}, ${purpose}, ${hashToken(token)},
+       ${expiresAt.toISOString()}, now())`;
+  });
 
   return { ok: true };
 }

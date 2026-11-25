@@ -82,6 +82,9 @@ export async function resendInvitation(
     if (result.error === "already_active") {
       return { error: "La cuenta ya está activa; no necesita invitación." };
     }
+    if (result.error === "cooldown") {
+      return { error: "Espera un minuto antes de reenviar la invitación." };
+    }
     if (result.error === "config") {
       return { error: "Falta APP_BASE_URL para armar el enlace de invitación." };
     }

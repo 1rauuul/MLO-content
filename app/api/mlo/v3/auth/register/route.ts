@@ -1,4 +1,9 @@
 import { corsPreflight, CORS_HEADERS } from "@/lib/api/cors";
+import {
+  clientIpFromHeaders,
+  RATE_LIMITS,
+  takeRateLimit,
+} from "@/lib/rate-limit";
 import { registerStudent } from "@/lib/student-auth";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +21,6 @@ const FIELD_MESSAGES: Record<string, string> = {
     "La contraseña debe tener entre 8 y 128 caracteres, con mayúscula, minúscula, número y símbolo.",
   display_name_invalid: "El nombre debe tener entre 2 y 80 caracteres.",
   email_invalid: "El correo no es válido.",
-  external_key_invalid: "La identidad del alumno no es un UUID válido.",
 };
 
 export async function OPTIONS() {
@@ -34,6 +38,26 @@ export async function POST(request: Request) {
       }
     | null;
 
+  const ip = clientIpFromHeaders(request.headers);
+  const allowed =
+    (await takeRateLimit(
+      "student_register",
+      `ip:${ip}`,
+      RATE_LIMITS.studentRegisterIp,
+    )) &&
+    (await takeRateLimit(
+      "student_register",
+      "global",
+      RATE_LIMITS.studentRegisterGlobal,
+    ));
+  if (!allowed) {
+    return errorResponse(
+      "rate_limited",
+      "Demasiados intentos. Espera 15 minutos.",
+      429,
+    );
+  }
+
   const username = typeof body?.username === "string" ? body.username : "";
   const password = typeof body?.password === "string" ? body.password : "";
   const displayName =
@@ -41,13 +65,19 @@ export async function POST(request: Request) {
   const email = typeof body?.email === "string" ? body.email : "";
   const rawExternalKey =
     typeof body?.externalKey === "string" ? body.externalKey.trim() : "";
+  if (rawExternalKey) {
+    return errorResponse(
+      "external_key_not_allowed",
+      "Actualiza MLO para vincular una cuenta antigua con un código.",
+      400,
+    );
+  }
 
   const result = await registerStudent({
     username,
     password,
     displayName,
-    email: email || undefined,
-    externalKey: rawExternalKey || undefined,
+    email,
   });
 
   if (result.ok) {
@@ -62,13 +92,6 @@ export async function POST(request: Request) {
   }
   if (result.error === "email_taken") {
     return errorResponse("email_taken", "Ese correo ya está registrado.", 409);
-  }
-  if (result.error === "already_registered") {
-    return errorResponse(
-      "already_registered",
-      "Ese alumno ya tiene una cuenta.",
-      409,
-    );
   }
   if (result.error === "email_invalid") {
     return errorResponse("email_invalid", FIELD_MESSAGES.email_invalid, 400);

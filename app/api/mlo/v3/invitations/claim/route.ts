@@ -1,5 +1,4 @@
 import { corsPreflight, CORS_HEADERS } from "@/lib/api/cors";
-import { isStudentKey } from "@/lib/classes";
 import {
   INVITATION_ERROR_STATUS,
   invitationErrorBody,
@@ -8,6 +7,7 @@ import {
   claimInvitation,
   describeClaimedMembership,
 } from "@/lib/invitations/invitations";
+import { resolveStudentKey } from "@/lib/student-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -25,10 +25,11 @@ export async function OPTIONS() {
 }
 
 export async function POST(request: Request) {
-  const studentKey = (request.headers.get("x-mlo-student-key") ?? "").trim();
-  if (!isStudentKey(studentKey)) {
+  const identity = await resolveStudentKey(request);
+  if (!identity) {
     return invalid("Falta la identidad estable del alumno.");
   }
+  const studentKey = identity.externalKey;
 
   const body = (await request.json().catch(() => null)) as
     | { token?: unknown; studentName?: unknown }

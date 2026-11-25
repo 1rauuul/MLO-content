@@ -1,10 +1,10 @@
 import { corsPreflight, CORS_HEADERS } from "@/lib/api/cors";
 import {
   classPreviewPayload,
-  isStudentKey,
   joinClassByCode,
   normalizeJoinCode,
 } from "@/lib/classes";
+import { resolveStudentKeyValue } from "@/lib/student-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +24,8 @@ export async function POST(
   const studentKey = typeof body?.studentKey === "string" ? body.studentKey.trim() : "";
   const studentName = typeof body?.studentName === "string" ? body.studentName.trim() : "";
 
-  if (!isStudentKey(studentKey)) {
+  const identity = await resolveStudentKeyValue(request, studentKey);
+  if (!identity) {
     return Response.json(
       { error: "invalid", message: "Falta la identidad estable del alumno." },
       { status: 400, headers: { ...CORS_HEADERS, "Cache-Control": "no-store" } },
@@ -39,7 +40,7 @@ export async function POST(
 
   const result = await joinClassByCode(
     normalizeJoinCode(code),
-    studentKey,
+    identity.externalKey,
     studentName,
   );
 

@@ -21,10 +21,24 @@ test("acepta jsonb como objeto o como texto del pooler", () => {
   assert.deepEqual(parseStoredProgress(JSON.stringify(payload)), payload);
 });
 
-test("limita el tamaño del progreso a 2 MB", () => {
+test("limita el tamaño del progreso por bytes UTF-8, no por caracteres", () => {
   assert.equal(progressPayloadTooLarge({ version: 5, data: "x".repeat(10) }), false);
   assert.equal(
     progressPayloadTooLarge({ version: 5, data: "x".repeat(2_000_001) }),
     true,
+  );
+  // Cada emoji pesa 4 bytes: 600 000 caracteres superan los 2 MB.
+  assert.equal(
+    progressPayloadTooLarge({ version: 5, data: "😀".repeat(600_000) }),
+    true,
+  );
+  // Cada CJK pesa 3 bytes: 700 000 caracteres superan los 2 MB.
+  assert.equal(
+    progressPayloadTooLarge({ version: 5, data: "漢".repeat(700_000) }),
+    true,
+  );
+  assert.equal(
+    progressPayloadTooLarge({ version: 5, data: "😀".repeat(100_000) }),
+    false,
   );
 });

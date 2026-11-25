@@ -18,7 +18,7 @@ export function isProgressPayload(value: unknown): value is Record<string, unkno
 }
 
 export function progressPayloadTooLarge(value: unknown): boolean {
-  return JSON.stringify(value).length > MAX_PROGRESS_BYTES;
+  return Buffer.byteLength(JSON.stringify(value), "utf8") > MAX_PROGRESS_BYTES;
 }
 
 export async function getStudentProgress(

@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { randomUUID, timingSafeEqual } from "node:crypto";
 
 import { isUniqueViolation } from "./content/x03";
 import { db } from "./db";
@@ -10,6 +10,7 @@ import {
   verifyPassword,
 } from "./password";
 import { PASSWORD_MAX_LENGTH, validatePassword } from "./password-policy";
+import { isStudentRecoveryCode } from "./student-recovery";
 
 export const STUDENT_SESSION_DAYS = 30;
 export const MAX_LOGIN_ATTEMPTS = 10;
@@ -33,27 +34,40 @@ export type StudentRegistrationInput = {
   username: string;
   password: string;
   displayName: string;
-  /** Obligatorio en cuentas nuevas; opcional al vincular por externalKey. */
-  email?: string;
-  externalKey?: string;
+  email: string;
 };
 
 export type StudentRegistrationFieldError =
   | "username_invalid"
   | "password_invalid"
   | "display_name_invalid"
-  | "email_invalid"
-  | "external_key_invalid";
+  | "email_invalid";
 
 export type RegisterStudentResult =
   | { ok: true; token: string; student: StudentIdentity }
   | {
       ok: false;
+      error: "username_taken" | "email_taken" | StudentRegistrationFieldError;
+    };
+
+export type StudentLinkInput = {
+  externalKey: string;
+  username: string;
+  password: string;
+  displayName: string;
+  code: string;
+};
+
+export type LinkStudentResult =
+  | { ok: true; token: string; student: StudentIdentity }
+  | {
+      ok: false;
       error:
+        | "invalid"
+        | "invalid_code"
+        | "password_invalid"
         | "username_taken"
-        | "email_taken"
-        | "already_registered"
-        | StudentRegistrationFieldError;
+        | "already_registered";
     };
 
 export type UpdateStudentEmailResult =
@@ -110,16 +124,7 @@ export function validateStudentRegistration(
   if (!isValidStudentUsername(input.username)) return "username_invalid";
   if (!isValidStudentPassword(input.password)) return "password_invalid";
   if (!isValidStudentName(input.displayName)) return "display_name_invalid";
-
-  const email = input.email?.trim() ?? "";
-  const isLegacyLink = input.externalKey !== undefined;
-  if ((!isLegacyLink || email.length > 0) && !normalizeEmail(email)) {
-    return "email_invalid";
-  }
-
-  if (input.externalKey !== undefined && !isExternalKey(input.externalKey)) {
-    return "external_key_invalid";
-  }
+  if (!normalizeEmail(input.email)) return "email_invalid";
   return null;
 }
 
@@ -145,27 +150,17 @@ async function createStudentSession(studentId: string): Promise<string> {
 
 async function registrationConflict(
   username: string,
-  email: string | null,
-  externalKey: string,
-): Promise<"username_taken" | "email_taken" | "already_registered"> {
+  email: string,
+): Promise<"username_taken" | "email_taken"> {
   const [row] = await db()<{ reason: string }[]>`
     select case
       when exists (select 1 from student_accounts where username = ${username})
         then 'username_taken'
-      when ${email !== null} and exists (
-        select 1 from student_accounts where email = ${email}
-      ) then 'email_taken'
-      when exists (
-        select 1
-          from student_accounts a
-          join students s on s.id = a.student_id
-         where s.external_key = ${externalKey}
-      ) then 'already_registered'
+      when exists (select 1 from student_accounts where email = ${email})
+        then 'email_taken'
       else 'username_taken'
     end as reason`;
-  if (row?.reason === "email_taken") return "email_taken";
-  if (row?.reason === "already_registered") return "already_registered";
-  return "username_taken";
+  return row?.reason === "email_taken" ? "email_taken" : "username_taken";
 }
 
 export async function registerStudent(
@@ -176,8 +171,9 @@ export async function registerStudent(
 
   const username = normalizeStudentUsername(input.username);
   const displayName = input.displayName.trim();
-  const email = normalizeEmail(input.email ?? "");
-  const externalKey = input.externalKey?.trim() || randomUUID();
+  const email = normalizeEmail(input.email);
+  if (!email) return { ok: false, error: "email_invalid" };
+  const externalKey = randomUUID();
   const passwordHash = await hashPassword(input.password);
 
   try {
@@ -185,23 +181,13 @@ export async function registerStudent(
       const [row] = await tx<{ id: string; external_key: string; name: string }[]>`
         insert into students (external_key, name)
         values (${externalKey}, ${displayName})
-        on conflict (external_key) do update
-          set name = excluded.name, updated_at = now()
         returning id, external_key, name`;
-
-      const [account] = await tx<{ student_id: string }[]>`
-        select student_id from student_accounts
-         where student_id = ${row.id}
-         limit 1`;
-      if (account) return null;
 
       await tx`insert into student_accounts
         (student_id, username, email, password_hash)
         values (${row.id}, ${username}, ${email}, ${passwordHash})`;
       return row;
     });
-
-    if (!student) return { ok: false, error: "already_registered" };
 
     const token = await createStudentSession(student.id);
     return {
@@ -219,11 +205,134 @@ export async function registerStudent(
     if (isUniqueViolation(caught)) {
       return {
         ok: false,
-        error: await registrationConflict(username, email, externalKey),
+        error: await registrationConflict(username, email),
       };
     }
     throw caught;
   }
+}
+
+function sameLinkCode(code: string, stored: string): boolean {
+  const actual = Buffer.from(hashToken(code), "hex");
+  const expected = Buffer.from(stored, "hex");
+  return (
+    actual.length === expected.length && timingSafeEqual(actual, expected)
+  );
+}
+
+/**
+ * Vincula una cuenta local antigua a un externalKey existente. Solo se acepta
+ * con un código de un solo uso emitido por el administrador: el UUID no es
+ * secreto y por sí solo no prueba nada.
+ */
+export async function linkStudentAccount(
+  input: StudentLinkInput,
+): Promise<LinkStudentResult> {
+  const externalKey = input.externalKey.trim();
+  const code = input.code.trim();
+  if (
+    !isExternalKey(externalKey) ||
+    !isValidStudentUsername(input.username) ||
+    !isValidStudentName(input.displayName) ||
+    !isStudentRecoveryCode(code)
+  ) {
+    return { ok: false, error: "invalid" };
+  }
+  if (!isValidStudentPassword(input.password)) {
+    return { ok: false, error: "password_invalid" };
+  }
+
+  const username = normalizeStudentUsername(input.username);
+  const displayName = input.displayName.trim();
+
+  const [student] = await db()<{
+    id: string;
+    external_key: string;
+    name: string;
+  }[]>`
+    select id, external_key, name
+      from students
+     where external_key = ${externalKey}
+     limit 1`;
+  if (!student) return { ok: false, error: "invalid_code" };
+
+  const [existing] = await db()<{ student_id: string }[]>`
+    select student_id from student_accounts
+     where student_id = ${student.id}
+     limit 1`;
+  if (existing) return { ok: false, error: "already_registered" };
+
+  const [link] = await db()<{
+    id: string;
+    code_hash: string;
+    attempts: number;
+  }[]>`
+    select id, code_hash, attempts
+      from student_link_codes
+     where student_id = ${student.id}
+       and used_at is null
+       and expires_at > now()
+     order by created_at desc
+     limit 1`;
+  if (!link) return { ok: false, error: "invalid_code" };
+
+  if (link.attempts >= 5) {
+    await db()`update student_link_codes
+      set used_at = now()
+      where id = ${link.id}`;
+    return { ok: false, error: "invalid_code" };
+  }
+
+  if (!sameLinkCode(code, link.code_hash)) {
+    const attempts = link.attempts + 1;
+    await db()`update student_link_codes
+      set attempts = ${attempts},
+          used_at = case when ${attempts} >= 5 then now() else used_at end
+      where id = ${link.id}`;
+    return { ok: false, error: "invalid_code" };
+  }
+
+  const passwordHash = await hashPassword(input.password);
+  try {
+    await db().begin(async (tx) => {
+      const [account] = await tx<{ student_id: string }[]>`
+        insert into student_accounts
+          (student_id, username, email, password_hash)
+        values (${student.id}, ${username}, null, ${passwordHash})
+        on conflict (student_id) do nothing
+        returning student_id`;
+      if (!account) throw new Error("already_registered");
+
+      await tx`update students
+        set name = ${displayName}, updated_at = now()
+        where id = ${student.id}`;
+      await tx`update student_link_codes
+        set used_at = now()
+        where student_id = ${student.id}
+          and used_at is null`;
+    });
+  } catch (caught) {
+    if (caught instanceof Error && caught.message === "already_registered") {
+      return { ok: false, error: "already_registered" };
+    }
+    if (isUniqueViolation(caught)) {
+      return { ok: false, error: "username_taken" };
+    }
+    throw caught;
+  }
+
+  const token = await createStudentSession(student.id);
+  return {
+    ok: true,
+    token,
+    student: {
+      studentId: student.id,
+      externalKey: student.external_key,
+      username,
+      displayName,
+      email: null,
+    },
+  };
 }
 
 export async function loginStudent(
@@ -261,10 +370,9 @@ export async function loginStudent(
 
   if (!account || !valid) {
     await sql`insert into student_auth_attempts (username) values (${username})`;
-    // La tabla no necesita historia larga; se limpia en cada fallo.
+    // Limpieza global: rotar usuarios no debe hacer crecer la tabla sin límite.
     await sql`delete from student_auth_attempts
-      where username = ${username}
-        and created_at < now() - interval '1 day'`;
+      where created_at < now() - interval '1 day'`;
     return { ok: false, error: "invalid_credentials" };
   }
 
@@ -335,9 +443,19 @@ export async function updateStudentEmail(input: {
   }
 }
 
+async function studentAccountExists(externalKey: string): Promise<boolean> {
+  const [row] = await db()<{ student_id: string }[]>`
+    select a.student_id
+      from student_accounts a
+      join students s on s.id = a.student_id
+     where s.external_key = ${externalKey}
+     limit 1`;
+  return Boolean(row);
+}
+
 /**
- * Identidad para progreso y clases. Con Bearer manda la sesión; sin él se
- * acepta `X-MLO-Student-Key` durante la transición.
+ * Identidad para progreso y clases. Con Bearer manda la sesión; la cabecera
+ * legacy solo sigue valiendo mientras el alumno no tenga cuenta en la nube.
  */
 export async function resolveStudentKey(
   request: Request,
@@ -349,7 +467,29 @@ export async function resolveStudentKey(
 
   const externalKey = (request.headers.get("x-mlo-student-key") ?? "").trim();
   if (!isExternalKey(externalKey)) return null;
+  if (await studentAccountExists(externalKey)) return null;
   return { externalKey, student: null };
+}
+
+/**
+ * Igual que `resolveStudentKey`, pero para rutas que reciben la llave en el
+ * cuerpo o en la URL. Si hay Bearer, debe corresponder al mismo externalKey.
+ */
+export async function resolveStudentKeyValue(
+  request: Request,
+  externalKey: string,
+): Promise<StudentKeyResolution | null> {
+  const key = externalKey.trim();
+  if (!isExternalKey(key)) return null;
+
+  if (bearerToken(request)) {
+    const student = await requireStudent(request);
+    return student && student.externalKey === key
+      ? { externalKey: key, student }
+      : null;
+  }
+  if (await studentAccountExists(key)) return null;
+  return { externalKey: key, student: null };
 }
 
 export async function logoutStudent(request: Request): Promise<void> {

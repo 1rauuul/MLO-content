@@ -1,7 +1,12 @@
 import { randomInt, timingSafeEqual } from "node:crypto";
 
 import { db } from "./db";
-import { escapeHtml, normalizeEmail, sendEmail } from "./email";
+import {
+  emailConfigured,
+  escapeHtml,
+  normalizeEmail,
+  sendEmail,
+} from "./email";
 import { hashPassword, hashToken } from "./password";
 import { validatePassword } from "./password-policy";
 
@@ -17,13 +22,6 @@ export type StudentRecoveryResult =
 export type StudentResetResult =
   | { ok: true }
   | { ok: false; error: "invalid_code" | "password_invalid" };
-
-function emailConfigured(): boolean {
-  return Boolean(
-    process.env.EMAIL_PROVIDER_API_KEY?.trim() &&
-      process.env.EMAIL_FROM?.trim(),
-  );
-}
 
 export function generateStudentRecoveryCode(): string {
   return String(randomInt(0, 1_000_000)).padStart(6, "0");
@@ -143,29 +141,34 @@ export async function requestStudentPasswordReset(
   await db()`delete from student_password_resets
     where student_id = ${account.student_id}
       and created_at < now() - interval '1 day'`;
-  await db()`update student_password_resets
-    set used_at = now()
-    where student_id = ${account.student_id}
-      and used_at is null`;
 
   const code = generateStudentRecoveryCode();
   const expiresAt = new Date(
     Date.now() + STUDENT_RECOVERY_CODE_TTL_MINUTES * 60_000,
   );
-  await db()`insert into student_password_resets
-    (student_id, code_hash, expires_at)
-    values (${account.student_id}, ${hashToken(code)}, ${expiresAt.toISOString()})`;
-
   const content = studentRecoveryEmailContent({
     username: account.username,
     code,
     expiresAt,
   });
+
+  // Primero el correo: si falla, el código anterior sigue vigente y no se gasta
+  // una solicitud. Solo se guarda el código nuevo cuando ya salió el correo.
   const delivery = await sendEmail({ to: email, ...content });
   if (!delivery.sent) {
-    // Sin correo no hay forma de continuar; no se registra el código ni el destinatario.
     console.error("[students] recovery email not delivered:", delivery.reason);
+    return { ok: false, error: "email_unavailable" };
   }
+
+  await db().begin(async (tx) => {
+    await tx`update student_password_resets
+      set used_at = now()
+      where student_id = ${account.student_id}
+        and used_at is null`;
+    await tx`insert into student_password_resets
+      (student_id, code_hash, expires_at)
+      values (${account.student_id}, ${hashToken(code)}, ${expiresAt.toISOString()})`;
+  });
   return { ok: true };
 }
 

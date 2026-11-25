@@ -1,11 +1,9 @@
--- Limpieza para pruebas reales: borra todos los grupos y todos los cursos
--- excepto el curso base. Conserva docentes, alumnos, sesiones, media y el
+-- SOLO PRUEBAS. No es una migración: borra todos los grupos y todos los cursos
+-- excepto el curso base, y el progreso de los alumnos en la nube.
+--
+-- Se ejecuta únicamente con `npm run db:reset:courses` y exige
+-- MLO_CONFIRM_RESET=yes. Conserva docentes, alumnos, sesiones, media y el
 -- contenido del curso base (con sus accesos y referencias).
---
--- El APK se limpia con su propia migración (v22) y ambos lados vuelven a
--- sincronizarse desde cero.
---
--- Se elimina también el progreso de los alumnos guardado en la nube.
 
 DO $$
 BEGIN

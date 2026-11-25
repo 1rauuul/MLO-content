@@ -79,32 +79,6 @@ test("valida el alta completa y devuelve el campo inválido", () => {
     validateStudentRegistration({ ...valid, email: "no-es-correo" }),
     "email_invalid",
   );
-  assert.equal(
-    validateStudentRegistration({ ...valid, externalKey: "no" }),
-    "external_key_invalid",
-  );
-});
-
-test("permite vincular una cuenta vieja sin correo", () => {
-  assert.equal(
-    validateStudentRegistration({
-      username: "valentina",
-      password: "Secreto1!",
-      displayName: "Valentina Ríos",
-      externalKey: "11111111-1111-4111-8111-111111111111",
-    }),
-    null,
-  );
-  assert.equal(
-    validateStudentRegistration({
-      username: "valentina",
-      password: "Secreto1!",
-      displayName: "Valentina Ríos",
-      email: "no-es-correo",
-      externalKey: "11111111-1111-4111-8111-111111111111",
-    }),
-    "email_invalid",
-  );
 });
 
 test("scrypt guarda y verifica sin texto plano", async () => {

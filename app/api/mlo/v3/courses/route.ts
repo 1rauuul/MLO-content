@@ -1,7 +1,7 @@
 import { corsPreflight, CORS_HEADERS } from "@/lib/api/cors";
-import { isStudentKey } from "@/lib/classes";
 import { accessControlEnabled } from "@/lib/content/v3";
 import { listAuthorizedCourses } from "@/lib/content/v3-api";
+import { resolveStudentKey } from "@/lib/student-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -10,9 +10,10 @@ export async function OPTIONS() {
 }
 
 export async function GET(request: Request) {
-  const studentKey = (request.headers.get("x-mlo-student-key") ?? "").trim();
+  const identity = await resolveStudentKey(request);
+  const studentKey = identity?.externalKey ?? "";
 
-  if (!isStudentKey(studentKey)) {
+  if (!studentKey) {
     return Response.json(
       { error: "invalid", message: "Falta la identidad estable del alumno." },
       { status: 400, headers: { ...CORS_HEADERS, "Cache-Control": "no-store" } },

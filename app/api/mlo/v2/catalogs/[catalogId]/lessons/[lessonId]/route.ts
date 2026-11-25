@@ -1,6 +1,7 @@
 import { corsPreflight, CORS_HEADERS } from "@/lib/api/cors";
 import { getLatestRelease, lessonFrom, manifestFrom } from "@/lib/content/releases";
 import { hasV2CatalogAccess } from "@/lib/content/v3-api";
+import { resolveStudentKey } from "@/lib/student-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,8 @@ export async function GET(
   { params }: { params: Promise<{ catalogId: string; lessonId: string }> },
 ) {
   const { catalogId, lessonId } = await params;
-  const studentKey = request.headers.get("x-mlo-student-key")?.trim() ?? null;
+  const identity = await resolveStudentKey(request);
+  const studentKey = identity?.externalKey ?? null;
 
   if (!(await hasV2CatalogAccess(catalogId, studentKey))) {
     return Response.json(

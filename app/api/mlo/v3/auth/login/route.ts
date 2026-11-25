@@ -1,4 +1,9 @@
 import { corsPreflight, CORS_HEADERS } from "@/lib/api/cors";
+import {
+  clientIpFromHeaders,
+  RATE_LIMITS,
+  takeRateLimit,
+} from "@/lib/rate-limit";
 import { loginStudent } from "@/lib/student-auth";
 
 export const dynamic = "force-dynamic";
@@ -17,6 +22,26 @@ export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as
     | { username?: unknown; password?: unknown }
     | null;
+
+  const ip = clientIpFromHeaders(request.headers);
+  const allowed =
+    (await takeRateLimit(
+      "student_login",
+      `ip:${ip}`,
+      RATE_LIMITS.studentLoginIp,
+    )) &&
+    (await takeRateLimit(
+      "student_login",
+      "global",
+      RATE_LIMITS.studentLoginGlobal,
+    ));
+  if (!allowed) {
+    return errorResponse(
+      "rate_limited",
+      "Demasiados intentos. Espera 15 minutos.",
+      429,
+    );
+  }
 
   const username = typeof body?.username === "string" ? body.username : "";
   const password = typeof body?.password === "string" ? body.password : "";

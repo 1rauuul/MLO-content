@@ -13,12 +13,18 @@ export async function requestReset(
   try {
     const result = await requestTeacherPasswordReset(email);
     if (!result.ok) {
-      return { error: "Escribe un correo válido." };
+      return {
+        error:
+          result.error === "invalid_email"
+            ? "Escribe un correo válido."
+            : "No se pudo enviar el correo. Inténtalo más tarde.",
+      };
     }
     return { ok: true };
   } catch (error) {
-    // La respuesta debe ser genérica aunque falle el envío o la base.
     console.error("[teachers] no se pudo procesar la recuperación", error);
-    return { ok: true };
+    return {
+      error: "No se pudo procesar la solicitud. Inténtalo más tarde.",
+    };
   }
 }
