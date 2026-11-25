@@ -370,19 +370,6 @@ export async function getClassPreviewByCode(code: string): Promise<ClassPreview 
   return rows[0] ?? null;
 }
 
-export async function getClassSnapshotByCode(
-  code: string,
-): Promise<ClassReleaseSnapshot | null> {
-  const rows = await db()<{ snapshot: ClassReleaseSnapshot }[]>`
-    select r.snapshot
-      from class_releases r
-      join classes c on c.id = r.class_id
-     where c.join_code = ${code}
-     order by r.version desc
-     limit 1`;
-  return rows[0]?.snapshot ?? null;
-}
-
 export type JoinClassFailure = {
   ok: false;
   reason: "not_found" | "archived" | "unpublished" | "full" | "duplicate";

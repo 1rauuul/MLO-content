@@ -8,7 +8,6 @@ import {
   accessControlEnabled,
   buildAuthorizedCourseList,
   canAccessCourse,
-  canAccessV2Catalog,
   computeEmpty,
   type CourseCandidate,
 } from "./v3";
@@ -143,58 +142,8 @@ test("la lista omite borradores, despublicados y cursos sin concesión", () => {
   assert.equal(response.schemaVersion, 3);
 });
 
-test("v2: el base sigue público y los demás catálogos exigen acceso", () => {
+test("empty distingue curso base y curso con referencia al base", () => {
   assert.equal(
-    canAccessV2Catalog({
-      catalogId: "base",
-      status: "published",
-      hasGrant: false,
-      hasValidStudentKey: false,
-    }),
-    true,
-  );
-
-  assert.equal(
-    canAccessV2Catalog({
-      catalogId: "demo",
-      status: "published",
-      hasGrant: false,
-      hasValidStudentKey: false,
-    }),
-    false,
-  );
-  assert.equal(
-    canAccessV2Catalog({
-      catalogId: "demo",
-      status: "published",
-      hasGrant: false,
-      hasValidStudentKey: true,
-    }),
-    false,
-  );
-  assert.equal(
-    canAccessV2Catalog({
-      catalogId: "demo",
-      status: "published",
-      hasGrant: true,
-      hasValidStudentKey: true,
-    }),
-    true,
-  );
-  for (const status of ["draft", "unpublished"] as const) {
-    assert.equal(
-      canAccessV2Catalog({
-        catalogId: "demo",
-        status,
-        hasGrant: true,
-        hasValidStudentKey: true,
-      }),
-      false,
-    );
-  }
-});
-
-test("empty distingue curso base y curso con referencia al base", () => {  assert.equal(
     computeEmpty({ isBase: true, usesBase: false, ownLessons: 0, baseLessons: 3 }),
     true,
   );

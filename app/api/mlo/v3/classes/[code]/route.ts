@@ -7,6 +7,8 @@ import {
 
 export const dynamic = "force-dynamic";
 
+const NO_STORE = { ...CORS_HEADERS, "Cache-Control": "no-store" };
+
 export async function OPTIONS() {
   return corsPreflight();
 }
@@ -21,11 +23,9 @@ export async function GET(
   if (!preview) {
     return Response.json(
       { error: "not_found", message: "No existe una clase con ese código." },
-      { status: 404, headers: { ...CORS_HEADERS, "Cache-Control": "no-store" } },
+      { status: 404, headers: NO_STORE },
     );
   }
 
-  return Response.json(classPreviewPayload(preview), {
-    headers: { ...CORS_HEADERS, "Cache-Control": "no-store" },
-  });
+  return Response.json(classPreviewPayload(preview), { headers: NO_STORE });
 }

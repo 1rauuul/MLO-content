@@ -29,4 +29,10 @@ test("los límites por IP soportan un aula compartida", () => {
   assert.ok(RATE_LIMITS.studentRegisterIp.limit >= 50);
   assert.ok(RATE_LIMITS.studentLinkIp.limit >= 50);
   assert.ok(RATE_LIMITS.teacherLoginIp.limit >= 50);
+  assert.ok(RATE_LIMITS.classJoinIp.limit >= 40);
+});
+
+test("el join de clase limita 100 peticiones por IP y 100 globales cada 15 minutos", () => {
+  assert.deepEqual(RATE_LIMITS.classJoinIp, { limit: 100, windowMinutes: 15 });
+  assert.deepEqual(RATE_LIMITS.classJoinGlobal, { limit: 100, windowMinutes: 15 });
 });

@@ -346,20 +346,6 @@ export function accessControlEnabled(value: string | undefined): boolean {
   return value === "on";
 }
 
-/**
- * v2 sigue sirviendo el base sin cabecera. Cualquier otro catálogo exige
- * identidad válida, curso publicado y concesión explícita.
- */
-export function canAccessV2Catalog(input: {
-  catalogId: string;
-  status: CourseStatus;
-  hasGrant: boolean;
-  hasValidStudentKey: boolean;
-}): boolean {
-  if (input.catalogId === "base") return true;
-  return input.hasValidStudentKey && input.status === "published" && input.hasGrant;
-}
-
 export function computeEmpty(input: {
   isBase: boolean;
   usesBase: boolean;

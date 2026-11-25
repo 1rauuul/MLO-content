@@ -1,10 +1,8 @@
 import { db } from "../db";
-import { isStudentKey } from "../classes";
 import type { ReleaseV3 } from "./contract-v3";
 import {
   buildAuthorizedCourseList,
   canAccessCourse,
-  canAccessV2Catalog,
   computeEmpty,
   type CourseCandidate,
   type CourseListResponse,
@@ -171,44 +169,4 @@ export async function getAuthorizedManifest(
   const release = row.snapshot?.release;
   if (!release || release.catalogId !== catalogId) return null;
   return release;
-}
-
-/**
- * Guard de las rutas v2 de catálogo. El base queda público sin cabecera; los
- * demás catálogos requieren identidad válida y concesión vigente.
- */
-export async function hasV2CatalogAccess(
-  catalogId: string,
-  studentKey: string | null,
-): Promise<boolean> {
-  if (catalogId === "base") return true;
-
-  const hasValidStudentKey = Boolean(studentKey && isStudentKey(studentKey));
-  if (!hasValidStudentKey) return false;
-
-  const [row] = await db()<
-    { status: string; has_grant: boolean }[]
-  >`
-    select c.status,
-           exists(
-             select 1
-               from course_access ca
-               join students s on s.id = ca.student_id
-              where ca.course_id = c.id
-                and s.external_key = ${studentKey}
-           ) as has_grant
-      from courses c
-     where c.key = ${catalogId}
-       and c.archived_at is null
-       and not c.is_group
-     limit 1`;
-
-  if (!row) return false;
-
-  return canAccessV2Catalog({
-    catalogId,
-    status: row.status as CourseStatus,
-    hasGrant: row.has_grant,
-    hasValidStudentKey,
-  });
 }
