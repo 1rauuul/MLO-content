@@ -287,6 +287,7 @@ Estado al 2026-11-26:
 |---|---|
 | `npm test` | 186 pruebas (descubiertas de `lib/**/*.test.ts`) |
 | `npm run test:db` | 13 pruebas contra la base: rate limit, vinculación, recuperación, importación base y E2E HTTP v3 |
+| `npm run test:e2e` | Build + `next start` real: enrutado, CORS y flujo v3 |
 | `npm run lint` | Sin errores |
 | `npx tsc --noEmit` | Sin errores |
 | `npm run build` | Compila |

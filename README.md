@@ -96,6 +96,7 @@ Verificación rápida:
 ```bash
 npm test        # descubre lib/**/*.test.ts y excluye los *.db.test.ts (186 pruebas)
 npm run test:db # pruebas contra la base: rate limit, vinculación, recuperación, importación y E2E HTTP v3
+npm run test:e2e # build + `next start` real en el puerto 3107: enrutado, CORS y flujo v3
 npm run lint
 npx tsc --noEmit
 npm run build
