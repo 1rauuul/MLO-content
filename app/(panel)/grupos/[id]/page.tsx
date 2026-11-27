@@ -232,7 +232,7 @@ export default async function ClassPage({ params }: { params: Promise<{ id: stri
           )}
           <span className="text-xs text-ink-muted">Curso: {klass.course_title}</span>
           {klass.archived_at && <span className="badge badge-warning">Archivado</span>}
-          <div className="ml-auto flex flex-wrap items-start gap-2">
+          <div className="ml-auto flex flex-wrap items-center gap-2">
             {!klass.archived_at && (
               <PublishClassForm classId={klass.id} joinCode={klass.join_code} />
             )}

@@ -78,7 +78,7 @@ export function InvitationPanel({
         copiar el enlace.
       </p>
 
-      <form action={action} className="mt-4 flex flex-wrap items-start gap-3">
+      <form action={action} className="mt-4 flex flex-wrap items-end gap-3">
         <input type="hidden" name="classId" value={classId} />
         <label className="min-w-0 flex-1 sm:min-w-64">
           <span className="field-label">
