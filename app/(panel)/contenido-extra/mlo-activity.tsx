@@ -132,17 +132,20 @@ function IconButton({
   label,
   onClick,
   children,
+  disabled = false,
 }: {
   label: string;
   onClick?: () => void;
   children: React.ReactNode;
+  disabled?: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="grid size-8 shrink-0 place-items-center rounded-xl border border-[#324050] bg-[#263447] text-[#f4f7fb] transition-colors hover:border-[#4d7cfe]"
+      disabled={disabled}
+      className="grid size-8 shrink-0 place-items-center rounded-xl border border-[#324050] bg-[#263447] text-[#f4f7fb] transition-colors hover:border-[#4d7cfe] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-[#324050]"
     >
       {children}
     </button>
@@ -367,16 +370,24 @@ function MloOrderActivity({
                   className="grid size-6 shrink-0 place-items-center rounded-md font-mono text-[10px] font-bold"
                   style={{ backgroundColor: `${color}24`, color }}
                 >
-                  {String(index + 1).padStart(2, "0")}
+                  {index + 1}
                 </span>
                 <p className="min-w-0 flex-1 text-sm leading-snug text-[#f4f7fb]">
                   {item}
                 </p>
                 <span className="flex shrink-0 gap-1.5">
-                  <IconButton label="Subir" onClick={() => move(index, -1)}>
+                  <IconButton
+                    label="Subir"
+                    onClick={() => move(index, -1)}
+                    disabled={index === 0}
+                  >
                     <ChevronUp />
                   </IconButton>
-                  <IconButton label="Bajar" onClick={() => move(index, 1)}>
+                  <IconButton
+                    label="Bajar"
+                    onClick={() => move(index, 1)}
+                    disabled={index === order.length - 1}
+                  >
                     <ChevronDown />
                   </IconButton>
                 </span>

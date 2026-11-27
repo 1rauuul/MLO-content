@@ -6,6 +6,10 @@ import { redirect } from "next/navigation";
 import { requireEditableCourse, resolveContentTargets, topicScopeForCourse } from "@/lib/access";
 import { requireTeacher } from "@/lib/auth";
 import { db } from "@/lib/db";
+import {
+  EVALUATION_EXERCISE_COUNT,
+  EVALUATION_QUESTION_COUNT,
+} from "@/lib/content/evaluation-policy";
 import { parseQuestionInput } from "@/lib/content/validate";
 
 export type TopicResult = { error?: string; ok?: boolean; evaluationId?: string };
@@ -77,7 +81,7 @@ export async function createEvaluation(
           values
             (${target.course.id}, ${null}, ${target.topicId},
              ${nextId("ev", ids.map((row) => row.content_id))}, ${title}, ${description},
-             1, 0, ${next.position})
+             ${EVALUATION_QUESTION_COUNT}, ${EVALUATION_EXERCISE_COUNT}, ${next.position})
           returning id`;
         if (!firstEvaluationId) firstEvaluationId = created.id;
       }
@@ -136,13 +140,16 @@ export async function updateEvaluation(
   if (available.length !== requested.length) {
     return { error: "Algún ejercicio no pertenece al subtema." };
   }
+  if (available.length < EVALUATION_EXERCISE_COUNT) {
+    return { error: `Selecciona al menos ${EVALUATION_EXERCISE_COUNT} ejercicios para la evaluación.` };
+  }
 
   await db().begin(async (tx) => {
     await tx`
       update evaluations
          set title = ${title},
              description = ${description},
-             exercise_count = ${available.length}
+             exercise_count = ${EVALUATION_EXERCISE_COUNT}
        where id = ${evaluation.id}`;
     await tx`delete from evaluation_exercises where evaluation_id = ${evaluation.id}`;
     for (const exercise of available) {
@@ -212,10 +219,8 @@ export async function saveQuestion(
            ${input.explanation}, ${next.position})`;
     }
 
-    const [count] = await db()<{ count: number }[]>`
-      select count(*)::int as count from questions where evaluation_id = ${evaluation.id}`;
     await db()`update evaluations
-        set question_count = ${Math.max(1, count.count)}
+        set question_count = ${EVALUATION_QUESTION_COUNT}
       where id = ${evaluation.id}`;
   } catch (error) {
     return {
@@ -244,10 +249,8 @@ export async function deleteQuestion(formData: FormData): Promise<void> {
      where content_id = ${questionId}
        and evaluation_id = ${evaluationId}
        and course_id = ${scope.course.id}`;
-  const [count] = await db()<{ count: number }[]>`
-    select count(*)::int as count from questions where evaluation_id = ${evaluationId}`;
   await db()`update evaluations
-      set question_count = ${Math.max(1, count.count)}
+      set question_count = ${EVALUATION_QUESTION_COUNT}
     where id = ${evaluationId}`;
   refreshTopic(scope.course.id, scope.topic.id);
 }

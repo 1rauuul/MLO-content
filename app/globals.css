@@ -644,6 +644,26 @@
   box-shadow: none;
 }
 
+.preview-frame.mlo-preview {
+  border-color: #324050;
+  background: #10151d;
+  box-shadow: 0 18px 50px -24px rgb(16 21 29 / 0.72);
+}
+
+.mlo-preview .preview-frame-top {
+  border-color: #324050;
+  background: #172033;
+  color: #9cabbc;
+}
+
+.mlo-preview .preview-dot {
+  background: #4d7cfe;
+}
+
+.mlo-preview .preview-screen {
+  background: #10151d;
+}
+
 .mlo-preview .text-ink,
 .mlo-preview .preview-title,
 .mlo-preview .preview-prose h2,
@@ -665,6 +685,16 @@
 .mlo-preview .preview-match-row,
 .mlo-preview .preview-option {
   color: #9cabbc;
+}
+
+.mlo-preview .preview-option {
+  border-color: #324050;
+  background: #263447;
+}
+
+.mlo-preview .preview-option:has(input:checked) {
+  border-color: #4d7cfe;
+  color: #f4f7fb;
 }
 
 .mlo-preview .text-ink-faint {

@@ -1,5 +1,6 @@
 import { parseBlocks, type ContentBlock } from "@/lib/content";
 import type { ExerciseConfig, MatchPair } from "./model";
+export { evaluationComposition } from "./evaluation-policy";
 
 export type PreviewResult = { correct: boolean; message: string };
 
@@ -100,19 +101,6 @@ export function checkMcq(
   return {
     correct: ok,
     message: ok ? "¡Correcto!" : "Elige la opción correcta.",
-  };
-}
-
-export function evaluationComposition(exerciseIds: string[]): {
-  kind: "questions" | "mixed";
-  label: string;
-} {
-  if (exerciseIds.length === 0) {
-    return { kind: "questions", label: "Solo preguntas" };
-  }
-  return {
-    kind: "mixed",
-    label: `${exerciseIds.length} ${exerciseIds.length === 1 ? "ejercicio" : "ejercicios"}`,
   };
 }
 

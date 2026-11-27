@@ -69,18 +69,21 @@ test("mcq exige índice válido y opción seleccionada", () => {
   assert.equal(checkMcq(["A", "B"], 2, 2).correct, false);
 });
 
-test("evaluación solo de preguntas o mixta", () => {
+test("la composición comunica el banco y el cupo de ejercicios", () => {
   assert.deepEqual(evaluationComposition([]), {
-    kind: "questions",
-    label: "Solo preguntas",
+    kind: "mixed",
+    label: "0 ejercicios disponibles · se seleccionan 5",
+    isReady: false,
   });
   assert.deepEqual(evaluationComposition(["a"]), {
     kind: "mixed",
-    label: "1 ejercicio",
+    label: "1 ejercicio disponible · se seleccionan 5",
+    isReady: false,
   });
-  assert.deepEqual(evaluationComposition(["a", "b"]), {
+  assert.deepEqual(evaluationComposition(["a", "b", "c", "d", "e"]), {
     kind: "mixed",
-    label: "2 ejercicios",
+    label: "5 ejercicios disponibles · se seleccionan 5",
+    isReady: true,
   });
 });
 

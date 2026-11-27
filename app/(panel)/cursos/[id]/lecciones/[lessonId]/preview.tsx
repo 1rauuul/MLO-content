@@ -28,6 +28,8 @@ import {
   type PreviewResult,
 } from "@/lib/content/preview";
 
+import { MloExerciseActivity } from "../../../../contenido-extra/mlo-activity";
+
 import { Marker } from "./fields";
 
 const TYPE_LABEL: Record<ActivityType, string> = {
@@ -106,6 +108,20 @@ type ActivityRunnerProps = {
 function ActivityRunner(props: ActivityRunnerProps) {
   // La firma remonta el estado interactivo solo cuando cambia el borrador
   // relevante; escribir el enunciado no reinicia la interacción.
+  if (props.type !== "mcq") {
+    return (
+      <MloExerciseActivity
+        key={previewActivitySignature(props)}
+        type={props.type}
+        prompt=""
+        instructions=""
+        correctOrder={props.correctOrder}
+        config={props.config}
+        explanation=""
+      />
+    );
+  }
+
   return (
     <ActivityRunnerState
       key={previewActivitySignature(props)}

@@ -214,7 +214,7 @@ test("la publicación rechaza preguntas mcq y bloques inválidos", () => {
   assert.throws(() => validateCatalogForPublish(brokenBlock));
 });
 
-test("la publicación acepta evaluaciones solo de preguntas", () => {
+test("la publicación exige una evaluación de 10 preguntas y 5 ejercicios", () => {
   assert.ok(fixture.evaluations.length > 0);
   const pure: CoreCourse = {
     ...fixture,
@@ -222,7 +222,10 @@ test("la publicación acepta evaluaciones solo de preguntas", () => {
       index === 0 ? { ...evaluation, exercise_count: 0 } : evaluation,
     ),
   };
-  assert.doesNotThrow(() => validateCatalogForPublish(pure));
+  assert.throws(
+    () => validateCatalogForPublish(pure),
+    /debe configurarse con 10 preguntas y 5 ejercicios/,
+  );
 
   const invalid: CoreCourse = {
     ...fixture,
@@ -230,7 +233,27 @@ test("la publicación acepta evaluaciones solo de preguntas", () => {
       index === 0 ? { ...evaluation, exercise_count: -1 } : evaluation,
     ),
   };
-  assert.throws(() => validateCatalogForPublish(invalid));
+  assert.throws(
+    () => validateCatalogForPublish(invalid),
+    /debe configurarse con 10 preguntas y 5 ejercicios/,
+  );
+});
+
+test("la publicación no acepta una selección de ejercicios menor que el cupo declarado", () => {
+  const evaluation = fixture.evaluations[0];
+  const incomplete: CoreCourse = {
+    ...fixture,
+    evaluations: fixture.evaluations.map((item) =>
+      item.content_id === evaluation.content_id
+        ? { ...item, exercise_content_ids: [fixture.exercises[0]!.content_id] }
+        : item,
+    ),
+  };
+
+  assert.throws(
+    () => validateCatalogForPublish(incomplete),
+    /requiere al menos 5 ejercicios/,
+  );
 });
 
 test("la publicación rechaza una evaluación sin preguntas", () => {

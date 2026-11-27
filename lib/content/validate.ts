@@ -1,4 +1,8 @@
 import { isImageMime, youtubeVideoId } from "./media";
+import {
+  EVALUATION_EXERCISE_COUNT,
+  EVALUATION_QUESTION_COUNT,
+} from "./evaluation-policy";
 import type {
   ActivityType,
   CoreCourse,
@@ -592,6 +596,19 @@ export function validateCatalogForPublish(course: CoreCourse): void {
   const evaluationsWithQuestions = new Set(
     course.questions.map((question) => question.evaluation_content_id),
   );
+  const questionsByEvaluation = new Map<string, CoreCourse["questions"]>();
+  for (const question of course.questions) {
+    const questions = questionsByEvaluation.get(question.evaluation_content_id) ?? [];
+    questions.push(question);
+    questionsByEvaluation.set(question.evaluation_content_id, questions);
+  }
+  const exercisesById = new Map(course.exercises.map((exercise) => [exercise.content_id, exercise]));
+  const exercisesByLesson = new Map<string, CoreCourse["exercises"]>();
+  for (const exercise of course.exercises) {
+    const exercises = exercisesByLesson.get(exercise.lesson_content_id) ?? [];
+    exercises.push(exercise);
+    exercisesByLesson.set(exercise.lesson_content_id, exercises);
+  }
   for (const evaluation of course.evaluations) {
     if (!evaluationsWithQuestions.has(evaluation.content_id)) {
       throw new Error(
@@ -599,12 +616,36 @@ export function validateCatalogForPublish(course: CoreCourse): void {
       );
     }
     if (
-      !Number.isInteger(evaluation.question_count) ||
-      evaluation.question_count <= 0 ||
-      !Number.isInteger(evaluation.exercise_count) ||
-      evaluation.exercise_count < 0
+      evaluation.question_count !== EVALUATION_QUESTION_COUNT ||
+      evaluation.exercise_count !== EVALUATION_EXERCISE_COUNT
     ) {
-      throw new Error(`Evaluación ${evaluation.content_id}: cantidades inválidas.`);
+      throw new Error(
+        `Evaluación ${evaluation.content_id}: debe configurarse con ${EVALUATION_QUESTION_COUNT} preguntas y ${EVALUATION_EXERCISE_COUNT} ejercicios.`,
+      );
+    }
+    const questions = questionsByEvaluation.get(evaluation.content_id) ?? [];
+    if (questions.length < evaluation.question_count) {
+      throw new Error(
+        `Evaluación ${evaluation.content_id}: requiere al menos ${evaluation.question_count} preguntas.`,
+      );
+    }
+    const selectedIds = evaluation.exercise_content_ids ?? [];
+    if (new Set(selectedIds).size !== selectedIds.length) {
+      throw new Error(`Evaluación ${evaluation.content_id}: contiene ejercicios repetidos.`);
+    }
+    const candidates = selectedIds.length
+      ? selectedIds.map((id) => {
+          const exercise = exercisesById.get(id);
+          if (!exercise || exercise.lesson_content_id !== evaluation.lesson_content_id) {
+            throw new Error(`Evaluación ${evaluation.content_id}: ejercicio inexistente (${id}).`);
+          }
+          return exercise;
+        })
+      : exercisesByLesson.get(evaluation.lesson_content_id) ?? [];
+    if (candidates.length < evaluation.exercise_count) {
+      throw new Error(
+        `Evaluación ${evaluation.content_id}: requiere al menos ${evaluation.exercise_count} ejercicios.`,
+      );
     }
   }
 

@@ -49,8 +49,7 @@ export default async function MisCursosPage() {
         <div className="flex-1">
           <h1 className="page-title">Mis cursos</h1>
           <p className="page-lead">
-            El contenido base es compartido. Lo que agregues se publica en tu propio
-            curso.
+            La creación de un curso puede realizarse a partir del contenido base o puedes crearlo desde cero.
           </p>
         </div>
         <Link href="/mis-cursos/crear" className="btn btn-primary">

@@ -28,7 +28,7 @@ export function NavLinks({ isAdmin }: { isAdmin: boolean }) {
 
   return (
     <nav
-      className="order-3 -mx-1 flex w-full flex-nowrap items-center gap-1 overflow-x-auto px-1 sm:order-2 sm:mx-0 sm:w-auto sm:flex-wrap sm:overflow-visible"
+      className="order-3 -mx-1 flex w-full flex-wrap items-center gap-1 px-1 sm:order-2 sm:mx-0 sm:w-auto sm:flex-nowrap"
       aria-label="Secciones"
     >
       {LINKS.filter((link) => !link.adminOnly || isAdmin).map((link) => {

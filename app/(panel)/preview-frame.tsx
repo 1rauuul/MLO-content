@@ -6,7 +6,7 @@ export function PreviewFrame({
   label?: string;
 }) {
   return (
-    <div className="preview-frame">
+    <div className="preview-frame mlo-preview">
       <div className="preview-frame-top">
         <span className="preview-dot" />
         <span>{label}</span>

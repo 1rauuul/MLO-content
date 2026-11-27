@@ -3,7 +3,11 @@
 import { useActionState, useState } from "react";
 
 import { updateEvaluation, type TopicResult } from "@/lib/actions/topics";
-import { evaluationComposition } from "@/lib/content/preview";
+import {
+  EVALUATION_EXERCISE_COUNT,
+  EVALUATION_QUESTION_COUNT,
+  evaluationComposition,
+} from "@/lib/content/evaluation-policy";
 import { PreviewFrame } from "@/app/(panel)/preview-frame";
 import { RequiredMark } from "@/app/(panel)/required-mark";
 
@@ -30,6 +34,7 @@ export function EvaluationEditForm({
   const [description, setDescription] = useState(evaluation.description);
   const [exerciseIds, setExerciseIds] = useState(selected);
   const composition = evaluationComposition(exerciseIds);
+  const questionBankReady = questionCount >= EVALUATION_QUESTION_COUNT;
 
   function toggle(contentId: string, checked: boolean) {
     setExerciseIds((current) =>
@@ -76,10 +81,10 @@ export function EvaluationEditForm({
 
         <fieldset className="space-y-2 rounded-xl border border-line p-4">
           <legend className="px-1 text-sm font-medium text-ink-soft">
-            Ejercicios de esta evaluación
+            Banco de ejercicios para la evaluación
           </legend>
           <p className="text-xs text-ink-muted">
-            Puedes no marcar ninguno: la evaluación será solo de preguntas.
+            Elige al menos {EVALUATION_EXERCISE_COUNT}. MLO seleccionará cinco sin repetir en cada intento.
           </p>
           {exercises.length === 0 ? (
             <p className="text-sm text-ink-muted">El subtema todavía no tiene ejercicios.</p>
@@ -103,6 +108,12 @@ export function EvaluationEditForm({
           )}
         </fieldset>
 
+        {!composition.isReady && (
+          <p className="form-error" role="status">
+            Agrega al menos {EVALUATION_EXERCISE_COUNT} ejercicios al banco para publicar una evaluación de 15 reactivos.
+          </p>
+        )}
+
         {title.trim() === "" && (
           <p id="evaluation-title-error" className="form-error" role="status">
             El título es obligatorio para guardar y publicar la evaluación.
@@ -110,7 +121,7 @@ export function EvaluationEditForm({
         )}
 
         <div className="flex items-center gap-3">
-          <button type="submit" disabled={pending} className="btn btn-primary btn-sm">
+          <button type="submit" disabled={pending || !composition.isReady} className="btn btn-primary btn-sm">
             {pending ? "Guardando…" : "Guardar evaluación"}
           </button>
           {state.error && <p id="evaluation-edit-error" className="form-error" role="alert">{state.error}</p>}
@@ -125,11 +136,7 @@ export function EvaluationEditForm({
             <h1 className="preview-title">{title || "Título de la evaluación"}</h1>
             {description && <p className="preview-body">{description}</p>}
             <p className="preview-composition">{composition.label}</p>
-            {exerciseIds.length === 0 ? (
-              <p className="preview-empty">
-                Solo preguntas: no se incluirán ejercicios en esta evaluación.
-              </p>
-            ) : (
+            {exerciseIds.length > 0 && (
               <ul className="preview-prose">
                 {exercises
                   .filter((exercise) => exerciseIds.includes(exercise.content_id))
@@ -138,10 +145,10 @@ export function EvaluationEditForm({
                   ))}
               </ul>
             )}
-            <p className="preview-note">
-              {questionCount === 1
-                ? "1 pregunta publicada"
-                : `${questionCount} preguntas publicadas`}
+            <p className={questionBankReady ? "preview-note" : "form-error"}>
+              {questionBankReady
+                ? `${questionCount} preguntas disponibles · MLO seleccionará ${EVALUATION_QUESTION_COUNT}`
+                : `Faltan ${EVALUATION_QUESTION_COUNT - questionCount} preguntas para completar el banco de 10.`}
             </p>
           </article>
         </PreviewFrame>
