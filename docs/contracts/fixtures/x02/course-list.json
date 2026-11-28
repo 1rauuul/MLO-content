@@ -4,6 +4,8 @@
     {
       "catalogId": "base",
       "title": "Ingeniería de Software",
+      "level": "Fundamental",
+      "icon": "code",
       "status": "published",
       "usesBase": false,
       "version": 7,
@@ -14,6 +16,8 @@
     {
       "catalogId": "demo",
       "title": "Curso vacío (demo)",
+      "level": "Fundamental",
+      "icon": "code",
       "status": "published",
       "usesBase": false,
       "version": 1,

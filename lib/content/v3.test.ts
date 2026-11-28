@@ -21,6 +21,8 @@ function candidate(overrides: Partial<CourseCandidate>): CourseCandidate {
   return {
     catalogId: "demo",
     title: "Curso",
+    level: "Fundamental",
+    icon: "code",
     status: "published",
     usesBase: false,
     isBase: false,

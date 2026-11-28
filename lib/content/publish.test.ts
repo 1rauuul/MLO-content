@@ -7,11 +7,36 @@ import { buildManifest, composeCatalog, releaseHash } from "./compose";
 import { validateRelease } from "./contract-v3";
 import { canonicalJson, hashValue } from "./hash";
 import type { CoreCourse, CoreLesson } from "./model";
-import { buildEmptyV3Release, nextReleaseVersion, resolveBaseRef, sourceCourseIds } from "./v3";
+import { buildEmptyV3Release, buildV3Release, nextReleaseVersion, resolveBaseRef, sourceCourseIds } from "./v3";
 
 const fixture = JSON.parse(
   readFileSync(join(process.cwd(), "scripts/fixtures/base-course.json"), "utf8"),
 ) as CoreCourse;
+
+test("el release conserva la descripción del curso y la incluye en el hash de sincronización", () => {
+  const source: CoreCourse = {
+    schemaVersion: 2,
+    title: "Bases de Datos",
+    units: [], topics: [], lessons: [], evaluations: [], questions: [], examples: [], exercises: [],
+  };
+  const input = {
+    catalogId: "base",
+    courseId: "course-description",
+    version: 1,
+    publishedAt: "2026-11-27T00:00:00.000Z",
+    title: "Bases de Datos",
+    description: "Fundamentos de bases de datos relacionales y SQL.",
+    baseRef: null,
+    course: source,
+  };
+  const release = buildV3Release(input);
+  const withoutDescription = buildV3Release({ ...input, description: "" });
+
+  assert.equal((release.course as { description: string }).description, input.description);
+  assert.notEqual(release.hash, withoutDescription.hash);
+  const checked = validateRelease(release);
+  if (!checked.ok) assert.fail(checked.error);
+});
 
 test("el JSON canónico ignora el orden de las claves", () => {
   assert.equal(canonicalJson({ b: 1, a: 2 }), canonicalJson({ a: 2, b: 1 }));

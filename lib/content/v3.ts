@@ -304,6 +304,8 @@ export function buildEmptyV3Release(input: EmptyReleaseInput): ReleaseV3 {
 export type CourseListEntry = {
   catalogId: string;
   title: string;
+  level: string;
+  icon: string;
   status: "published";
   usesBase: boolean;
   version: number;
@@ -320,6 +322,8 @@ export type CourseListResponse = {
 export type CourseCandidate = {
   catalogId: string;
   title: string;
+  level: string;
+  icon: string;
   status: CourseStatus;
   usesBase: boolean;
   isBase: boolean;
@@ -379,6 +383,8 @@ export function buildAuthorizedCourseList(
     courses.push({
       catalogId: candidate.catalogId,
       title: candidate.title,
+      level: candidate.level,
+      icon: candidate.icon,
       status: "published",
       usesBase: candidate.usesBase,
       version: candidate.version,

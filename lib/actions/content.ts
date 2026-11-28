@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { getBaseCourseId, requireEditableCourse, resolveContentTargets } from "@/lib/access";
 import { requireTeacher } from "@/lib/auth";
 import { courseDescriptionError, parseBlocks } from "@/lib/content";
+import { DEFAULT_COURSE_ICON, isCourseIcon } from "@/lib/content/course-icons";
 import { publishCourse } from "@/lib/content/publish";
 import { UNIT_COLORS } from "@/lib/content/unit-colors";
 import { editorCourseIds } from "@/lib/content/x03";
@@ -23,6 +24,7 @@ export async function createCourse(
   const title = String(formData.get("title") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
   const level = String(formData.get("level") ?? "Fundamental");
+  const icon = String(formData.get("icon") ?? DEFAULT_COURSE_ICON);
   const usesBase = formData.get("usesBase") === "on";
 
   if (title.length < 3) return { error: "Escribe un título de al menos 3 caracteres." };
@@ -32,13 +34,16 @@ export async function createCourse(
   if (!["Fundamental", "Intermedio", "Avanzado"].includes(level)) {
     return { error: "Elige un nivel válido." };
   }
+  if (!isCourseIcon(icon)) {
+    return { error: "Elige un icono válido." };
+  }
 
   let courseId: string | null = null;
   for (let attempt = 0; attempt < 5 && !courseId; attempt += 1) {
     try {
       const rows = await db()<{ id: string }[]>`
-        insert into courses (key, title, description, level, owner_id, uses_base, status)
-        values (${newCourseKey()}, ${title}, ${description}, ${level}, ${teacher.id}, ${usesBase}, 'draft')
+        insert into courses (key, title, description, level, icon, owner_id, uses_base, status)
+        values (${newCourseKey()}, ${title}, ${description}, ${level}, ${icon}, ${teacher.id}, ${usesBase}, 'draft')
         returning id`;
       courseId = rows[0].id;
     } catch (error) {

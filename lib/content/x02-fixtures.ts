@@ -30,6 +30,8 @@ export function buildX02Fixtures(): {
     {
       catalogId: "base",
       title: "Ingeniería de Software",
+      level: "Fundamental",
+      icon: "code",
       status: "published",
       usesBase: false,
       isBase: true,
@@ -42,6 +44,8 @@ export function buildX02Fixtures(): {
     {
       catalogId: "demo",
       title: "Curso vacío (demo)",
+      level: "Fundamental",
+      icon: "code",
       status: "published",
       usesBase: false,
       isBase: false,

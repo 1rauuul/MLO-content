@@ -837,6 +837,8 @@ tiene acceso:
     {
       "catalogId": "base",
       "title": "Ingeniería de Software",
+      "level": "Fundamental",
+      "icon": "code",
       "status": "published",
       "usesBase": false,
       "version": 7,
@@ -849,6 +851,9 @@ tiene acceso:
 ```
 
 - `version` y `hash` salen de la última `releases_v3`.
+- `level` es el nivel editorial del curso (`Fundamental`, `Intermedio` o `Avanzado`).
+- `icon` es la clave del icono elegido en el CMS; es un valor abierto y MLO debe
+  usar un fallback cuando no lo reconozca.
 - Para el base sin v3 se usan los metadatos de su última release v2.
 - `empty` es `true` si el curso no tiene lecciones activas propias y, cuando
   `usesBase` es `true`, tampoco hay lecciones activas del base. El base se mide

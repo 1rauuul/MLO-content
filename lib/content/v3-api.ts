@@ -12,6 +12,8 @@ import {
 type CourseRow = {
   key: string;
   title: string;
+  level: string;
+  icon: string;
   status: string;
   uses_base: boolean;
   is_base: boolean;
@@ -39,7 +41,7 @@ export async function listAuthorizedCourses(
   accessControlOn: boolean,
 ): Promise<CourseListResponse> {
   const rows = await db()<CourseRow[]>`
-    select c.key, c.title, c.status, c.uses_base, c.is_base,
+    select c.key, c.title, c.level, c.icon, c.status, c.uses_base, c.is_base,
            (select count(*)::int
               from lessons l
              where l.course_id = c.id and l.archived_at is null) as own_lessons,
@@ -99,6 +101,8 @@ export async function listAuthorizedCourses(
     return {
       catalogId: row.key,
       title: row.title,
+      level: row.level,
+      icon: row.icon,
       status: row.status as CourseStatus,
       usesBase: row.uses_base,
       isBase: row.is_base,

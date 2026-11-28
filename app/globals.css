@@ -705,6 +705,14 @@
   background: #263447;
 }
 
+.mlo-preview .bg-surface {
+  background: #1e2835;
+}
+
+.mlo-preview .border-line {
+  border-color: #324050;
+}
+
 .mlo-preview .eyebrow,
 .mlo-preview .preview-eyebrow {
   color: #4d7cfe;

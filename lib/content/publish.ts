@@ -36,12 +36,13 @@ export async function publishCourse(teacher: Teacher, course: Course): Promise<P
       {
         key: string;
         title: string;
+        description: string;
         uses_base: boolean;
         is_base: boolean;
         is_group: boolean;
         archived_at: Date | null;
       }[]
-    >`select key, title, uses_base, is_base, is_group, archived_at
+    >`select key, title, description, uses_base, is_base, is_group, archived_at
         from courses where id = ${course.id} for update`;
     if (!current) throw new Error("El curso no existe.");
     assertPublishableCourse(current);
@@ -339,7 +340,7 @@ export async function publishCourse(teacher: Teacher, course: Course): Promise<P
       version,
       publishedAt,
       title: current.title,
-      description: "",
+      description: current.description,
       baseRef,
       course: v3Source,
     });

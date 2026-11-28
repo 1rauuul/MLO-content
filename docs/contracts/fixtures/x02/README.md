@@ -15,7 +15,7 @@ Fixtures de productor para la API de descubrimiento v3. Se generan con
 
 | Archivo | Propósito | SHA-256 |
 |---|---|---|
-| `course-list.json` | Respuesta de `GET /api/mlo/v3/courses` con el base y un curso vacío autorizado | `1cd49563defad51f900b709a5154be3c9d89957fa2a7ab4a54768b2a61cbd6f6` |
+| `course-list.json` | Respuesta de `GET /api/mlo/v3/courses` con el base y un curso vacío autorizado | `dea78975a1b3e9c3b7bc6d1b458f37a98b337f9b4afba12241759ab7852ed7bf` |
 | `manifest-empty.json` | Release v3 metadata-completo con colecciones vacías (`snapshot.release` del manifiesto) | `016248a4ed7b8d5d77aa42889a12ce21cd808c6412518af3092fdad1008b8729` |
 
 ## Uso desde MLO

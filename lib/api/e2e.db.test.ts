@@ -90,11 +90,13 @@ test("flujo HTTP v3: preview, join, release, cursos y manifest", async () => {
     );
     assert.equal(coursesResponse.status, 200);
     const courses = (await coursesResponse.json()) as {
-      courses: { catalogId: string; version: number }[];
+      courses: { catalogId: string; version: number; level: string; icon: string }[];
     };
     const listed = courses.courses.find((item) => item.catalogId === fixture.courseKey);
     assert.ok(listed, "el curso del grupo debe aparecer en /courses");
     assert.equal(listed.version, 1);
+    assert.equal(listed.level, "Fundamental");
+    assert.equal(listed.icon, "code");
 
     const manifestResponse = await courseManifest(
       request(`${baseUrl}/catalogs/${fixture.courseKey}/manifest`, {
